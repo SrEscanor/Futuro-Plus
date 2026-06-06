@@ -1,38 +1,38 @@
 # IntelliJ/Android Studio
-mobile/.idea
-mobile/.DS_Store
-mobile/*.iml
-mobile/.kotlin
-mobile/captures
-mobile/.externalNativeBuild
-mobile/.cxx
-mobile/local.properties
+.idea
+.DS_Store
+*.iml
+.kotlin
+captures
+.externalNativeBuild
+.cxx
+local.properties
 
 # Gradle
-mobile/.gradle
-mobile/**/build/
-!mobile/src/**/build/
+.gradle
+**/build/
+!src/**/build/
 
 # Firebase (Sensitive Files - DO NOT COMMIT)
-mobile/androidApp/google-services.json
-mobile/iosApp/iosApp/GoogleService-Info.plist
+androidApp/google-services.json
+iosApp/iosApp/GoogleService-Info.plist
 
 # Kotlin Multiplatform / iOS
-mobile/**/*.kexe
-mobile/**/*.klib
-mobile/**/*.konan
-mobile/**/iosApp/Pods/
-mobile/**/iosApp/.swiftpm/
-mobile/.konan/
-mobile/xcuserdata
-mobile/*.xcodeproj/*
-!mobile/*.xcodeproj/project.pbxproj
-!mobile/*.xcodeproj/xcshareddata/
-!mobile/*.xcodeproj/project.xcworkspace/
-!mobile/*.xcworkspace/contents.xcworkspacedata
-mobile/**/xcshareddata/WorkspaceSettings.xcsettings
+**/*.kexe
+**/*.klib
+**/*.konan
+**/iosApp/Pods/
+**/iosApp/.swiftpm/
+.konan/
+xcuserdata
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcodeproj/project.xcworkspace/
+!*.xcworkspace/contents.xcworkspacedata
+**/xcshareddata/WorkspaceSettings.xcsettings
 
 # Others
-mobile/node_modules/
+node_modules/
 web/node_modules/
 .DS_Store
