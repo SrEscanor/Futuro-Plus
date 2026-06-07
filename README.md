@@ -1,31 +1,53 @@
-This is a Kotlin Multiplatform project targeting Android, iOS.
+# FuturoPlus 🚀
 
-* [/iosApp](./iosApp/iosApp) contains an iOS application. Even if you’re sharing your UI with Compose Multiplatform,
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+O **FuturoPlus** é um aplicativo educacional desenvolvido em **Kotlin Multiplatform (KMP)** e **Compose Multiplatform**, focado em ajudar usuários a alcançarem seu potencial máximo. O projeto utiliza uma única base de código para as plataformas **Android** e **iOS**, garantindo consistência visual e lógica.
 
-* [/shared](./shared/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./shared/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./shared/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./shared/src/jvmMain/kotlin)
-    folder is the appropriate location.
+## 🛠️ Tecnologias Utilizadas
 
-### Running the apps
+- **Kotlin Multiplatform (KMP):** Compartilhamento de lógica de negócio entre plataformas.
+- **Compose Multiplatform:** UI declarativa compartilhada para Android e iOS.
+- **Firebase Authentication:** Sistema de login e cadastro seguro.
+- **Firebase Firestore:** (Em implementação) Banco de dados em tempo real.
+- **GitLive Firebase SDK:** Integração do Firebase nativa para KMP.
 
-Use the run configurations provided by the run widget in your IDE's toolbar. You can also use these commands and options:
+## 📱 Funcionalidades Implementadas
 
-- Android app: `./gradlew :androidApp:assembleDebug`
-- iOS app: open the [/iosApp](./iosApp) directory in Xcode and run it from there.
+- [x] **Tela de Login:** Interface moderna com validação e tratamento de erros amigáveis.
+- [x] **Tela de Cadastro:** Fluxo de criação de conta integrado ao Firebase.
+- [x] **Main Screen:** Dashboard personalizado com:
+  - Saudação dinâmica.
+  - Barra de progresso do perfil.
+  - Cards de cursos recomendados.
+  - Navigation Bar customizada em formato de "pílula".
+- [x] **Navegação:** Fluxo completo entre Login, Cadastro e Home.
+- [x] **Suporte Multiplataforma:** Configuração completa para rodar no Android (Gradle) e iOS (Xcode/SPM).
 
-### Running tests
+## 🚀 Como Rodar o Projeto
 
-Use the run button in your IDE's editor gutter, or run tests using Gradle tasks:
+### Pré-requisitos
+- Android Studio Ladybug ou superior.
+- Xcode 15+ (para rodar no iOS).
+- Java 11 ou superior.
 
-- Android tests: `./gradlew :shared:testAndroidHostTest`
-- iOS tests: `./gradlew :shared:iosSimulatorArm64Test`
+### Android
+1. Certifique-se de ter o arquivo `google-services.json` em `androidApp/`.
+2. Selecione a configuração `androidApp` no Android Studio e clique em **Run**.
+
+### iOS
+1. Certifique-se de ter o arquivo `GoogleService-Info.plist` em `iosApp/`.
+2. Abra a pasta `iosApp` no Xcode.
+3. Adicione as dependências do Firebase via Swift Package Manager (SPM).
+4. Clique em **Play**.
 
 ---
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+## 📂 Estrutura do Projeto
+
+- `androidApp/`: Código específico da plataforma Android.
+- `iosApp/`: Projeto Xcode e código Swift para iOS.
+- `shared/`: O "cérebro" do app. Contém a UI em Compose e toda a lógica do Firebase.
+  - `commonMain/`: Código compartilhado por todas as plataformas.
+  - `androidMain/` & `iosMain/`: Implementações específicas para Android e iOS.
+
+---
+Desenvolvido com ❤️ por Mateus Silva Mendes.
