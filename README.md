@@ -1,53 +1,48 @@
 # FuturoPlus 🚀
 
-O **FuturoPlus** é um aplicativo educacional desenvolvido em **Kotlin Multiplatform (KMP)** e **Compose Multiplatform**, focado em ajudar usuários a alcançarem seu potencial máximo. O projeto utiliza uma única base de código para as plataformas **Android** e **iOS**, garantindo consistência visual e lógica.
+O **FuturoPlus** é uma plataforma inteligente de gestão de carreira e qualificação profissional. Ele funciona como uma carteira digital e um guia de estudos personalizado, ajudando o usuário a documentar suas conquistas e planejar seus próximos passos no mercado de trabalho.
+
+Desenvolvido com **Kotlin Multiplatform (KMP)** e **Compose Multiplatform**, o projeto oferece uma experiência fluida e nativa tanto no **Android** quanto no **iOS** a partir de uma única base de código.
+
+## 🌟 Como Funciona
+
+- **Guarde seus Diplomas:** O usuário centraliza e valida todos os seus certificados, diplomas e cursos já realizados em um único ambiente digital seguro.
+- **Escolha seu Objetivo:** O usuário define a profissão ou a área de atuação onde deseja crescer ou fazer uma transição de carreira.
+- **Descubra o Caminho:** O app analisa o perfil atual do usuário, identifica as habilidades que faltam e recomenda os melhores cursos disponíveis no mercado para aquela área específica.
+
+## 🚀 Diferencial Competitivo
+
+Em vez de apenas listar cursos genéricos, o **FuturoPlus** cruza os diplomas que o usuário já possui com as exigências do mercado, criando um cronograma de estudos sob medida, eficiente e focado em empregabilidade.
+
+---
 
 ## 🛠️ Tecnologias Utilizadas
 
-- **Kotlin Multiplatform (KMP):** Compartilhamento de lógica de negócio entre plataformas.
-- **Compose Multiplatform:** UI declarativa compartilhada para Android e iOS.
-- **Firebase Authentication:** Sistema de login e cadastro seguro.
-- **Firebase Firestore:** (Em implementação) Banco de dados em tempo real.
-- **GitLive Firebase SDK:** Integração do Firebase nativa para KMP.
+- **Kotlin Multiplatform (KMP):** Compartilhamento de lógica de negócio e modelos de dados.
+- **Compose Multiplatform:** Interface de usuário declarativa compartilhada.
+- **Firebase Authentication:** Gestão de identidade e acesso seguro.
+- **Firebase Firestore:** (Em implementação) Armazenamento de certificados e trilhas de estudo.
+- **GitLive Firebase SDK:** Integração multiplataforma para os serviços Firebase.
 
-## 📱 Funcionalidades Implementadas
+## 📱 Status das Funcionalidades
 
-- [x] **Tela de Login:** Interface moderna com validação e tratamento de erros amigáveis.
-- [x] **Tela de Cadastro:** Fluxo de criação de conta integrado ao Firebase.
-- [x] **Main Screen:** Dashboard personalizado com:
-  - Saudação dinâmica.
-  - Barra de progresso do perfil.
-  - Cards de cursos recomendados.
-  - Navigation Bar customizada em formato de "pílula".
-- [x] **Navegação:** Fluxo completo entre Login, Cadastro e Home.
-- [x] **Suporte Multiplataforma:** Configuração completa para rodar no Android (Gradle) e iOS (Xcode/SPM).
+- [x] **Autenticação:** Fluxo completo de Login e Cadastro integrado ao Firebase.
+- [x] **Dashboard Principal:** Interface moderna com progresso de perfil e recomendações.
+- [x] **Arquitetura Multiplataforma:** Estrutura pronta para escala em Android e iOS.
+- [x] **UI Customizada:** Componentes visuais personalizados seguindo o design do projeto.
+
+---
 
 ## 🚀 Como Rodar o Projeto
 
-### Pré-requisitos
-- Android Studio Ladybug ou superior.
-- Xcode 15+ (para rodar no iOS).
-- Java 11 ou superior.
-
 ### Android
-1. Certifique-se de ter o arquivo `google-services.json` em `androidApp/`.
-2. Selecione a configuração `androidApp` no Android Studio e clique em **Run**.
+1. Adicione o `google-services.json` em `androidApp/`.
+2. Execute a configuração `androidApp` no Android Studio.
 
 ### iOS
-1. Certifique-se de ter o arquivo `GoogleService-Info.plist` em `iosApp/`.
-2. Abra a pasta `iosApp` no Xcode.
-3. Adicione as dependências do Firebase via Swift Package Manager (SPM).
-4. Clique em **Play**.
+1. Adicione o `GoogleService-Info.plist` em `iosApp/`.
+2. Abra `iosApp` no Xcode e instale as dependências via SPM.
+3. Clique em **Run**.
 
 ---
-
-## 📂 Estrutura do Projeto
-
-- `androidApp/`: Código específico da plataforma Android.
-- `iosApp/`: Projeto Xcode e código Swift para iOS.
-- `shared/`: O "cérebro" do app. Contém a UI em Compose e toda a lógica do Firebase.
-  - `commonMain/`: Código compartilhado por todas as plataformas.
-  - `androidMain/` & `iosMain/`: Implementações específicas para Android e iOS.
-
----
-Desenvolvido com ❤️ por Mateus Silva Mendes.
+Desenvolvido por **Victor Vinicius Machado**.
