@@ -1,6 +1,7 @@
 package com.etecca.futuroplus
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -16,6 +17,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.RadioButtonUnchecked
+import androidx.compose.ui.graphics.vector.ImageVector
 
 @Composable
 fun MainScreen() {
@@ -256,37 +263,76 @@ fun CourseCard(title: String, buttonText: String, modifier: Modifier = Modifier)
 
 @Composable
 fun BottomNavigationBar() {
-    NavigationBar(
-        containerColor = BluePrimary,
-        contentColor = Color.White,
+    Surface(
+        modifier = Modifier
+            .padding(horizontal = 24.dp, vertical = 16.dp)
+            .fillMaxWidth()
+            .height(80.dp),
+        shape = RoundedCornerShape(40.dp),
+        color = BluePrimary,
         tonalElevation = 8.dp
     ) {
-        NavigationBarItem(
-            icon = { /* Icon */ },
-            label = { Text("Início", color = Color.White) },
-            selected = true,
-            onClick = { /* TODO */ },
-            colors = NavigationBarItemDefaults.colors(
-                indicatorColor = Color.White.copy(alpha = 0.2f)
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            NavigationItem(
+                icon = Icons.Default.Home,
+                label = "Início",
+                selected = true,
+                onClick = { /* TODO */ }
             )
+            NavigationItem(
+                icon = Icons.AutoMirrored.Filled.MenuBook,
+                label = "Cursos",
+                selected = false,
+                onClick = { /* TODO */ }
+            )
+            NavigationItem(
+                icon = Icons.Default.RadioButtonUnchecked,
+                label = "Testes",
+                selected = false,
+                onClick = { /* TODO */ }
+            )
+            NavigationItem(
+                icon = Icons.Default.Person,
+                label = "Perfil",
+                selected = false,
+                onClick = { /* TODO */ }
+            )
+        }
+    }
+}
+
+@Composable
+fun RowScope.NavigationItem(
+    icon: ImageVector,
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .weight(1f)
+            .fillMaxHeight()
+            .clip(CircleShape)
+            .clickable(onClick = onClick),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = label,
+            tint = if (selected) Color.White else Color.White.copy(alpha = 0.6f),
+            modifier = Modifier.size(28.dp)
         )
-        NavigationBarItem(
-            icon = { /* Icon */ },
-            label = { Text("Cursos", color = Color.White) },
-            selected = false,
-            onClick = { /* TODO */ }
-        )
-        NavigationBarItem(
-            icon = { /* Icon */ },
-            label = { Text("Testes", color = Color.White) },
-            selected = false,
-            onClick = { /* TODO */ }
-        )
-        NavigationBarItem(
-            icon = { /* Icon */ },
-            label = { Text("Perfil", color = Color.White) },
-            selected = false,
-            onClick = { /* TODO */ }
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = label,
+            color = if (selected) Color.White else Color.White.copy(alpha = 0.6f),
+            fontSize = 12.sp,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
         )
     }
 }

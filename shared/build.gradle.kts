@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -8,13 +9,17 @@ plugins {
 }
 
 kotlin {
+    val xcframeworkName = "shared"
+    val xcf = XCFramework(xcframeworkName)
+
     listOf(
         iosArm64(),
         iosSimulatorArm64()
     ).forEach { iosTarget ->
         iosTarget.binaries.framework {
-            baseName = "Shared"
+            baseName = xcframeworkName
             isStatic = true
+            xcf.add(this)
         }
     }
     
@@ -50,6 +55,8 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+            implementation(libs.compose.materialIcons)
+            implementation(libs.compose.materialIconsExtended)
             
             // Firebase KMP
             implementation(libs.firebase.common)
