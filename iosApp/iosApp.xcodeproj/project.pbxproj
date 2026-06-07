@@ -30,7 +30,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-		706076A32FD5DA8D00419793 /* Exceptions for "iosApp" folder in "Embed Frameworks" phase from "iosApp" target */ = {
+		706076F42FD6087A00419793 /* Exceptions for "iosApp" folder in "Embed Frameworks" phase from "iosApp" target */ = {
 			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
 			attributesByRelativePath = {
 				shared.xcframework = (CodeSignOnCopy, RemoveHeadersOnCopy, );
@@ -46,7 +46,7 @@
 		7060767B2FD5272000419793 /* iosApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				706076A32FD5DA8D00419793 /* Exceptions for "iosApp" folder in "Embed Frameworks" phase from "iosApp" target */,
+				706076F42FD6087A00419793 /* Exceptions for "iosApp" folder in "Embed Frameworks" phase from "iosApp" target */,
 			);
 			path = iosApp;
 			sourceTree = "<group>";
