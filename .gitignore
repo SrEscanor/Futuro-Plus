@@ -24,6 +24,9 @@ iosApp/iosApp/GoogleService-Info.plist
 **/iosApp/Pods/
 **/iosApp/.swiftpm/
 .konan/
+shared.xcframework/
+*.xcframework/
+*.framework/
 xcuserdata
 *.xcodeproj/*
 !*.xcodeproj/project.pbxproj
