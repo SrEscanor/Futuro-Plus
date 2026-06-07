@@ -1,6 +1,7 @@
 package com.etecca.futuroplus
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -8,7 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -17,28 +18,27 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.MenuBook
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.ui.graphics.vector.ImageVector
 
 @Composable
-fun MainScreen() {
+fun MainScreen(onNavigate: (String) -> Unit) {
     val scrollState = rememberScrollState()
-
-    Scaffold(
-        bottomBar = {
-            BottomNavigationBar()
+    val authRepository = remember { AuthRepository() }
+    val currentUser = remember { authRepository.getCurrentUser() }
+    val userName = currentUser?.displayName ?: "Usuário"
+    val initials = if (userName != "Usuário" && userName.isNotEmpty()) {
+        userName.split(" ").filter { it.isNotEmpty() }.let {
+            if (it.size >= 2) "${it[0][0]}${it[1][0]}".uppercase()
+            else it[0].take(2).uppercase()
         }
-    ) { padding ->
+    } else "US"
+
+    Box(modifier = Modifier.fillMaxSize().background(BackgroundWhite)) {
+        // Conteúdo que rola
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(BackgroundWhite)
                 .verticalScroll(scrollState)
-                .padding(padding)
                 .padding(horizontal = 24.dp)
         ) {
             Spacer(modifier = Modifier.height(24.dp))
@@ -52,7 +52,7 @@ fun MainScreen() {
                 Column {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "Olá, Nishiyama",
+                            text = "Olá, $userName",
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
                             color = TextBlack
@@ -75,7 +75,7 @@ fun MainScreen() {
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "RN",
+                        text = initials,
                         color = BluePrimary,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp
@@ -161,7 +161,7 @@ fun MainScreen() {
                         )
                     }
                     Button(
-                        onClick = { /* TODO */ },
+                        onClick = { onNavigate("testes") },
                         colors = ButtonDefaults.buttonColors(containerColor = BluePrimary),
                         shape = RoundedCornerShape(12.dp)
                     ) {
@@ -203,29 +203,50 @@ fun MainScreen() {
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 CourseCard(
-                    title = "Curso Técnico em Análise de Dados",
-                    buttonText = "Ver todos",
+                    title = "Curso Técnico em Analise de Dados",
+                    buttonText = "Ver todos os cursos",
+                    icon = AppIcons.AnaliseDados,
+                    iconColor = BluePrimary,
                     modifier = Modifier.weight(1f)
                 )
                 CourseCard(
-                    title = "Curso Livre: Marketing Digital",
-                    buttonText = "Explorar",
+                    title = "Marketing Digital para Iniciantes",
+                    buttonText = "Explorar mais",
+                    icon = AppIcons.Marketing,
+                    iconColor = OrangePrimary,
                     modifier = Modifier.weight(1f)
                 )
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            // Espaçamento extra no final para o conteúdo não ficar escondido atrás da barra
+            Spacer(modifier = Modifier.height(120.dp))
+        }
+
+        // Barra fixa e flutuante posicionada na frente de tudo
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 24.dp) // Distância da base da tela
+        ) {
+            BottomNavigationBar(currentScreen = "home", onNavigate = onNavigate)
         }
     }
 }
 
 @Composable
-fun CourseCard(title: String, buttonText: String, modifier: Modifier = Modifier) {
+fun CourseCard(
+    title: String,
+    buttonText: String,
+    icon: ImageVector,
+    iconColor: Color,
+    modifier: Modifier = Modifier
+) {
     Card(
-        modifier = modifier.height(180.dp),
+        modifier = modifier.height(200.dp),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        border = BorderStroke(1.dp, BorderGray),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
             modifier = Modifier
@@ -233,11 +254,11 @@ fun CourseCard(title: String, buttonText: String, modifier: Modifier = Modifier)
                 .padding(16.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // Placeholder for Icon/Image
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(GrayLight, RoundedCornerShape(8.dp))
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = iconColor,
+                modifier = Modifier.size(40.dp)
             )
 
             Text(
@@ -251,62 +272,63 @@ fun CourseCard(title: String, buttonText: String, modifier: Modifier = Modifier)
             Button(
                 onClick = { /* TODO */ },
                 modifier = Modifier.fillMaxWidth().height(36.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = BluePrimary),
-                shape = RoundedCornerShape(18.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = GrayLight),
+                shape = RoundedCornerShape(8.dp),
                 contentPadding = PaddingValues(0.dp)
             ) {
-                Text(buttonText, fontSize = 12.sp, color = Color.White)
+                Text(buttonText, fontSize = 12.sp, color = TextBlack, fontWeight = FontWeight.SemiBold)
             }
         }
     }
 }
 
 @Composable
-fun BottomNavigationBar() {
+fun BottomNavigationBar(currentScreen: String, onNavigate: (String) -> Unit) {
     Surface(
         modifier = Modifier
-            .padding(horizontal = 24.dp, vertical = 16.dp)
+            .padding(horizontal = 24.dp)
             .fillMaxWidth()
             .height(80.dp),
         shape = RoundedCornerShape(40.dp),
         color = BluePrimary,
-        tonalElevation = 8.dp
+        tonalElevation = 12.dp, // Sombra mais forte para parecer que está flutuando
+        shadowElevation = 8.dp
     ) {
         Row(
             modifier = Modifier.fillMaxSize(),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            NavigationItem(
-                icon = Icons.Default.Home,
+            FuturoNavigationItem(
+                icon = AppIcons.Home,
                 label = "Início",
-                selected = true,
-                onClick = { /* TODO */ }
+                selected = currentScreen == "home",
+                onClick = { onNavigate("home") }
             )
-            NavigationItem(
-                icon = Icons.AutoMirrored.Filled.MenuBook,
+            FuturoNavigationItem(
+                icon = AppIcons.Cursos,
                 label = "Cursos",
-                selected = false,
-                onClick = { /* TODO */ }
+                selected = currentScreen == "cursos",
+                onClick = { onNavigate("cursos") }
             )
-            NavigationItem(
-                icon = Icons.Default.RadioButtonUnchecked,
+            FuturoNavigationItem(
+                icon = AppIcons.Testes,
                 label = "Testes",
-                selected = false,
-                onClick = { /* TODO */ }
+                selected = currentScreen == "testes",
+                onClick = { onNavigate("testes") }
             )
-            NavigationItem(
-                icon = Icons.Default.Person,
+            FuturoNavigationItem(
+                icon = AppIcons.Perfil,
                 label = "Perfil",
-                selected = false,
-                onClick = { /* TODO */ }
+                selected = currentScreen == "perfil",
+                onClick = { onNavigate("perfil") }
             )
         }
     }
 }
 
 @Composable
-fun RowScope.NavigationItem(
+fun RowScope.FuturoNavigationItem(
     icon: ImageVector,
     label: String,
     selected: Boolean,
@@ -341,6 +363,6 @@ fun RowScope.NavigationItem(
 @Composable
 fun MainScreenPreview() {
     MaterialTheme {
-        MainScreen()
+        MainScreen(onNavigate = {})
     }
 }

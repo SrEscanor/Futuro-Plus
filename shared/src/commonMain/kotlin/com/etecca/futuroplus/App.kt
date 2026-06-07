@@ -13,13 +13,16 @@ fun App() {
         when (currentScreen) {
             "login" -> LoginScreen(
                 onSignUpClick = { currentScreen = "signup" },
-                onLoginSuccess = { currentScreen = "main" }
+                onLoginSuccess = { currentScreen = "home" }
             )
             "signup" -> SignUpScreen(
                 onBackToLogin = { currentScreen = "login" },
-                onSignUpSuccess = { currentScreen = "main" }
+                onSignUpSuccess = { currentScreen = "home" }
             )
-            "main" -> MainScreen()
+            "home" -> MainScreen(onNavigate = { currentScreen = it })
+            "cursos" -> CursosScreen(onNavigate = { currentScreen = it })
+            "testes" -> TestsScreen(onNavigate = { currentScreen = it })
+            "perfil" -> ProfileScreen(onNavigate = { currentScreen = it })
         }
     }
 }

@@ -272,7 +272,7 @@ fun SignUpScreen(onBackToLogin: () -> Unit, onSignUpSuccess: () -> Unit) {
                             scope.launch {
                                 isLoading = true
                                 errorMessage = null
-                                val result = authRepository.signUp(email, password)
+                                val result = authRepository.signUp(email, password, name)
                                 isLoading = false
                                 if (result.isSuccess) {
                                     onSignUpSuccess()

@@ -15,9 +15,10 @@ class AuthRepository {
         }
     }
 
-    suspend fun signUp(email: String, password: String): Result<Unit> {
+    suspend fun signUp(email: String, password: String, name: String): Result<Unit> {
         return try {
-            auth.createUserWithEmailAndPassword(email, password)
+            val authResult = auth.createUserWithEmailAndPassword(email, password)
+            authResult.user?.updateProfile(displayName = name)
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
