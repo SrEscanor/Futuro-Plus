@@ -62,4 +62,5 @@ graph TD
     H --> I[Exibir Recomendações de Carreira]
 
 ---
+
 Desenvolvido por **Victor Vinicius Machado**.
