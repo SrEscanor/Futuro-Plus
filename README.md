@@ -1,48 +1,53 @@
-# FuturoPlus 🚀
+Perfeito, mantendo apenas JavaScript puro (Vanilla JS), o projeto fica ainda mais leve e performático.
 
-O **FuturoPlus** é uma plataforma inteligente de gestão de carreira e qualificação profissional. Ele funciona como uma carteira digital e um guia de estudos personalizado, ajudando o usuário a documentar suas conquistas e planejar seus próximos passos no mercado de trabalho.
+Aqui está o README.md ajustado com essa informação técnica precisa:
 
-Desenvolvido com **Kotlin Multiplatform (KMP)** e **Compose Multiplatform**, o projeto oferece uma experiência fluida e nativa tanto no **Android** quanto no **iOS** a partir de uma única base de código.
+FuturoPlus 🚀
+O FuturoPlus é uma plataforma inteligente de gestão de carreira e qualificação profissional. Ele funciona como uma carteira digital e um guia de estudos personalizado, ajudando o usuário a documentar suas conquistas e planejar seus próximos passos no mercado de trabalho.
 
-## 🌟 Como Funciona
+Desenvolvido com uma arquitetura unificada, o projeto oferece uma experiência fluida no Android e iOS (via Kotlin Multiplatform) e conta com uma interface Web nativa desenvolvida em JavaScript puro, centralizando todo o ecossistema em um único repositório.
 
-- **Guarde seus Diplomas:** O usuário centraliza e valida todos os seus certificados, diplomas e cursos já realizados em um único ambiente digital seguro.
-- **Escolha seu Objetivo:** O usuário define a profissão ou a área de atuação onde deseja crescer ou fazer uma transição de carreira.
-- **Descubra o Caminho:** O app analisa o perfil atual do usuário, identifica as habilidades que faltam e recomenda os melhores cursos disponíveis no mercado para aquela área específica.
+🌟 Como Funciona
+Guarde seus Diplomas: Centralize e valide certificados, diplomas e cursos em um ambiente digital seguro.
 
-## 🚀 Diferencial Competitivo
+Escolha seu Objetivo: Defina a profissão ou área de atuação desejada.
 
-Em vez de apenas listar cursos genéricos, o **FuturoPlus** cruza os diplomas que o usuário já possui com as exigências do mercado, criando um cronograma de estudos sob medida, eficiente e focado em empregabilidade.
+Descubra o Caminho: O app analisa seu perfil, identifica lacunas de habilidades e recomenda cursos focados em empregabilidade.
 
----
+🚀 Diferencial Competitivo
+O FuturoPlus cruza seus diplomas existentes com as exigências do mercado, criando um cronograma de estudos sob medida, eficiente e focado nos resultados que você precisa para crescer na carreira.
 
-## 🛠️ Tecnologias Utilizadas
+🛠️ Tecnologias Utilizadas
+Mobile (KMP): Kotlin Multiplatform e Compose Multiplatform.
 
-- **Kotlin Multiplatform (KMP):** Compartilhamento de lógica de negócio e modelos de dados.
-- **Compose Multiplatform:** Interface de usuário declarativa compartilhada.
-- **Firebase Authentication:** Gestão de identidade e acesso seguro.
-- **Firebase Firestore:** (Em implementação) Armazenamento de certificados e trilhas de estudo.
-- **GitLive Firebase SDK:** Integração multiplataforma para os serviços Firebase.
+Web: Desenvolvido em JavaScript puro (Vanilla JS), garantindo leveza e alta performance no navegador.
 
-## 📱 Status das Funcionalidades
+Firebase: Authentication (gestão de identidade), Firestore (armazenamento de dados) e integração via GitLive Firebase SDK.
 
-- [x] **Autenticação:** Fluxo completo de Login e Cadastro integrado ao Firebase.
-- [x] **Dashboard Principal:** Interface moderna com progresso de perfil e recomendações.
-- [x] **Arquitetura Multiplataforma:** Estrutura pronta para escala em Android e iOS.
-- [x] **UI Customizada:** Componentes visuais personalizados seguindo o design do projeto.
+📱 Status das Funcionalidades
+✅ Autenticação: Fluxo completo de Login e Cadastro integrado ao Firebase.
 
----
+✅ Dashboard Principal: Interface moderna com progresso de perfil e recomendações.
 
-## 🚀 Como Rodar o Projeto
+✅ Arquitetura Multiplataforma: Estrutura unificada para Android, iOS e Web.
 
-### Android
-1. Adicione o `google-services.json` em `androidApp/`.
-2. Execute a configuração `androidApp` no Android Studio.
+✅ Web Interface: Interface Web otimizada e acessível via browser.
 
-### iOS
-1. Adicione o `GoogleService-Info.plist` em `iosApp/`.
-2. Abra `iosApp` no Xcode e instale as dependências via SPM.
-3. Clique em **Run**.
+🚀 Como Rodar o Projeto
+Android
+Adicione o google-services.json em androidApp/.
+
+Execute a configuração androidApp no Android Studio.
+
+iOS
+Adicione o GoogleService-Info.plist em iosApp/.
+
+Abra iosApp no Xcode, instale as dependências via SPM e clique em Run.
+
+Web
+Navegue até a pasta webApp/.
+
+Abra o arquivo index.html diretamente no seu navegador ou utilize um servidor local (como o Live Server do VS Code) para visualizar a aplicação.
 
 ---
 Desenvolvido por **Victor Vinicius Machado**.
