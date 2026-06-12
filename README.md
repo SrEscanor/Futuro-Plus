@@ -60,3 +60,21 @@ graph TD
     F --> H[Carregar Dashboard]
     G --> H
     H --> I[Exibir Recomendações de Carreira]
+```
+
+###Diagrama de Banco de Dados
+
+```mermaid
+erDiagram
+    USUARIO ||--o{ DIPLOMA : possui
+    USUARIO {
+        string uid
+        string nome
+        string email
+    }
+    DIPLOMA {
+        string id
+        string titulo
+        string instituicao
+        date dataConclusao
+    }
