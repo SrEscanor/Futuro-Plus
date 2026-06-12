@@ -62,6 +62,8 @@ graph TD
     H --> I[Exibir Recomendações de Carreira]
 ```
 
+---
+
 ### Diagrama de Banco de Dados
 
 ```mermaid
@@ -78,3 +80,4 @@ erDiagram
         string instituicao
         date dataConclusao
     }
+```
