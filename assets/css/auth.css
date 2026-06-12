@@ -1,0 +1,182 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+}
+
+.left-panel {
+    width: 42%;
+    min-width: 380px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 60px;
+    background: #fff;
+}
+
+.logo {
+    width: 70px;
+    margin-bottom: 36px;
+}
+
+/* Recreate logo in SVG inline */
+.logo-svg {
+    width: 70px;
+    height: 80px;
+    margin-bottom: 36px;
+}
+
+.tabs {
+    display: flex;
+    width: 100%;
+    border-bottom: 1.5px solid #e0e0e0;
+    margin-bottom: 36px;
+    gap: 0;
+}
+
+.tab {
+    flex: 1;
+    text-align: center;
+    padding-bottom: 10px;
+    font-size: 17px;
+    cursor: pointer;
+    color: #aaa;
+    font-weight: 400;
+    border-bottom: 2.5px solid transparent;
+    margin-bottom: -1.5px;
+    text-decoration: none;
+}
+
+.tab.active {
+    color: #3b5bdb;
+    font-weight: 700;
+    border-bottom: 2.5px solid #3b5bdb;
+}
+
+.form-group {
+    width: 100%;
+    margin-bottom: 16px;
+}
+
+input[type="email"], input[type="password"], input[type="text"] {
+    width: 100%;
+    padding: 14px 18px;
+    border: 1.5px solid #3b5bdb;
+    border-radius: 8px;
+    font-size: 15px;
+    color: #333;
+    outline: none;
+    background: #fff;
+    transition: border-color 0.2s;
+}
+
+input::placeholder {
+    color: #aaa;
+}
+
+input:focus {
+    border-color: #2244cc;
+}
+
+.forgot {
+    text-align: right;
+    margin-bottom: 24px;
+    margin-top: -6px;
+}
+
+.forgot a {
+    color: #888;
+    font-size: 13px;
+    text-decoration: none;
+}
+
+.btn-login {
+    width: 100%;
+    padding: 15px;
+    background: #4e6ee8;
+    color: #fff;
+    border: none;
+    border-radius: 30px;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    margin-bottom: 18px;
+    transition: background 0.2s;
+}
+
+.btn-login:hover {
+    background: #3b5bdb;
+}
+
+.register-link {
+    text-align: center;
+    font-size: 14px;
+    color: #555;
+}
+
+.register-link a {
+    color: #3b5bdb;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+/* RIGHT PANEL - decorative blobs */
+.right-panel {
+    flex: 1;
+    position: relative;
+    background: #f5f5f5;
+    overflow: hidden;
+}
+
+.blob {
+    position: absolute;
+    border-radius: 50%;
+}
+
+/* Gold/yellow large blob - top right area */
+.blob-gold {
+    width: 680px;
+    height: 680px;
+    background: #f5c842;
+    opacity: 0.85;
+    top: -200px;
+    right: -180px;
+}
+
+/* Blue blob - middle */
+.blob-blue {
+    width: 600px;
+    height: 600px;
+    background: #4e6ee8;
+    opacity: 0.9;
+    top: -100px;
+    right: -60px;
+}
+
+/* Green blob - bottom right */
+.blob-green {
+    width: 580px;
+    height: 580px;
+    background: #2ecc71;
+    opacity: 0.9;
+    top: 80px;
+    right: -80px;
+}
+
+/* Dotted pattern overlay */
+.dots-overlay {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(255,255,255,0.25) 1.5px, transparent 1.5px);
+    background-size: 18px 18px;
+    z-index: 5;
+}

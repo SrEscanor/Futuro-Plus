@@ -1,0 +1,607 @@
+* {
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box;
+    /* Remove o highlight padrão de toque no Android */
+    -webkit-tap-highlight-color: transparent; 
+}
+
+body { 
+    font-family: 'Segoe UI', Arial, sans-serif; 
+    background: #fafafa; 
+    color: #222; 
+    min-height: 100vh; 
+} 
+
+/* ---- TOP NAV ---- */ 
+.topnav { 
+    position: sticky; 
+    top: 0; 
+    z-index: 100; 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    background: #fff; 
+    padding: 10px 20px; 
+    border-bottom: 1px solid #e8e8e8; 
+    height: 60px; 
+} 
+
+.nav-left { 
+    display: flex; 
+    align-items: center; 
+    gap: 14px; 
+} 
+
+.hamburger { 
+    cursor: pointer; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 4px; 
+} 
+
+.hamburger span { 
+    display: block; 
+    width: 22px; 
+    height: 2.5px; 
+    background: #333; 
+    border-radius: 2px; 
+} 
+
+.search-bar { 
+    display: flex; 
+    align-items: center; 
+    border: 1.5px solid #ddd; 
+    border-radius: 20px; 
+    padding: 5px 14px; 
+    gap: 8px; 
+    background: #f7f7f7; 
+    width: 200px; 
+    transition: border-color 0.2s;
+} 
+
+.search-bar:focus-within {
+    border-color: #4e6ee8;
+}
+
+.search-bar input { 
+    border: none; 
+    outline: none; 
+    background: transparent; 
+    font-size: 13px; 
+    width: 100%; 
+    color: #333; 
+} 
+
+.logo-topo { 
+    height: 42px; 
+    width: auto; 
+} 
+
+.nav-right { 
+    display: flex; 
+    align-items: center; 
+    gap: 16px; 
+} 
+
+.bell-icon, .avatar { 
+    cursor: pointer; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    transition: transform 0.2s;
+} 
+
+.bell-icon:hover {
+    transform: scale(1.05);
+}
+
+.avatar { 
+    width: 34px; 
+    height: 34px; 
+    border-radius: 50%; 
+    background: #555; 
+    overflow: hidden; 
+} 
+
+/* ---- MAIN CONTENT ---- */ 
+.main { 
+    max-width: 1280px; 
+    width: 95%; 
+    margin: 20px auto; 
+} 
+
+.greeting { 
+    font-size: 18px; 
+    font-weight: 600; 
+    margin-bottom: 20px; 
+} 
+
+/* ---- WEEKLY REC CARD ---- */ 
+.weekly-card { 
+    background: #fff; 
+    border-radius: 12px; 
+    border: 1px solid #e8e8e8; 
+    padding: 20px; 
+    margin-bottom: 22px; 
+} 
+
+.weekly-card h3 { 
+    font-size: 15px; 
+    font-weight: 600; 
+    margin-bottom: 16px; 
+    color: #222; 
+} 
+
+.courses-scroll { 
+    display: flex; 
+    gap: 14px; 
+    overflow-x: auto; 
+    padding-bottom: 10px; 
+    scrollbar-width: thin;
+    /* Evita que o dedo selecione o texto ao arrastar */
+    user-select: none; 
+    -webkit-user-select: none;
+    scroll-snap-type: x mandatory;
+}
+
+.course-card-mini { 
+    min-width: 200px; 
+    border: 1px solid #ddd; 
+    border-radius: 10px; 
+    padding: 14px; 
+    background: #fff; 
+    flex-shrink: 0; 
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    scroll-snap-align: start;
+} 
+
+.course-card-mini .inst-logo { 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+    margin-bottom: 10px; 
+} 
+
+.inst-name { 
+    font-size: 12px; 
+    font-weight: 700; 
+} 
+
+.course-title { 
+    font-size: 13px; 
+    font-weight: 600;
+    color: #333; 
+    margin-bottom: 6px; 
+    line-height: 1.4; 
+} 
+
+.course-meta { 
+    font-size: 11px; 
+    color: #777; 
+    margin-bottom: 12px; 
+} 
+
+.btn-saiba { 
+    display: block; 
+    width: 100%; 
+    text-align: center; 
+    border: 1px solid #ccc; 
+    border-radius: 14px; 
+    padding: 6px 8px; 
+    font-size: 11px; 
+    color: #444; 
+    cursor: pointer; 
+    background: #fff; 
+    transition: all 0.2s; 
+} 
+
+.btn-saiba:hover { 
+    background: #f0f0f0; 
+    border-color: #999;
+} 
+
+/* ---- MIDDLE ROW (CHART + MURAL) ---- */ 
+.mid-row { 
+    display: flex; 
+    gap: 16px; 
+    margin-bottom: 24px; 
+    flex-wrap: wrap; /* Correção para Responsividade */
+} 
+
+.chart-card { 
+    flex: 1 1 400px; 
+    background: #fff; 
+    border: 1px solid #e8e8e8; 
+    border-radius: 12px; 
+    padding: 16px; 
+} 
+
+.chart-label { 
+    font-size: 11px; 
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #888; 
+    margin-bottom: 12px; 
+} 
+
+.chart-wrap { 
+    display: flex; 
+    align-items: center; 
+    gap: 20px; 
+} 
+
+/* Donut Chart Perfeito */ 
+.donut-chart { 
+    position: relative; 
+    width: 90px; 
+    height: 90px; 
+    flex-shrink: 0; 
+} 
+
+.chart-info { 
+    flex: 1; 
+} 
+
+.chart-title { 
+    font-size: 12px; 
+    color: #4e6ee8; 
+    font-weight: 600; 
+    margin-bottom: 4px; 
+} 
+
+.chart-percent { 
+    font-size: 22px; 
+    font-weight: 700; 
+    color: #3b5bdb; 
+} 
+
+.chart-link { 
+    font-size: 11px; 
+    color: #666; 
+    margin-top: 6px; 
+    line-height: 1.4; 
+} 
+
+.chart-link a { 
+    color: #4e6ee8; 
+    text-decoration: underline; 
+    font-weight: 500;
+} 
+
+.mural-cta { 
+    flex: 1 1 300px; /* Melhor que width fixo para quebrar linha em telas pequenas */
+    background: #c8eae0; 
+    border-radius: 12px; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+    padding: 20px; 
+    text-align: center; 
+} 
+
+.mural-cta p { 
+    font-size: 13px; 
+    font-weight: 600; 
+    color: #1a5c45; 
+    margin-bottom: 14px; 
+    line-height: 1.4; 
+} 
+
+.btn-mural { 
+    background: #fff; 
+    border: none; 
+    border-radius: 20px; 
+    padding: 10px 22px; 
+    font-size: 13px; 
+    font-weight: 600; 
+    color: #1a5c45; 
+    cursor: pointer; 
+    width: 100%; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: transform 0.2s, background-color 0.2s;
+} 
+
+.btn-mural:hover {
+    background: #f4fbf9;
+    transform: translateY(-1px);
+}
+
+/* ---- TESTES SECTION ---- */ 
+.section-title { 
+    text-align: center; 
+    font-size: 20px; 
+    font-weight: 700; 
+    color: #4e6ee8; 
+    margin: 24px 0 14px; 
+} 
+
+.testes-row { 
+    display: flex; 
+    gap: 16px; 
+    margin-bottom: 30px; 
+    flex-wrap: wrap; /* Correção para Responsividade */
+} 
+
+.teste-card { 
+    flex: 1 1 300px; 
+    border: 1.5px solid #ddd; 
+    border-radius: 12px; 
+    padding: 24px; 
+    background: #fff; 
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+} 
+
+.teste-card p { 
+    font-size: 13px; 
+    color: #444; 
+    margin-bottom: 16px; 
+    line-height: 1.5; 
+} 
+
+.teste-card p strong { 
+    font-size: 15px; 
+    color: #111;
+    display: block; 
+    margin-bottom: 8px; 
+} 
+
+.btn-teste { 
+    display: block; 
+    width: 100%; 
+    text-align: center; 
+    background: #4e6ee8; 
+    color: #fff; 
+    border: none; 
+    border-radius: 20px; 
+    padding: 12px; 
+    font-size: 13px; 
+    font-weight: 600; 
+    cursor: pointer; 
+    transition: background 0.2s, transform 0.1s; 
+} 
+
+.btn-teste:hover { 
+    background: #3b5bdb; 
+} 
+.btn-teste:active {
+    transform: scale(0.98);
+}
+
+/* ---- CURSOS SECTION ---- */ 
+.cursos-subtitle { 
+    text-align: center; 
+    font-size: 14px; 
+    color: #666; 
+    margin-bottom: 24px; 
+    line-height: 1.4; 
+} 
+
+/* ---- RECOMMENDED COURSES LIST ---- */ 
+.rec-courses-title { 
+    font-size: 16px; 
+    font-weight: 700; 
+    color: #4e6ee8; 
+    margin: 32px 0 16px; 
+} 
+
+.area-group { 
+    margin-bottom: 24px; 
+} 
+
+.area-label-tec { font-size: 13px; font-weight: 700; color: #4e6ee8; margin-bottom: 10px; text-transform: uppercase; } 
+.area-label-adm { font-size: 13px; font-weight: 700; color: #f5a623; margin-bottom: 10px; text-transform: uppercase; } 
+.area-label-mkt { font-size: 13px; font-weight: 700; color: #2ecc71; margin-bottom: 10px; text-transform: uppercase; } 
+
+.course-row { 
+    display: flex; 
+    align-items: center; 
+    border: 1px solid #e8e8e8; 
+    border-radius: 10px; 
+    padding: 12px 16px; 
+    margin-bottom: 8px; 
+    background: #fff; 
+    gap: 14px; 
+    transition: box-shadow 0.2s;
+} 
+
+.course-row:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.course-icon { 
+    width: 32px; 
+    height: 32px; 
+    flex-shrink: 0; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-size: 16px; 
+    border-radius: 50%;
+} 
+/* Cores customizadas para as bolinhas dos ícones */
+.area-group:nth-of-type(1) .course-icon { background: #eef2ff; color: #4e6ee8; }
+.area-group:nth-of-type(2) .course-icon { background: #fff9db; color: #f5a623; }
+.area-group:nth-of-type(3) .course-icon { background: #ebfbee; color: #2ecc71; }
+
+.course-row-info { 
+    flex: 1; 
+    font-size: 13px; 
+    color: #444; 
+} 
+
+.course-row-info strong { 
+    color: #222; 
+} 
+
+.btn-explorar { 
+    border: 1px solid #ccc; 
+    border-radius: 8px; 
+    padding: 6px 14px; 
+    font-size: 12px; 
+    background: #fff; 
+    cursor: pointer; 
+    color: #444; 
+    white-space: nowrap; 
+    transition: all 0.2s;
+} 
+
+.btn-explorar:hover { 
+    background: #f5f5f5; 
+    border-color: #888; 
+} 
+
+/* ---- FOOTER ---- */ 
+.footer { 
+    background: #1e2761; 
+    color: #fff; 
+    padding: 40px 24px; 
+    font-size: 13px; 
+    margin-top: 50px;
+} 
+
+.footer-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+    gap: 32px; 
+    max-width: 1000px; 
+    margin: 0 auto; 
+} 
+
+.footer-brand p { 
+    line-height: 1.6; 
+    font-size: 13px; 
+    margin-top: 8px; 
+    color: #ccd4ff;
+} 
+
+.footer-social-title, .footer-contact {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.footer-social, .footer-contact a { 
+    display: inline-flex; 
+    align-items: center;
+    color: #ccd4ff; 
+    text-decoration: none; 
+    transition: color 0.2s;
+} 
+
+.footer-social:hover, .footer-contact a:hover { 
+    color: #fff; 
+} 
+
+.footer-donate .donate-box { 
+    border: 2px dashed #5c6bc0; 
+    border-radius: 8px; 
+    padding: 12px; 
+    font-size: 11px; 
+    color: #ccd4ff; 
+    margin-top: 8px;
+    text-align: center;
+    background: rgba(255,255,255,0.02);
+}
+
+ * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; min-height: 100vh; }
+
+  /* LEFT PANEL - Menu */
+  .menu-panel {
+    width: 44%;
+    max-width: 580px;
+    border-right: 1.5px solid #ddd;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    min-height: 100vh;
+    padding-top: 0;
+  }
+
+  .menu-header {
+    padding: 28px 32px 18px;
+    font-size: 22px;
+    font-weight: 400;
+    color: #222;
+    letter-spacing: 0.3px;
+  }
+
+  .menu-item {
+    padding: 20px 32px;
+    border-top: 1px solid #ddd;
+    font-size: 17px;
+    color: #444;
+    cursor: pointer;
+    transition: background 0.15s;
+    text-decoration: none;
+    display: block;
+  }
+
+  .menu-item:last-of-type { border-bottom: 1px solid #ddd; }
+
+  .menu-item:hover { background: #f5f5f5; }
+
+  .menu-logo-area {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+  }
+
+  /* RIGHT PANEL - grey area (page content would be here) */
+  .content-panel {
+    flex: 1;
+    background: #f0f0f0;
+  }
+
+  .menu-panel {
+    /* Fixa o menu por cima de tudo */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 80%;
+    max-width: 320px;
+    height: 100vh;
+    background: #fff;
+    z-index: 1000; /* Fica acima da barra de navegação */
+    
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #ddd;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+
+    /* A MÁGICA AQUI: Esconde o menu fora da tela à esquerda */
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+}
+
+/* Classe que o JavaScript vai adicionar para abrir o menu */
+.menu-panel.aberto {
+    transform: translateX(0);
+}
+
+/* Fundo escuro atrás do menu (Overlay) */
+.menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 999; /* Fica entre o site e o menu */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s;
+}
+
+.menu-overlay.ativo {
+    opacity: 1;
+    visibility: visible;
+}
