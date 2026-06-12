@@ -47,7 +47,8 @@ Em vez de apenas listar cursos genéricos, o **FuturoPlus** cruza os diplomas qu
 1. Navegue até a pasta `webApp/`.
 2. Abra o arquivo `index.html` em um navegador de sua preferência.
 
-   ```mermaid
+### Fluxograma de Autenticação
+```mermaid
 graph TD
     A[Início: App/Web] --> B{Possui conta?}
     B -- Não --> C[Tela de Cadastro]
@@ -57,6 +58,7 @@ graph TD
     E --> G[Salvar Perfil no Firestore]
     F --> H[Carregar Dashboard]
     G --> H
+    H --> I[Exibir Recomendações de Carreira]
     H --> I[Exibir Recomendações de Carreira]
 
 ---
