@@ -11,7 +11,7 @@ Desenvolvido com **Kotlin Multiplatform (KMP)** e **Compose Multiplatform**, o p
 * **Guarde seus Diplomas:** O usuário centraliza e valida todos os seus certificados, diplomas e cursos já realizados em um único ambiente digital seguro.
 * **Escolha seu Objetivo:** O usuário define a profissão ou a área de atuação onde deseja crescer ou fazer uma transição de carreira.
 * **Descubra o Caminho:** O app analisa o perfil atual do usuário, identifica as habilidades que faltam e recomenda os melhores cursos disponíveis no mercado para aquela área específica.
-* **Envie seu perfiil para empresas:** Compartilhe seu perfil com empresas e destaque suas soft skills e hard skills.  
+* **Envie seu perfil para empresas:** Compartilhe seu perfil com empresas e destaque suas soft skills e hard skills.  
 
 ## 🚀 Diferencial Competitivo
 
