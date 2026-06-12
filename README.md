@@ -47,5 +47,17 @@ Em vez de apenas listar cursos genéricos, o **FuturoPlus** cruza os diplomas qu
 1. Navegue até a pasta `webApp/`.
 2. Abra o arquivo `index.html` em um navegador de sua preferência.
 
+   ```mermaid
+graph TD
+    A[Início: App/Web] --> B{Possui conta?}
+    B -- Não --> C[Tela de Cadastro]
+    B -- Sim --> D[Tela de Login]
+    C --> E[Firebase Auth: Criar Usuário]
+    D --> F[Firebase Auth: Validar Acesso]
+    E --> G[Salvar Perfil no Firestore]
+    F --> H[Carregar Dashboard]
+    G --> H
+    H --> I[Exibir Recomendações de Carreira]
+
 ---
 Desenvolvido por **Victor Vinicius Machado**.
