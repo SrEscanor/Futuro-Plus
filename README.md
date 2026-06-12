@@ -65,7 +65,7 @@ graph TD
 
 ---
 
-## Diagrama de Banco de Dados
+## Diagrama de UML
 
 ```mermaid
 erDiagram
