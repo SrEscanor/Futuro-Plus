@@ -47,7 +47,7 @@ Em vez de apenas listar cursos genéricos, o **FuturoPlus** cruza os diplomas qu
 1. Navegue até a pasta `webApp/`.
 2. Abra o arquivo `index.html` em um navegador de sua preferência.
 
-### Fluxograma de Autenticação
+## Fluxograma de Autenticação
 
 ```mermaid
 graph TD
@@ -64,7 +64,7 @@ graph TD
 
 ---
 
-### Diagrama de Banco de Dados
+## Diagrama de Banco de Dados
 
 ```mermaid
 erDiagram
