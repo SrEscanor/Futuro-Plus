@@ -5,6 +5,7 @@
     "firebase": "^12.14.0"
   },
   "devDependencies": {
+    "firebase-tools": "^15.28.2",
     "vite": "^7.0.0"
   },
   "scripts": {

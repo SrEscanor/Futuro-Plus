@@ -1,0 +1,187 @@
+/* =========================================================
+   Futuro+ · Quiz / Testes de Perfil (Atualizado)
+   ========================================================= */
+
+.quiz-container {
+    max-width: 760px;
+    width: 100%;
+    margin: 0 auto 40px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    padding: 36px 32px;
+}
+
+/* ---- PROGRESSO ---- */
+.quiz-progress-wrap {
+    margin-bottom: 28px;
+}
+
+.quiz-progress-info {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    margin-bottom: 10px;
+    text-align: right;
+}
+
+.quiz-progress-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.quiz-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--blue) 0%, var(--blue-dark) 100%);
+    border-radius: 10px;
+    transition: width 0.4s ease;
+}
+
+/* ---- PERGUNTAS E OPÇÕES ---- */
+.quiz-header {
+    margin-bottom: 24px;
+}
+
+.question-text {
+    font-family: 'Sora', sans-serif;
+    font-size: 19px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.4;
+    text-align: center;
+}
+
+.options-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Estilo para os botões gerados pelo JS */
+.options-group button {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 18px 24px;
+    background: var(--surface);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius-md);
+    font-size: 14.5px;
+    font-weight: 500;
+    color: var(--ink);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+    font-family: 'Inter', sans-serif;
+}
+
+.options-group button:hover {
+    border-color: var(--blue);
+    background: var(--blue-soft);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(78, 110, 232, 0.1);
+}
+
+.options-group button:active {
+    transform: scale(0.98);
+}
+
+/* ---- RESULTADO E CTAS ---- */
+.result-card {
+    text-align: center;
+    padding: 48px 32px;
+}
+
+.result-badge {
+    display: inline-block;
+    padding: 6px 16px;
+    background: var(--green-soft);
+    color: var(--green-dark);
+    border-radius: 20px;
+    font-size: 12.5px;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.result-title {
+    font-family: 'Sora', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 16px;
+}
+
+.result-description {
+    font-size: 15px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+    margin-bottom: 36px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.result-ctas {
+    border-top: 1px solid var(--line);
+    padding-top: 28px;
+    margin-top: 10px;
+}
+
+.result-ctas p {
+    color: var(--ink);
+    margin-bottom: 18px;
+    font-size: 14px;
+}
+
+.result-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+}
+
+.btn-quiz-submit {
+    background: var(--blue);
+    border: none;
+    border-radius: 20px;
+    padding: 12px 28px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-quiz-submit:hover {
+    background: var(--blue-dark);
+}
+
+.btn-quiz-prev {
+    background: var(--surface);
+    border: 1.5px solid var(--line);
+    border-radius: 20px;
+    padding: 12px 28px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-quiz-prev:hover {
+    background: var(--bg);
+    border-color: var(--ink-soft);
+}
+
+/* Responsivo */
+@media (max-width: 640px) {
+    .result-buttons {
+        flex-direction: column;
+    }
+    .result-buttons button {
+        width: 100%;
+    }
+}

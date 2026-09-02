@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Futuro+ | Início</title>
+    <link rel="manifest" href="./assets/manifest-k8QUVgLb.json">
+    <meta name="theme-color" content="#4e6ee8">
+    <link rel="apple-touch-icon" href="./icon-512.png">
+  <script type="module" crossorigin src="./assets/firebase-config-Dsa_0Hyx.js"></script>
+  <script type="module" crossorigin src="./assets/quiz-gardner-C2cjWfTn.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/style-BQaXKyk8.css">
+</head>
+
+<body>
+
+    <div class="menu-panel">
+        <div class="menu-header">menu</div>
+
+        <a href="index.html" class="menu-item">Recomendação semanal</a>
+        <a href="testes.html" class="menu-item">Testes</a>
+        <a href="mural.html" class="menu-item">Mural</a>
+        <a href="index.html#cursos" class="menu-item">Cursos</a>
+        <a href="perfil.html" class="menu-item">Perfil</a>
+
+        <button id="logout-btn" class="btn-sair">Sair da Conta</button>
+
+        <div class="menu-logo-area">
+            <img src="data:image/png;base64,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" alt="Futuro+ Logo" class="logo-png-img">
+        </div>
+    </div>
+    <nav class="topnav">
+        <div class="nav-left">
+            <div class="hamburger" aria-label="Menu principal">
+                <span></span><span></span><span></span>
+            </div>
+            <div class="search-bar">
+                <input type="text" placeholder="Buscar cursos..." aria-label="Buscar cursos">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2.5">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+            </div>
+        </div>
+        <div class="nav-center">
+            <img src="data:image/png;base64,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" alt="Futuro+" class="logo-topo">
+        </div>
+        <div class="nav-right">
+            <div class="bell-icon">
+                <a href="notificacoes.html" aria-label="Notificações">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2">
+                        <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                        <path d="M13.73 21a2 2 0 01-3.46 0" />
+                    </svg>
+                </a>
+            </div>
+            <a href="login.html" class="avatar-link" aria-label="Ir para o perfil / Login">
+                <div class="avatar">
+                    <svg viewBox="0 0 34 34" width="34" height="34">
+                        <circle cx="17" cy="17" r="17" fill="#555" />
+                        <circle cx="17" cy="13" r="6" fill="#888" />
+                        <ellipse cx="17" cy="28" rx="10" ry="7" fill="#888" />
+                    </svg>
+                </div>
+            </a>
+        </div>
+    </nav>
+
+    <div class="main">
+        <div class="greeting">
+            Olá, <span id="nomeUsuario">Estudante</span> 👋
+        </div>
+
+        <div class="weekly-card">
+            <h3>Cursos recomendados da semana</h3>
+            <div class="courses-scroll">
+                <div class="course-card-mini">
+                    <div class="inst-logo">
+                        <svg width="18" height="18" viewBox="0 0 40 40">
+                            <rect width="40" height="40" rx="6" fill="#003087" /><text x="4" y="28" font-size="13"
+                                fill="#fff" font-family="Arial" font-weight="bold">F</text>
+                        </svg>
+                        <span class="inst-name" style="color:#003087;">Fatec</span>
+                    </div>
+                    <div class="course-title">Desenvolvedor back-end</div>
+                    <div class="course-meta">160 horas · presencial</div>
+                    <button class="btn-saiba">Saiba mais</button>
+                </div>
+
+                <div class="course-card-mini">
+                    <div class="inst-logo">
+                        <svg width="18" height="18" viewBox="0 0 40 40">
+                            <rect width="40" height="40" rx="6" fill="#e63946" /><text x="4" y="28" font-size="11"
+                                fill="#fff" font-family="Arial" font-weight="bold">Et</text>
+                        </svg>
+                        <span class="inst-name" style="color:#e63946;">Etec</span>
+                    </div>
+                    <div class="course-title">Desenvolvimento de sistemas</div>
+                    <div class="course-meta">1200 horas · presencial</div>
+                    <button class="btn-saiba">Saiba mais</button>
+                </div>
+
+                <div class="course-card-mini">
+                    <div class="inst-logo">
+                        <svg width="18" height="18" viewBox="0 0 40 40">
+                            <rect width="40" height="40" rx="6" fill="#e63946" /><text x="4" y="28" font-size="11"
+                                fill="#fff" font-family="Arial" font-weight="bold">Et</text>
+                        </svg>
+                        <span class="inst-name" style="color:#e63946;">Etec</span>
+                    </div>
+                    <div class="course-title">Administração</div>
+                    <div class="course-meta">40 horas · online</div>
+                    <button class="btn-saiba">Saiba mais</button>
+                </div>
+
+                <div class="course-card-mini">
+                    <div class="inst-logo">
+                        <svg width="18" height="18" viewBox="0 0 40 40">
+                            <rect width="40" height="40" rx="6" fill="#e63946" /><text x="4" y="28" font-size="11"
+                                fill="#fff" font-family="Arial" font-weight="bold">Et</text>
+                        </svg>
+                        <span class="inst-name" style="color:#e63946;">Etec</span>
+                    </div>
+                    <div class="course-title">Finanças</div>
+                    <div class="course-meta">160 horas · online</div>
+                    <button class="btn-saiba">Saiba mais</button>
+                </div>
+
+                <div class="course-card-mini">
+                    <div class="inst-logo">
+                        <svg width="18" height="18" viewBox="0 0 40 40">
+                            <rect width="40" height="40" rx="6" fill="#e63946" /><text x="4" y="28" font-size="11"
+                                fill="#fff" font-family="Arial" font-weight="bold">Et</text>
+                        </svg>
+                        <span class="inst-name" style="color:#e63946;">Marketing</span>
+                    </div>
+                    <div class="course-meta">40 horas · online</div>
+                    <button class="btn-saiba">Saiba mais</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="mid-row">
+            <div class="chart-card">
+                <div class="chart-label">Último resultado</div>
+                <div class="chart-wrap">
+                    <div class="donut-chart">
+                        <svg viewBox="0 0 40 40" style="transform:rotate(-90deg); width:100%; height:100%;">
+                            <circle cx="20" cy="20" r="15.915" fill="none" stroke="#e8e8e8" stroke-width="4" />
+                            <circle cx="20" cy="20" r="15.915" fill="none" stroke="#4e6ee8" stroke-width="4"
+                                stroke-dasharray="66.7 100" stroke-dashoffset="0" />
+                            <circle cx="20" cy="20" r="15.915" fill="none" stroke="#f5a623" stroke-width="4"
+                                stroke-dasharray="20 100" stroke-dashoffset="-66.7" />
+                            <circle cx="20" cy="20" r="15.915" fill="none" stroke="#2ecc71" stroke-width="4"
+                                stroke-dasharray="13.3 100" stroke-dashoffset="-86.7" />
+                        </svg>
+                    </div>
+                    <div class="chart-info">
+                        <div class="chart-title">Índice para Tecnologia</div>
+                        <div class="chart-percent">66,7%</div>
+                        <div class="chart-link">
+                            <a href="#">Clique aqui</a> e veja as últimas notícias da área
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mural-cta">
+                <p>Completou algum curso? Adicione seu certificado no seu mural!</p>
+                <button class="btn-mural" onclick="location.href='mural.html'">Meu mural</button>
+            </div>
+        </div>
+
+        <div class="section-title">Testes</div>
+        <div class="testes-row">
+            <div class="teste-card">
+                <p><strong>Pare de procurar, comece a se encontrar.</strong> Onde seu talento encontra a oportunidade
+                    certa? Faça o teste de perfil e decifre a área que foi feita para você</p>
+                <button class="btn-teste" onclick="location.href='testes.html'">Fazer teste de perfil</button>
+            </div>
+            <div class="teste-card">
+                <p><strong>O mercado não busca apenas currículos, busca competência.</strong> Mapeie suas habilidades e
+                    descubra seu valor de mercado. Faça o teste e veja onde você se destaca!</p>
+                <button class="btn-teste">Fazer teste de habilidades</button>
+            </div>
+        </div>
+
+        <div class="cursos-section">
+            <div class="section-title">Cursos</div>
+            <div class="cursos-subtitle">Encontre as melhores instituições de ensino para as áreas que você mais se
+                identificou</div>
+
+            <div style="position:relative;width:260px;height:240px;margin:0 auto 28px;">
+                <svg viewBox="0 0 260 240" width="260" height="240">
+                    <circle cx="130" cy="85" r="75" fill="#4e6ee8" opacity="0.15" stroke="#4e6ee8" stroke-width="1.5" />
+                    <circle cx="85" cy="165" r="75" fill="#f5a623" opacity="0.15" stroke="#f5a623" stroke-width="1.5" />
+                    <circle cx="175" cy="165" r="75" fill="#2ecc71" opacity="0.15" stroke="#2ecc71"
+                        stroke-width="1.5" />
+
+                    <text x="130" y="30" text-anchor="middle" font-size="11" fill="#4e6ee8"
+                        font-weight="bold">Tecnologia</text>
+                    <text x="130" y="78" text-anchor="middle" font-size="9" fill="#e63946"
+                        font-weight="bold">FIAP</text>
+                    <text x="110" y="100" text-anchor="middle" font-size="8" fill="#e63946">⬡ Etec</text>
+                    <text x="150" y="100" text-anchor="middle" font-size="8" fill="#e63946">FATEC</text>
+
+                    <text x="40" y="175" text-anchor="middle" font-size="11" fill="#2ecc71"
+                        font-weight="bold">Marketing</text>
+                    <text x="78" y="170" text-anchor="middle" font-size="8" fill="#333">Insper</text>
+
+                    <text x="218" y="175" text-anchor="middle" font-size="11" fill="#f5a623"
+                        font-weight="bold">Administração</text>
+                    <text x="178" y="170" text-anchor="middle" font-size="8" fill="#3b5bdb"
+                        font-weight="bold">FGV</text>
+                </svg>
+            </div>
+
+            <div class="rec-courses-title">Cursos recomendados para o seu perfil</div>
+
+            <div class="area-group">
+                <div class="area-label-tec">Tecnologia</div>
+                <div class="course-row">
+                    <div class="course-icon">💻</div>
+                    <div class="course-row-info"><strong>Curso Livre:</strong> Lógica de Programação</div>
+                    <button class="btn-explorar">Explorar mais</button>
+                </div>
+                <div class="course-row">
+                    <div class="course-icon">🌐</div>
+                    <div class="course-row-info"><strong>Curso Técnico:</strong> Redes de Computadores</div>
+                    <button class="btn-explorar">Explorar mais</button>
+                </div>
+                <div class="course-row">
+                    <div class="course-icon">📊</div>
+                    <div class="course-row-info"><strong>Graduação:</strong> Ciência de Dados para Negócios</div>
+                    <button class="btn-explorar">Explorar mais</button>
+                </div>
+            </div>
+
+            <div class="area-group">
+                <div class="area-label-adm">Administração</div>
+                <div class="course-row">
+                    <div class="course-icon">👥</div>
+                    <div class="course-row-info"><strong>Curso Livre:</strong> Análise de recursos humanos</div>
+                    <button class="btn-explorar">Explorar mais</button>
+                </div>
+                <div class="course-row">
+                    <div class="course-icon">💼</div>
+                    <div class="course-row-info"><strong>Curso Técnico:</strong> Administração e gestão</div>
+                    <button class="btn-explorar">Explorar mais</button>
+                </div>
+                <div class="course-row">
+                    <div class="course-icon">🏛️</div>
+                    <div class="course-row-info"><strong>Graduação:</strong> Administração</div>
+                    <button class="btn-explorar">Explorar mais</button>
+                </div>
+            </div>
+
+            <div class="area-group">
+                <div class="area-label-mkt">Marketing</div>
+                <div class="course-row">
+                    <div class="course-icon">🎨</div>
+                    <div class="course-row-info"><strong>Curso Livre:</strong> Design aplicado a microempreendedores
+                    </div>
+                    <button class="btn-explorar">Explorar mais</button>
+                </div>
+                <div class="course-row">
+                    <div class="course-icon">📈</div>
+                    <div class="course-row-info"><strong>Curso Técnico:</strong> Marketing digital</div>
+                    <button class="btn-explorar">Explorar mais</button>
+                </div>
+                <div class="course-row">
+                    <div class="course-icon">📣</div>
+                    <div class="course-row-info"><strong>Graduação:</strong> Marketing</div>
+                    <button class="btn-explorar">Explorar mais</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <strong>Conte com o Futuro+ para andar junto com você no seu amanhã.</strong>
+                <div class="footer-donate">
+                    <p>Apoie nossa equipe nos seguindo nas redes sociais</p>
+                    <div class="donate-box">@futuromais_org</div>
+                </div>
+            </div>
+            <div>
+                <div class="footer-social-title">
+                    <a href="#" class="footer-social">💼 LinkedIn</a>
+                    <a href="#" class="footer-social">📘 Facebook</a>
+                    <a href="#" class="footer-social">📸 Instagram</a>
+                    <a href="#" class="footer-social">🐙 GitHub</a>
+                </div>
+            </div>
+            <div>
+                <div class="footer-contact">
+                    <a href="mailto:contato.futuromais@gmail.com">⚙ contato.futuromais@gmail.com</a>
+                    <span style="font-size:11px;color:#aac;margin-top:-4px;">Canal de Suporte</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+</body>
+
+</html>

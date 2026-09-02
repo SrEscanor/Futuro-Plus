@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Futuro+ | Quiz de Perfil</title>
+
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+    <link rel="stylesheet" href="assets/css/quiz.css">
+</head>
+
+<body>
+    <div class="menu-panel">
+        <div class="menu-header">menu</div>
+        <a href="index.html" class="menu-item">Recomendação semanal</a>
+        <a href="testes.html" class="menu-item">Testes</a>
+        <a href="mural.html" class="menu-item">Mural</a>
+        <a href="index.html#cursos" class="menu-item">Cursos</a>
+        <a href="login.html" class="menu-item">Perfil / Login</a>
+        <button id="logout-btn" class="btn-sair">Sair da Conta</button>
+        <div class="menu-logo-area">
+            <img src="assets/images/logo.png" alt="Futuro+ Logo" class="logo-png-img">
+        </div>
+    </div>
+
+    <nav class="topnav">
+        <div class="nav-left">
+            <div class="hamburger" aria-label="Menu principal">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="nav-center">
+            <img src="assets/images/logo.png" alt="Futuro+" class="logo-topo">
+        </div>
+        <div class="nav-right">
+            <a href="login.html" class="avatar-link" aria-label="Ir para o perfil / Login">
+                <div class="avatar">
+                    <svg viewBox="0 0 34 34" width="34" height="34">
+                        <circle cx="17" cy="17" r="17" fill="#555" />
+                        <circle cx="17" cy="13" r="6" fill="#888" />
+                        <ellipse cx="17" cy="28" rx="10" ry="7" fill="#888" />
+                    </svg>
+                </div>
+            </a>
+        </div>
+    </nav>
+
+    <div class="main">
+        <div class="section-title">Teste de Perfil Profissional</div>
+        <p class="cursos-subtitle" style="margin-bottom: 30px;">Descubra as áreas que mais combinam com as suas
+            habilidades e interesses.</p>
+
+        <div class="quiz-container" id="quiz-container">
+            <div class="quiz-progress-wrap">
+                <div class="quiz-progress-info" id="progress">Carregando...</div>
+                <div class="quiz-progress-bar">
+                    <div class="quiz-progress-fill" id="progress-fill" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <div class="quiz-header">
+                <h2 class="question-text" id="question-title">Carregando teste...</h2>
+            </div>
+
+            <div class="options-group" id="options-container"></div>
+        </div>
+
+        <div class="quiz-container result-card" id="result-container" style="display: none;">
+            <span class="result-badge">Teste Concluído</span>
+            <h2 class="result-title" id="result-title"></h2>
+            <p class="result-description" id="result-desc"></p>
+
+            <div
+                style="background: var(--bg); padding: 18px 24px; border-radius: var(--radius-md); margin: 0 auto 32px; max-width: 600px; text-align: left; font-size: 13.5px; color: var(--ink-soft); border-left: 4px solid var(--gold); line-height: 1.6;">
+                <strong style="color: var(--ink); display: block; margin-bottom: 6px;">💡 Um conselho importante:</strong>
+                Este teste é baseado na Teoria das Inteligências Múltiplas de Howard Gardner. O próprio autor defende
+                que <strong>nenhum teste pode definir o seu futuro ou ditar uma única carreira a seguir</strong>.
+            </div>
+
+            <div class="result-ctas">
+                <p style="font-size: 14.5px; line-height: 1.5; margin-bottom: 22px;">
+                    <strong>Crie sua conta no aplicativo e salve seu resultado!</strong><br>
+                </p>
+                <div class="result-buttons">
+                    <button class="btn-quiz-submit" onclick="location.href='cadastro.html'">Criar minha conta</button>
+                    <button class="btn-quiz-prev" onclick="location.href='login.html'">Já tenho conta</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="assets/js/dashboard.js"></script>
+    <script type="module" src="assets/js/quiz-gardner.js"></script>
+</body>
+
+</html>

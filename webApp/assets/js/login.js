@@ -30,7 +30,7 @@ document
         senha
       );
 
-      alert("Login realizado com sucesso!");
+      //alert("Login realizado com sucesso!");
 
       window.location.href = "index.html";
 
