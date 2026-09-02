@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Futuro+ | Testes</title>
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+</head>
+
+<body>
+
+    <div class="menu-panel">
+        <div class="menu-header">menu</div>
+
+        <a href="index.html" class="menu-item">Recomendação semanal</a>
+        <a href="testes.html" class="menu-item" style="font-weight: 700; color: #4e6ee8;">Testes</a>
+        <a href="mural.html" class="menu-item">Mural</a>
+        <a href="index.html#cursos" class="menu-item">Cursos</a>
+        <a href="perfil.html" class="menu-item">Perfil</a>
+
+        <div class="menu-logo-area">
+            <img src="assets/images/logo.png" alt="Futuro+ Logo" class="logo-png-img">
+        </div>
+    </div>
+
+    <nav class="topnav">
+        <div class="nav-left">
+            <div class="hamburger" aria-label="Menu principal">
+                <span></span><span></span><span></span>
+            </div>
+            <div class="search-bar">
+                <input type="text" placeholder="Buscar testes..." aria-label="Buscar testes">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2.5">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+            </div>
+        </div>
+        <div class="nav-center">
+            <img src="assets/images/logo.png" alt="Futuro+" class="logo-topo">
+        </div>
+        <div class="nav-right">
+            <div class="bell-icon">
+                <a href="notificacoes.html" aria-label="Notificações">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2">
+                        <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                        <path d="M13.73 21a2 2 0 01-3.46 0" />
+                    </svg>
+                </a>
+            </div>
+            <div class="avatar">
+                <svg viewBox="0 0 34 34" width="34" height="34">
+                    <circle cx="17" cy="17" r="17" fill="#555" />
+                    <circle cx="17" cy="13" r="6" fill="#888" />
+                    <ellipse cx="17" cy="28" rx="10" ry="7" fill="#888" />
+                </svg>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main">
+        <div class="greeting">
+            Central de <span style="color: #4e6ee8;">Testes</span> 🧠
+        </div>
+
+        <div class="cursos-subtitle" style="text-align: left; margin-bottom: 30px;">
+            Descubra suas vocações, mapeie suas habilidades e encontre a área profissional que mais combina com você.
+        </div>
+
+        <div class="testes-row">
+            <div class="teste-card">
+                <p>
+                    <strong>Teste de Múltiplas Inteligências</strong>
+                    Baseado na teoria de Howard Gardner, descubra quais são as suas inteligências predominantes (lógica,
+                    linguística, espacial, interpessoal, etc.) e veja qual área profissional foi feita para o seu
+                    talento natural.
+                </p>
+                <button class="btn-teste" onclick="location.href='quiz-gardner.html'">Iniciar Teste de Perfil</button>
+            </div>
+
+            <div class="teste-card">
+                <p>
+                    <strong>Mapeamento de Competências</strong>
+                    O mercado não busca apenas currículos, busca competência. Avalie suas soft skills e hard skills
+                    atuais para descobrir seu valor de mercado e onde você mais se destaca!
+                </p>
+                <button class="btn-teste" style="background: #f5a623; color: #fff;">Avaliar Habilidades</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="assets/js/dashboard.js"></script>
+    <script type="module" src="assets/js/quiz-gardner.js"></script>
+</body>
+
+</html>
