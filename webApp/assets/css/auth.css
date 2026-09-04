@@ -1,182 +1,194 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
 }
 
-body {
-    font-family: 'Segoe UI', Arial, sans-serif;
-    height: 100vh;
-    display: flex;
+html, body {
+    width: 100%;
+    height: 100%;
     overflow: hidden;
 }
 
+body {
+    display: flex;
+    flex-direction: row;
+    width: 100vw;
+    height: 100vh;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    background: #ffffff;
+}
+
+/* ---- PAINEL ESQUERDO (FORMULÁRIO) ---- */
 .left-panel {
-    width: 42%;
-    min-width: 380px;
+    flex: 0 0 45%;
+    min-width: 420px;
+    height: 100%;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 60px 60px;
-    background: #fff;
+    justify-content: flex-start;
+    padding: 4vh 6% 30px;
+    background: #ffffff;
+    z-index: 2;
+    overflow-y: auto;
 }
 
-.logo {
-    width: 70px;
-    margin-bottom: 36px;
-}
-
-/* Recreate logo in SVG inline */
-.logo-svg {
-    width: 70px;
-    height: 80px;
-    margin-bottom: 36px;
+.logo-png-img {
+    height: 85px !important;
+    min-height: 85px !important;
+    width: auto !important;
+    margin: 0 auto 20px auto;
+    display: block;
+    flex-shrink: 0 !important;
 }
 
 .tabs {
     display: flex;
-    width: 100%;
-    border-bottom: 1.5px solid #e0e0e0;
-    margin-bottom: 36px;
-    gap: 0;
+    justify-content: center;
+    gap: 40px;
+    margin-bottom: 25px;
+    border-bottom: 1.5px solid #cbd5e1;
 }
 
 .tab {
-    flex: 1;
-    text-align: center;
-    padding-bottom: 10px;
-    font-size: 17px;
-    cursor: pointer;
-    color: #aaa;
-    font-weight: 400;
-    border-bottom: 2.5px solid transparent;
-    margin-bottom: -1.5px;
+    font-family: 'Sora', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
     text-decoration: none;
+    color: #94a3b8;
+    padding-bottom: 8px;
+    position: relative;
+    transition: color 0.2s;
 }
 
 .tab.active {
-    color: #3b5bdb;
+    color: #4e6ee8;
     font-weight: 700;
-    border-bottom: 2.5px solid #3b5bdb;
 }
 
+.tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1.5px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: #4e6ee8;
+}
+
+/* ---- CAMPOS E INPUTS ---- */
 .form-group {
-    width: 100%;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
 }
 
-input[type="email"], input[type="password"], input[type="text"] {
+.form-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.form-row .form-group {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.form-group input,
+.form-group select,
+select {
     width: 100%;
-    padding: 14px 18px;
-    border: 1.5px solid #3b5bdb;
-    border-radius: 8px;
-    font-size: 15px;
-    color: #333;
+    padding: 12px 20px;
+    border: 1.5px solid #8ab4f8;
+    border-radius: 30px;
+    font-size: 14px;
+    background: transparent;
+    color: #4e6ee8;
     outline: none;
-    background: #fff;
-    transition: border-color 0.2s;
-}
-
-input::placeholder {
-    color: #aaa;
-}
-
-input:focus {
-    border-color: #2244cc;
-}
-
-.forgot {
-    text-align: right;
-    margin-bottom: 24px;
-    margin-top: -6px;
-}
-
-.forgot a {
-    color: #888;
-    font-size: 13px;
-    text-decoration: none;
+    appearance: none;
 }
 
 .btn-login {
     width: 100%;
-    padding: 15px;
+    padding: 14px;
     background: #4e6ee8;
     color: #fff;
     border: none;
     border-radius: 30px;
-    font-size: 17px;
-    font-weight: 600;
+    font-size: 16px;
+    font-weight: 700;
     cursor: pointer;
-    letter-spacing: 0.5px;
-    margin-bottom: 18px;
-    transition: background 0.2s;
-}
-
-.btn-login:hover {
-    background: #3b5bdb;
+    margin-bottom: 16px;
 }
 
 .register-link {
+    font-size: 13px;
+    color: #789bc9;
     text-align: center;
-    font-size: 14px;
-    color: #555;
+    margin-bottom: 20px;
 }
 
 .register-link a {
-    color: #3b5bdb;
-    font-weight: 700;
+    color: #1256c2;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.terms-text {
+    font-size: 11.5px;
+    color: #5b6084;
+    line-height: 1.4;
+    margin-bottom: 16px;
+    padding: 0 2px;
+}
+
+.terms-text a {
+    color: #4e6ee8;
+    font-weight: 600;
     text-decoration: none;
 }
 
-/* RIGHT PANEL - decorative blobs */
+/* ---- PAINEL DIREITO (IMAGEM) ---- */
 .right-panel {
     flex: 1;
+    height: 100%;
     position: relative;
-    background: #f5f5f5;
     overflow: hidden;
 }
 
-.blob {
+.bg-png-image {
     position: absolute;
-    border-radius: 50%;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
 }
 
-/* Gold/yellow large blob - top right area */
-.blob-gold {
-    width: 680px;
-    height: 680px;
-    background: #f5c842;
-    opacity: 0.85;
-    top: -200px;
-    right: -180px;
+/* Responsividade Mobile */
+@media (max-width: 768px) {
+    body {
+        flex-direction: column;
+        overflow-y: auto;
+    }
+    .right-panel {
+        display: none;
+    }
+    .left-panel {
+        flex: 1;
+        width: 100%;
+        min-width: 0;
+        padding: 20px;
+    }
 }
 
-/* Blue blob - middle */
-.blob-blue {
-    width: 600px;
-    height: 600px;
-    background: #4e6ee8;
-    opacity: 0.9;
-    top: -100px;
-    right: -60px;
-}
-
-/* Green blob - bottom right */
-.blob-green {
-    width: 580px;
-    height: 580px;
-    background: #2ecc71;
-    opacity: 0.9;
-    top: 80px;
-    right: -80px;
-}
-
-/* Dotted pattern overlay */
-.dots-overlay {
-    position: absolute;
-    inset: 0;
-    background-image: radial-gradient(circle, rgba(255,255,255,0.25) 1.5px, transparent 1.5px);
-    background-size: 18px 18px;
-    z-index: 5;
+.form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 6px;
+    margin-left: 8px;
 }

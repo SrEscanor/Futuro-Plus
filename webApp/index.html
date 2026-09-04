@@ -67,7 +67,7 @@
 
     <div class="main">
         <div class="greeting">
-            Olá, <span id="nomeUsuario">Estudante</span> 👋
+            <h1 id="saudacao">Olá, <span id="nomeUsuario">ESTUDANTE</span> 👋</h1>
         </div>
 
         <div class="weekly-card">
@@ -300,6 +300,29 @@
             </div>
         </div>
     </footer>
+
+    <!-- Botão Flutuante do Chat -->
+    <button id="chatbot-toggle" class="chat-btn-blue" aria-label="Abrir assistente inteligente">
+        <svg width="28" height="28" viewBox="0 -960 960 960" fill="currentColor">
+            <path
+                d="M480-120 426-312 240-360 426-408 480-600 534-408 720-360 534-312 480-120Zm0-560 36-114-114-36 114-36 36-114 36 114 114 36-114 36-36 114Z" />
+        </svg>
+    </button>
+
+    <!-- Janela do Chatbot -->
+    <div id="chatbot-window" class="chat-window oculta">
+        <div class="chat-header">
+            <strong>Assistente Virtual</strong>
+            <button id="close-chat" class="close-btn">×</button>
+        </div>
+        <div id="chat-messages" class="chat-messages">
+            <div class="msg bot">Olá! Sou o assistente da ETEC/FATEC. Como posso ajudar?</div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chat-input" placeholder="Digite sua dúvida...">
+            <button id="send-chat" class="send-btn">Enviar</button>
+        </div>
+    </div>
 
     <script type="module" src="assets/js/dashboard.js"></script>
     <script type="module" src="assets/js/quiz-gardner.js"></script>

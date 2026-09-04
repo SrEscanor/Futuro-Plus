@@ -1,59 +1,35 @@
-import {
-  getAuth,
-  signInWithEmailAndPassword
-} from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "./firebase-config.js"; // Certifique-se de importar o 'auth' exportado do seu config
 
-import { app } from "./firebase-config.js";
+document.querySelector(".btn-login").addEventListener("click", async (e) => {
+    // Impede o recarregamento padrão da página caso o botão esteja dentro de um formulário
+    if (e) e.preventDefault();
 
-const auth = getAuth(app);
-
-document
-  .querySelector(".btn-login")
-  .addEventListener("click", async () => {
-
-    const email =
-      document.getElementById("email").value.trim();
-
-    const senha =
-      document.getElementById("senha").value;
+    const email = document.getElementById("email").value.trim();
+    const senha = document.getElementById("senha").value;
 
     if (!email || !senha) {
-      alert("Preencha todos os campos.");
-      return;
+        alert("Preencha todos os campos.");
+        return;
     }
 
     try {
+        await signInWithEmailAndPassword(auth, email, senha);
 
-      await signInWithEmailAndPassword(
-        auth,
-        email,
-        senha
-      );
-
-      //alert("Login realizado com sucesso!");
-
-      window.location.href = "index.html";
+        // Login bem-sucedido, redireciona para a home
+        window.location.href = "index.html";
 
     } catch (erro) {
+        switch (erro.code) {
+            case "auth/invalid-credential":
+            case "auth/user-not-found":
+            case "auth/wrong-password":
+                alert("E-mail ou senha inválidos.");
+                break;
+            default:
+                alert("Erro ao realizar login: " + erro.message);
+        }
 
-      switch (erro.code) {
-
-        case "auth/invalid-credential":
-          alert("Email ou senha inválidos.");
-          break;
-
-        case "auth/user-not-found":
-          alert("Usuário não encontrado.");
-          break;
-
-        case "auth/wrong-password":
-          alert("Senha incorreta.");
-          break;
-
-        default:
-          alert("Erro ao realizar login.");
-      }
-
-      console.error(erro);
+        console.error("Erro Firebase:", erro);
     }
 });
