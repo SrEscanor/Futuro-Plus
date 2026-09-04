@@ -1,0 +1,142 @@
+[debug] [2026-09-04T23:46:08.358Z] ----------------------------------------------------------------------
+[debug] [2026-09-04T23:46:08.361Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\CAMARGO\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js emulators:start
+[debug] [2026-09-04T23:46:08.361Z] CLI Version:   15.29.0
+[debug] [2026-09-04T23:46:08.362Z] Platform:      win32
+[debug] [2026-09-04T23:46:08.362Z] Node Version:  v20.14.0
+[debug] [2026-09-04T23:46:08.362Z] Detected Agent: unknown
+[debug] [2026-09-04T23:46:08.362Z] Time:          Fri Sep 04 2026 20:46:08 GMT-0300 (Horário Padrão de Brasília)
+[debug] [2026-09-04T23:46:08.362Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-09-04T23:46:09.677Z] Field "/functions" in "firebase.json" is possibly invalid: must be object
+[debug] [2026-09-04T23:46:09.677Z] Field "/functions" in "firebase.json" is possibly invalid: must be object
+[debug] [2026-09-04T23:46:09.677Z] Field "/functions" in "firebase.json" is possibly invalid: must be object
+[debug] [2026-09-04T23:46:09.677Z] Object "/functions/0" in "firebase.json" is missing required property: {"missingProperty":"instances"}
+[debug] [2026-09-04T23:46:09.677Z] Object "/functions/0" in "firebase.json" has unknown property: {"additionalProperty":"python_version"}
+[debug] [2026-09-04T23:46:09.677Z] Object "/functions/0" in "firebase.json" is missing required property: {"missingProperty":"remoteSource"}
+[debug] [2026-09-04T23:46:09.678Z] Field "/functions/0" in "firebase.json" is possibly invalid: must match a schema in anyOf
+[debug] [2026-09-04T23:46:09.678Z] Field "/functions" in "firebase.json" is possibly invalid: must match a schema in anyOf
+[debug] [2026-09-04T23:46:09.681Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-09-04T23:46:09.682Z] > authorizing via signed-in user (fhlembo@gmail.com)
+[info] i  emulators: Starting emulators: functions, hosting, extensions {"metadata":{"emulator":{"name":"hub"},"message":"Starting emulators: functions, hosting, extensions"}}
+[debug] [2026-09-04T23:46:09.687Z] Checked if tokens are valid: true, expires at: 1788568913569
+[debug] [2026-09-04T23:46:09.687Z] Checked if tokens are valid: true, expires at: 1788568913569
+[debug] [2026-09-04T23:46:09.688Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/futuroplus-bce54 [none]
+[debug] [2026-09-04T23:46:10.649Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/futuroplus-bce54 200
+[debug] [2026-09-04T23:46:10.649Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/futuroplus-bce54 {"projectNumber":"809256060399","projectId":"futuroplus-bce54","lifecycleState":"ACTIVE","name":"FuturoPLUS","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2026-06-06T06:19:51.091Z"}
+[debug] [2026-09-04T23:46:10.664Z] [logging] Logging Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2026-09-04T23:46:10.664Z] [hosting] Hosting Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2026-09-04T23:46:10.665Z] assigned listening specs for emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"hosting":[{"address":"127.0.0.1","family":"IPv4","port":5000}]},"metadata":{"message":"assigned listening specs for emulators"}}
+[debug] [2026-09-04T23:46:10.670Z] Write emulator hub locator at C:\Users\CAMARGO\AppData\Local\Temp\hub-futuroplus-bce54.json
+[debug] [2026-09-04T23:46:10.679Z] [Extensions] Started Extensions emulator, this is a noop.
+[debug] [2026-09-04T23:46:10.686Z] [functions] Functions Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2026-09-04T23:46:10.686Z] [eventarc] Eventarc Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2026-09-04T23:46:10.687Z] [tasks] Cloud Tasks Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2026-09-04T23:46:10.687Z] late-assigned ports for functions and eventarc emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"hosting":[{"address":"127.0.0.1","family":"IPv4","port":5000}],"functions":[{"address":"127.0.0.1","family":"IPv4","port":5001}],"eventarc":[{"address":"127.0.0.1","family":"IPv4","port":9299}],"tasks":[{"address":"127.0.0.1","family":"IPv4","port":9499}]},"metadata":{"message":"late-assigned ports for functions and eventarc emulators"}}
+[warn] !  functions: The following emulators are not running, calls to these services from the Functions emulator will affect production: apphosting, auth, firestore, database, pubsub, storage, dataconnect {"metadata":{"emulator":{"name":"functions"},"message":"The following emulators are not running, calls to these services from the Functions emulator will affect production: \u001b[1mapphosting, auth, firestore, database, pubsub, storage, dataconnect\u001b[22m"}}
+[debug] [2026-09-04T23:46:10.710Z] defaultcredentials: writing to file C:\Users\CAMARGO\AppData\Roaming\firebase\fhlembo_gmail_com_application_default_credentials.json
+[debug] [2026-09-04T23:46:10.716Z] Setting GAC to C:\Users\CAMARGO\AppData\Roaming\firebase\fhlembo_gmail_com_application_default_credentials.json {"metadata":{"emulator":{"name":"functions"},"message":"Setting GAC to C:\\Users\\CAMARGO\\AppData\\Roaming\\firebase\\fhlembo_gmail_com_application_default_credentials.json"}}
+[debug] [2026-09-04T23:46:10.716Z] Checked if tokens are valid: true, expires at: 1788568913569
+[debug] [2026-09-04T23:46:10.716Z] Checked if tokens are valid: true, expires at: 1788568913569
+[debug] [2026-09-04T23:46:10.717Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/futuroplus-bce54/adminSdkConfig [none]
+[debug] [2026-09-04T23:46:11.150Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/futuroplus-bce54/adminSdkConfig 200
+[debug] [2026-09-04T23:46:11.150Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/futuroplus-bce54/adminSdkConfig {"projectId":"futuroplus-bce54","storageBucket":"futuroplus-bce54.firebasestorage.app"}
+[debug] [2026-09-04T23:46:11.174Z] Checked if tokens are valid: true, expires at: 1788568913569
+[debug] [2026-09-04T23:46:11.174Z] Checked if tokens are valid: true, expires at: 1788568913569
+[debug] [2026-09-04T23:46:11.174Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/futuroplus-bce54/sites 
+[debug] [2026-09-04T23:46:11.769Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/futuroplus-bce54/sites 200
+[debug] [2026-09-04T23:46:11.769Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/futuroplus-bce54/sites {"sites":[{"name":"projects/futuroplus-bce54/sites/futuroplus-bce54","defaultUrl":"https://futuroplus-bce54.web.app","appId":"1:809256060399:web:faa209ea8869daab3d621a","type":"DEFAULT_SITE"}]}
+[debug] [2026-09-04T23:46:11.769Z] Checked if tokens are valid: true, expires at: 1788568913569
+[debug] [2026-09-04T23:46:11.769Z] Checked if tokens are valid: true, expires at: 1788568913569
+[debug] [2026-09-04T23:46:11.769Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/futuroplus-bce54/webApps/1:809256060399:web:faa209ea8869daab3d621a/config [none]
+[debug] [2026-09-04T23:46:12.887Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/futuroplus-bce54/webApps/1:809256060399:web:faa209ea8869daab3d621a/config 200
+[debug] [2026-09-04T23:46:12.887Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/futuroplus-bce54/webApps/1:809256060399:web:faa209ea8869daab3d621a/config {"projectId":"futuroplus-bce54","appId":"1:809256060399:web:faa209ea8869daab3d621a","storageBucket":"futuroplus-bce54.firebasestorage.app","apiKey":"AIzaSyBFZqeWzcFlZJRSf4PR1vPu-RNxFPvJgSs","authDomain":"futuroplus-bce54.firebaseapp.com","messagingSenderId":"809256060399","measurementId":"G-F84B9KL0P0","projectNumber":"809256060399","version":"2"}
+[debug] [2026-09-04T23:46:12.900Z] Checked if tokens are valid: true, expires at: 1788568913569
+[debug] [2026-09-04T23:46:12.900Z] Checked if tokens are valid: true, expires at: 1788568913569
+[debug] [2026-09-04T23:46:12.900Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/futuroplus-bce54 [none]
+[debug] [2026-09-04T23:46:13.238Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/futuroplus-bce54 200
+[debug] [2026-09-04T23:46:13.238Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/futuroplus-bce54 {"projectId":"futuroplus-bce54","projectNumber":"809256060399","displayName":"FuturoPLUS","name":"projects/futuroplus-bce54","resources":{"hostingSite":"futuroplus-bce54"},"state":"ACTIVE","labels":{"firebase":"enabled"},"etag":"1_f4a66bea-2b0c-4cac-ad3a-c9cb2c700cc5"}
+[info] i  hosting[futuroplus-bce54]: Serving hosting files from: webApp {"metadata":{"emulator":{"name":"hosting"},"message":"Serving hosting files from: \u001b[1mwebApp\u001b[22m"}}
+[info] +  hosting[futuroplus-bce54]: Local server: http://127.0.0.1:5000 {"metadata":{"emulator":{"name":"hosting"},"message":"Local server: \u001b[4m\u001b[1mhttp://127.0.0.1:5000\u001b[22m\u001b[24m"}}
+[debug] [2026-09-04T23:46:13.261Z] [Extensions] Connecting Extensions emulator, this is a noop.
+[info] i  functions: Watching "C:\Users\CAMARGO\Desktop\Futuro-Plus\functions" for Cloud Functions... {"metadata":{"emulator":{"name":"functions"},"message":"Watching \"C:\\Users\\CAMARGO\\Desktop\\Futuro-Plus\\functions\" for Cloud Functions..."}}
+[debug] [2026-09-04T23:46:13.264Z] Customer code is not Node
+[debug] [2026-09-04T23:46:13.265Z] Validating python source
+[debug] [2026-09-04T23:46:13.265Z] Building python source
+[debug] [2026-09-04T23:46:13.266Z] Could not find functions.yaml. Must use http discovery
+[debug] [2026-09-04T23:46:13.275Z] Running command with virtualenv: command="C:\Users\CAMARGO\Desktop\Futuro-Plus\functions\venv\Scripts\activate.bat", args=["&&","python.exe","-c","\"import firebase_functions; import os; print(os.path.dirname(firebase_functions.__file__))\""]
+[debug] [2026-09-04T23:46:13.377Z] stdout: C:\Users\CAMARGO\Desktop\Futuro-Plus\functions\venv\Lib\site-packages\firebase_functions
+
+[debug] [2026-09-04T23:46:13.386Z] Running admin server with args: ["python.exe","\"C:\\Users\\CAMARGO\\Desktop\\Futuro-Plus\\functions\\venv\\Lib\\site-packages\\firebase_functions\\private\\serving.py\""] and env: {"GCLOUD_PROJECT":"futuroplus-bce54","K_REVISION":"1","PORT":"80","GOOGLE_CLOUD_QUOTA_PROJECT":"futuroplus-bce54","FUNCTIONS_EMULATOR":"true","TZ":"UTC","FIREBASE_DEBUG_MODE":"true","FIREBASE_DEBUG_FEATURES":"{\"skipTokenVerification\":true,\"enableCors\":true}","FIREBASE_EMULATOR_HUB":"127.0.0.1:4400","CLOUD_EVENTARC_EMULATOR_HOST":"http://127.0.0.1:9299","CLOUD_TASKS_EMULATOR_HOST":"127.0.0.1:9499","FIREBASE_CONFIG":"{\"storageBucket\":\"futuroplus-bce54.firebasestorage.app\",\"projectId\":\"futuroplus-bce54\"}","GOOGLE_APPLICATION_CREDENTIALS":"C:\\Users\\CAMARGO\\AppData\\Roaming\\firebase\\fhlembo_gmail_com_application_default_credentials.json","ADMIN_PORT":"8081"} in C:\Users\CAMARGO\Desktop\Futuro-Plus\functions
+[debug] [2026-09-04T23:46:13.386Z] Running command with virtualenv: command="C:\Users\CAMARGO\Desktop\Futuro-Plus\functions\venv\Scripts\activate.bat", args=["&&","python.exe","\"C:\\Users\\CAMARGO\\Desktop\\Futuro-Plus\\functions\\venv\\Lib\\site-packages\\firebase_functions\\private\\serving.py\""]
+[info]  * Serving Flask app 'serving'
+ * Debug mode: off
+
+[error] WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on http://127.0.0.1:8081
+
+[error] Press CTRL+C to quit
+
+[error] [2026-09-04 23:46:16,867] ERROR in app: Exception on /__/functions.yaml [GET]
+Traceback (most recent call last):
+  File "C:\Users\CAMARGO\Desktop\Futuro-Plus\functions\venv\Lib\site-packages\flask\app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "C:\Users\CAMARGO\Desktop\Futuro-Plus\functions\venv\Lib\site-packages\flask\app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "C:\Users\CAMARGO\Desktop\Futuro-Plus\functions\venv\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\CAMARGO\Desktop\Futuro-Plus\functions\venv\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\CAMARGO\Desktop\Futuro-Plus\functions\venv\Lib\site-packages\firebase_functions\private\serving.py", line 121, in get_functions_yaml
+    functions = get_functions()
+  File "C:\Users\CAMARGO\Desktop\Futuro-Plus\functions\venv\Lib\site-packages\firebase_functions\private\serving.py", line 41, in get_functions
+    spec.loader.exec_module(module)
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\CAMARGO\Desktop\Futuro-Plus\functions\main.py", line 10, in <module>
+    from agentes import agente_orquestrador
+  File "C:\Users\CAMARGO\Desktop\Futuro-Plus\functions\agentes.py", line 7, in <module>
+    from tools import pesquisar_sites_cps, consultar_manual_candidato, enviar_resumo_por_email
+  File "C:\Users\CAMARGO\Desktop\Futuro-Plus\functions\tools.py", line 11, in <module>
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+  File "C:\Users\CAMARGO\Desktop\Futuro-Plus\functions\venv\Lib\site-packages\openai\_client.py", line 271, in __init__
+    raise OpenAIError(
+        "Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable."
+    )
+openai.OpenAIError: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable.
+
+[error] 127.0.0.1 - - [04/Sep/2026 23:46:16] "GET /__/functions.yaml HTTP/1.1" 500 -
+
+[debug] [2026-09-04T23:46:16.870Z] Got response code 500; body <!doctype html>
+<html lang=en>
+<title>500 Internal Server Error</title>
+<h1>Internal Server Error</h1>
+<p>The server encountered an internal error and was unable to complete your request. Either the server is overloaded or there is an error in the application.</p>
+
+[error] 127.0.0.1 - - [04/Sep/2026 23:46:16] "GET /__/quitquitquit HTTP/1.1" 200 -
+
+[error] !!  functions: Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error {"metadata":{"emulator":{"name":"functions"},"message":"Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error"}}
+[debug] [2026-09-04T23:46:16.909Z] Could not find VSCode notification endpoint: TypeError: fetch failed. If you are not running the Firebase SQL Connect VSCode extension, this is expected and not an issue.
+[info] 
+┌─────────────────────────────────────────────────────────────┐
+│ ✔  All emulators ready! It is now safe to connect your app. │
+│ i  View Emulator UI at http://127.0.0.1:4000/               │
+└─────────────────────────────────────────────────────────────┘
+
+┌────────────┬────────────────┬──────────────────────────────────┐
+│ Emulator   │ Host:Port      │ View in Emulator UI              │
+├────────────┼────────────────┼──────────────────────────────────┤
+│ Functions  │ 127.0.0.1:5001 │ http://127.0.0.1:4000/functions  │
+├────────────┼────────────────┼──────────────────────────────────┤
+│ Hosting    │ 127.0.0.1:5000 │ n/a                              │
+├────────────┼────────────────┼──────────────────────────────────┤
+│ Extensions │ 127.0.0.1:5001 │ http://127.0.0.1:4000/extensions │
+└────────────┴────────────────┴──────────────────────────────────┘
+  Emulator Hub host: 127.0.0.1 port: 4400
+  Other reserved ports: 4500
+┌─────────────────────────┬───────────────┬─────────────────────┐
+│ Extension Instance Name │ Extension Ref │ View in Emulator UI │
+└─────────────────────────┴───────────────┴─────────────────────┘
+Issues? Report them at https://github.com/firebase/firebase-tools/issues and attach the *-debug.log files.
+ 
