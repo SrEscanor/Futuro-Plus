@@ -1,0 +1,7 @@
+firebase_functions~=0.5.0
+firebase-functions>=0.1.0
+firebase-admin
+openai
+tavily-python
+python-dotenv
+openai-agents
