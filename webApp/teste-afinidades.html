@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Futuro+ | Quiz de Perfil</title>
+    <title>Futuro+ | Teste de Afinidades</title>
 
     <link rel="stylesheet" href="assets/css/dashboard.css">
     <link rel="stylesheet" href="assets/css/quiz.css">
@@ -46,34 +46,37 @@
     </nav>
 
     <div class="main">
-        <div class="section-title">Teste de Perfil Profissional</div>
-        <p class="cursos-subtitle" style="margin-bottom: 30px;">Descubra as áreas que mais combinam com as suas
-            habilidades e interesses.</p>
+        <div class="section-title">Teste de Afinidades</div>
+        <p class="cursos-subtitle" style="margin-bottom: 30px;">Avalie de 0 a 10 o quanto cada característica combina
+            com você e descubra sua inteligência dominante.</p>
 
-        <div class="quiz-container" id="quiz-container">
+        <div class="quiz-container" id="afinidades-container">
             <a href="index.html" class="quiz-sair"
                 onclick="return confirm('Tem certeza que deseja sair? Suas respostas não serão salvas.');">
                 ← Sair do teste
             </a>
 
             <div class="quiz-progress-wrap">
-                <div class="quiz-progress-info" id="progress">Carregando...</div>
+                <div class="quiz-progress-info" id="afinidades-progresso">Bloco 1 de 4</div>
                 <div class="quiz-progress-bar">
-                    <div class="quiz-progress-fill" id="progress-fill" style="width: 0%;"></div>
+                    <div class="quiz-progress-fill" id="afinidades-progresso-fill" style="width: 25%;"></div>
                 </div>
             </div>
 
-            <div class="quiz-header">
-                <h2 class="question-text" id="question-title">Carregando teste...</h2>
-            </div>
+            <div class="bloco-afinidade-titulo" id="afinidades-titulo-bloco"></div>
 
-            <div class="options-group" id="options-container"></div>
+            <div class="linhas-afinidade" id="afinidades-linhas"></div>
+
+            <div class="acoes-afinidade">
+                <button type="button" class="btn-quiz-prev" id="afinidades-voltar" style="visibility: hidden;">Voltar</button>
+                <button type="button" class="btn-quiz-submit" id="afinidades-avancar">Próximo</button>
+            </div>
         </div>
 
-        <div class="quiz-container result-card" id="result-container" style="display: none;">
+        <div class="quiz-container result-card" id="afinidades-resultado" style="display: none;">
             <span class="result-badge">Teste Concluído</span>
-            <h2 class="result-title" id="result-title"></h2>
-            <p class="result-description" id="result-desc"></p>
+            <h2 class="result-title" id="afinidades-resultado-titulo"></h2>
+            <p class="result-description" id="afinidades-resultado-desc"></p>
 
             <div
                 style="background: var(--bg); padding: 18px 24px; border-radius: var(--radius-md); margin: 0 auto 32px; max-width: 600px; text-align: left; font-size: 13.5px; color: var(--ink-soft); border-left: 4px solid var(--gold); line-height: 1.6;">
@@ -95,7 +98,7 @@
     </div>
 
     <script type="module" src="assets/js/dashboard.js"></script>
-    <script type="module" src="assets/js/quiz-gardner.js"></script>
+    <script type="module" src="assets/js/teste-afinidades.js"></script>
 </body>
 
 </html>

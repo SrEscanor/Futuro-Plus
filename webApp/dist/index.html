@@ -8,9 +8,10 @@
     <link rel="manifest" href="./assets/manifest-k8QUVgLb.json">
     <meta name="theme-color" content="#4e6ee8">
     <link rel="apple-touch-icon" href="./icon-512.png">
-  <script type="module" crossorigin src="./assets/firebase-config-Dsuh4FyF.js"></script>
-  <script type="module" crossorigin src="./assets/quiz-gardner-DQWFff-w.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/style-BQiOygHL.css">
+  <script type="module" crossorigin src="./assets/main-Brm6r7i-.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/firebase-config-By66qnxQ.js">
+  <link rel="modulepreload" crossorigin href="./assets/dashboard-BV67wVgX.js">
+  <link rel="stylesheet" crossorigin href="./assets/dashboard--hIQf8sx.css">
 </head>
 
 <body>
@@ -32,12 +33,12 @@
     </div>
     <nav class="topnav">
         <div class="nav-left">
-            <div class="hamburger" aria-label="Menu principal">
+            <button type="button" class="hamburger" aria-label="Menu principal">
                 <span></span><span></span><span></span>
-            </div>
+            </button>
             <div class="search-bar">
                 <input type="text" placeholder="Buscar cursos..." aria-label="Buscar cursos">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <circle cx="11" cy="11" r="8" />
                     <line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
@@ -49,7 +50,7 @@
         <div class="nav-right">
             <div class="bell-icon">
                 <a href="notificacoes.html" aria-label="Notificações">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
                         <path d="M13.73 21a2 2 0 01-3.46 0" />
                     </svg>
@@ -144,25 +145,33 @@
         <div class="mid-row">
             <div class="chart-card">
                 <div class="chart-label">Último resultado</div>
-                <div class="chart-wrap">
+
+                <div class="chart-wrap" id="resultado-com-dados" style="display: none;">
                     <div class="donut-chart">
                         <svg viewBox="0 0 40 40" style="transform:rotate(-90deg); width:100%; height:100%;">
                             <circle cx="20" cy="20" r="15.915" fill="none" stroke="#e8e8e8" stroke-width="4" />
-                            <circle cx="20" cy="20" r="15.915" fill="none" stroke="#4e6ee8" stroke-width="4"
-                                stroke-dasharray="66.7 100" stroke-dashoffset="0" />
-                            <circle cx="20" cy="20" r="15.915" fill="none" stroke="#f5a623" stroke-width="4"
-                                stroke-dasharray="20 100" stroke-dashoffset="-66.7" />
-                            <circle cx="20" cy="20" r="15.915" fill="none" stroke="#2ecc71" stroke-width="4"
-                                stroke-dasharray="13.3 100" stroke-dashoffset="-86.7" />
+                            <circle id="arco-1" cx="20" cy="20" r="15.915" fill="none" stroke="#4e6ee8" stroke-width="4"
+                                stroke-dasharray="0 100" stroke-dashoffset="0" />
+                            <circle id="arco-2" cx="20" cy="20" r="15.915" fill="none" stroke="#f5a623" stroke-width="4"
+                                stroke-dasharray="0 100" stroke-dashoffset="0" />
+                            <circle id="arco-3" cx="20" cy="20" r="15.915" fill="none" stroke="#2ecc71" stroke-width="4"
+                                stroke-dasharray="0 100" stroke-dashoffset="0" />
                         </svg>
                     </div>
                     <div class="chart-info">
-                        <div class="chart-title">Índice para Tecnologia</div>
-                        <div class="chart-percent">66,7%</div>
-                        <div class="chart-link">
-                            <a href="#">Clique aqui</a> e veja as últimas notícias da área
-                        </div>
+                        <div class="chart-title" id="resultado-titulo"></div>
+                        <div class="chart-percent" id="resultado-percentual"></div>
+                        <div class="chart-link" id="resultado-link"></div>
                     </div>
+                </div>
+
+                <div class="chart-vazio" id="resultado-vazio">
+                    <div class="chart-vazio-icone">🧭</div>
+                    <div class="chart-vazio-texto">
+                        <strong>Você ainda não fez nenhum teste</strong>
+                        <p>Descubra sua inteligência dominante e receba sugestões de cursos feitas pra você.</p>
+                    </div>
+                    <button class="btn-teste" onclick="location.href='testes.html'">Fazer teste de perfil</button>
                 </div>
             </div>
             <div class="mural-cta">

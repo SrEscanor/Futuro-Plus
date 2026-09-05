@@ -5,9 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Futuro+ | Testes</title>
-  <script type="module" crossorigin src="./assets/firebase-config-Dsuh4FyF.js"></script>
-  <script type="module" crossorigin src="./assets/quiz-gardner-DQWFff-w.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/style-BQiOygHL.css">
+  <script type="module" crossorigin src="./assets/firebase-config-By66qnxQ.js"></script>
+  <script type="module" crossorigin src="./assets/dashboard-BV67wVgX.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/dashboard--hIQf8sx.css">
 </head>
 
 <body>
@@ -28,12 +28,12 @@
 
     <nav class="topnav">
         <div class="nav-left">
-            <div class="hamburger" aria-label="Menu principal">
+            <button type="button" class="hamburger" aria-label="Menu principal">
                 <span></span><span></span><span></span>
-            </div>
+            </button>
             <div class="search-bar">
                 <input type="text" placeholder="Buscar testes..." aria-label="Buscar testes">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <circle cx="11" cy="11" r="8" />
                     <line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
@@ -45,7 +45,7 @@
         <div class="nav-right">
             <div class="bell-icon">
                 <a href="notificacoes.html" aria-label="Notificações">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
                         <path d="M13.73 21a2 2 0 01-3.46 0" />
                     </svg>
@@ -83,15 +83,16 @@
 
             <div class="teste-card">
                 <p>
-                    <strong>Mapeamento de Competências</strong>
-                    O mercado não busca apenas currículos, busca competência. Avalie suas soft skills e hard skills
-                    atuais para descobrir seu valor de mercado e onde você mais se destaca!
+                    <strong>Teste de Afinidades</strong>
+                    Avalie de 0 a 10 o quanto cada característica combina com você. Um jeito mais detalhado de
+                    descobrir sua inteligência dominante, também baseado na teoria de Howard Gardner.
                 </p>
-                <button class="btn-teste" style="background: #f5a623; color: #fff;">Avaliar Habilidades</button>
+                <button class="btn-teste" style="background: #f5a623; color: #fff;"
+                    onclick="location.href='teste-afinidades.html'">Fazer Teste de Afinidades</button>
             </div>
         </div>
     </div>
-
+
 </body>
 
 </html>
