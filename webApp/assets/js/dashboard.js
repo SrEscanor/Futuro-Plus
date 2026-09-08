@@ -1,6 +1,6 @@
 import { auth, db } from './firebase-config.js';
-import { signOut, onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -53,8 +53,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.appendChild(overlay);
 
     function toggleMenu() {
-        menuPanel.classList.toggle('aberto');
-        overlay.classList.toggle('ativo');
+        if (menuPanel) menuPanel.classList.toggle('aberto');
+        if (overlay) overlay.classList.toggle('ativo');
     }
 
     if (hamburger && overlay) {
@@ -74,6 +74,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // --- LÓGICA DO CHATBOT COM TRAVAS DE SEGURANÇA ---
     const chatToggleBtn = document.getElementById('chatbot-toggle');
     const chatWindow = document.getElementById('chatbot-window');
     const closeChatBtn = document.getElementById('close-chat');
@@ -81,12 +83,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendChatBtn = document.getElementById('send-chat');
     const chatMessages = document.getElementById('chat-messages');
 
-    const toggleChat = () => chatWindow.classList.toggle('oculta');
-    chatToggleBtn.addEventListener('click', toggleChat);
-    closeChatBtn.addEventListener('click', toggleChat);
+    const toggleChat = () => {
+        if (chatWindow) chatWindow.classList.toggle('oculta');
+    };
+
+    // URL da função do chatbot: usa o emulador local só quando o site está
+    // rodando em localhost/127.0.0.1; em produção (Firebase Hosting) usa a
+    // Cloud Function publicada na nuvem.
+    const isLocalhost = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+    const CHATBOT_URL = isLocalhost
+        ? "http://127.0.0.1:5001/futuroplus-bce54/us-central1/chat_bot"
+        : "https://us-central1-futuroplus-bce54.cloudfunctions.net/chat_bot";
+
+    // Só adiciona o evento de clique se os botões existirem
+    if (chatToggleBtn) chatToggleBtn.addEventListener('click', toggleChat);
+    if (closeChatBtn) closeChatBtn.addEventListener('click', toggleChat);
 
     function addMessage(text, sender) {
-        if (!text.trim()) return;
+        if (!text.trim() || !chatMessages) return;
         const msgDiv = document.createElement('div');
         msgDiv.classList.add('msg', sender);
         msgDiv.textContent = text;
@@ -94,22 +108,59 @@ document.addEventListener('DOMContentLoaded', () => {
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    const handleSend = () => {
+    const handleSend = async () => {
+        if (!chatInput) return;
         const text = chatInput.value.trim();
+        
         if (text) {
-            // Exibe a mensagem do usuário
             addMessage(text, 'user');
             chatInput.value = '';
 
-            // Simulação temporária até o Firebase IA ser conectado
-            setTimeout(() => {
-                addMessage("Ainda estou offline! Em breve serei conectado ao Vertex AI.", "bot");
-            }, 800);
+            const typingDiv = document.createElement('div');
+            typingDiv.classList.add('msg', 'bot');
+            typingDiv.textContent = "Digitando...";
+            typingDiv.id = "typing-indicator";
+            if (chatMessages) {
+                chatMessages.appendChild(typingDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            try {
+                const userId = auth.currentUser ? auth.currentUser.uid : "aluno_padrao";
+
+                const response = await fetch(CHATBOT_URL, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        id_usuario: userId,
+                        mensagem: text
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erro de comunicação: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                document.getElementById('typing-indicator')?.remove();
+                addMessage(data.resposta, 'bot');
+
+            } catch (error) {
+                console.error("Erro no Chatbot:", error);
+                document.getElementById('typing-indicator')?.remove();
+                addMessage("Desculpe, deu um erro de conexão. O servidor está rodando?", "bot");
+            }
         }
     };
 
-    sendChatBtn.addEventListener('click', handleSend);
-    chatInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleSend();
-    });
+    // Só adiciona os eventos de enviar se os elementos existirem
+    if (sendChatBtn) sendChatBtn.addEventListener('click', handleSend);
+    if (chatInput) {
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleSend();
+        });
+    }
 });

@@ -1,0 +1,22 @@
+rules_version = '2';
+
+// Regras usadas apenas pelo emulador local do Firestore, para testar o
+// chatbot na sua máquina. NÃO são publicadas automaticamente: só valem na
+// nuvem se você rodar "firebase deploy --only firestore" de propósito.
+// Se o projeto já tem regras configuradas no Console do Firebase, elas
+// continuam intactas até você decidir fazer esse deploy.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Cada aluno só pode ler/escrever o próprio documento de perfil.
+    match /usuarios/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // O histórico do chatbot só é lido/escrito pelo backend (Admin SDK),
+    // que ignora estas regras. Bloqueado para qualquer acesso direto do app.
+    match /chat_sessions/{sessionId} {
+      allow read, write: if false;
+    }
+  }
+}

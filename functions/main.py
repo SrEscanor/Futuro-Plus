@@ -1,13 +1,11 @@
 import json
+import firebase_admin
+from firebase_admin import firestore
 from firebase_functions import https_fn, options
-from firebase_admin import initialize_app, firestore
 
-# Inicializa o Firebase Admin
-initialize_app()
-db = firestore.client()
-
-# Importa o orquestrador dos seus agentes que agora estão dentro da pasta functions
-from agentes import agente_orquestrador
+# Inicializa o Firebase apenas uma vez e de forma leve
+if not firebase_admin._apps:
+    firebase_admin.initialize_app()
 
 @https_fn.on_request(cors=options.CorsOptions(cors_origins="*", cors_methods=["get", "post"]))
 def chat_bot(req: https_fn.Request) -> https_fn.Response:
@@ -15,6 +13,14 @@ def chat_bot(req: https_fn.Request) -> https_fn.Response:
         return https_fn.Response(status=204)
         
     try:
+        # 1. Deixamos a conexão do banco para acontecer só quando a função for chamada
+        db = firestore.client()
+
+        # 2. Importamos o seu chatbot AQUI DENTRO para não travar a inicialização do Firebase!
+        from agents import Runner
+        from agentes import agente_orquestrador
+        from firestore_session import FirestoreSession
+
         dados = req.get_json()
         if not dados:
             return https_fn.Response(json.dumps({"erro": "Nenhum dado recebido"}), status=400)
@@ -25,14 +31,16 @@ def chat_bot(req: https_fn.Request) -> https_fn.Response:
         if not mensagem:
             return https_fn.Response(json.dumps({"erro": "A mensagem não pode estar vazia"}), status=400)
 
-        # Chama o seu agente orquestrador
-        resultado = agente_orquestrador(mensagem, id_usuario)
-        
+        # Um objeto Agent da SDK não é chamável diretamente (ex: agente(msg) dava
+        # erro "'Agent' object is not callable"). É preciso executá-lo com Runner.
+        # A sessão fica gravada no Firestore, um documento por id_usuario, então
+        # o histórico de cada aluno persiste na nuvem entre chamadas — sem
+        # depender de arquivo local, que se perde a cada cold start da função.
+        session = FirestoreSession(session_id=id_usuario, db=db)
+        resultado = Runner.run_sync(agente_orquestrador, mensagem, session=session)
+
         # Extrai a resposta final do agente
-        if isinstance(resultado, dict):
-            resposta_texto = resultado.get("final_output", str(resultado))
-        else:
-            resposta_texto = str(resultado)
+        resposta_texto = getattr(resultado, "final_output", None) or str(resultado)
 
         return https_fn.Response(
             json.dumps({"resposta": resposta_texto}),
