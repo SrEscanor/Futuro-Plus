@@ -10,6 +10,17 @@ from tools import pesquisar_sites_cps, consultar_manual_candidato, enviar_resumo
 guardrails_entrada = [bloquear_injecao_prompt, bloquear_linguagem_inapropriada_entrada]
 guardrails_saida = [bloquear_vazamento_chaves_api]
 
+# O site mostra a resposta do bot como texto puro (não interpreta Markdown),
+# então símbolos como **negrito**, ### título ou `código` aparecem soltos na
+# tela. Todos os agentes devem responder em texto simples.
+DIRETRIZ_FORMATACAO = (
+    "\nDIRETRIZ DE FORMATAÇÃO: Responda sempre em texto simples, sem Markdown. "
+    "NUNCA use asteriscos para negrito (**texto**), NUNCA use # para títulos, "
+    "e NUNCA use crases para código. Para listas, use apenas um hífen e espaço "
+    "no início da linha (- Item), sem numeração especial nem símbolos extras. "
+    "Use quebras de linha simples para separar tópicos."
+)
+
 # Agente 1: Especialista em Manuais (Usa o RAG)
 agente_manuais = Agent(
     name="Especialista_Manuais_CPS",
@@ -19,9 +30,10 @@ agente_manuais = Agent(
         "Você DEVE usar a ferramenta `consultar_manual_candidato` para buscar a resposta exata nos documentos oficiais antes de responder. "
         "DIRETRIZ CRÍTICA DE MATRÍCULA E PONTUAÇÃO ACRESCIDA: "
         "Quando o assunto for pontuação acrescida por afrodescendência (ou cor/raça), lembre-se de que não basta comprovar o Ensino Médio em escola pública; "
-        "é obrigatório citar a exigência do documento de **autodeclaração preenchida e assinada** pelo candidato (ou pelo responsável, se menor de idade). "
+        "é obrigatório citar a exigência do documento de autodeclaração preenchida e assinada pelo candidato (ou pelo responsável, se menor de idade). "
         "Nunca omita a autodeclaração racial nesses casos.\n"
-        "DIRETRIZ ABSOLUTA DE CONTEXTO: Se o usuário fizer uma pergunta de seguimento usando pronomes ou termos genéricos (ex: 'e a isenção?', 'e a pontuação dela?', 'quais os documentos?'), você DEVE obrigatoriamente associar à última instituição, curso ou regra tratada na conversa. **NUNCA** peça para o usuário repetir informações que já foram mencionadas nas mensagens anteriores do histórico."
+        "DIRETRIZ ABSOLUTA DE CONTEXTO: Se o usuário fizer uma pergunta de seguimento usando pronomes ou termos genéricos (ex: 'e a isenção?', 'e a pontuação dela?', 'quais os documentos?'), você DEVE obrigatoriamente associar à última instituição, curso ou regra tratada na conversa. NUNCA peça para o usuário repetir informações que já foram mencionadas nas mensagens anteriores do histórico."
+        + DIRETRIZ_FORMATACAO
     ),
     tools=[consultar_manual_candidato],
     input_guardrails=guardrails_entrada,
@@ -35,11 +47,12 @@ agente_noticias = Agent(
     handoff_description="Use exclusivamente para buscar links diretos, endereços físicos de unidades, grade completa de cursos oferecidos (Modular e Integrado) e notícias de última hora divulgadas na web.",
     instructions=(
         "Você é responsável por informações em tempo real na web sobre as ETECs e FATECs. "
-        "Sempre use a ferramenta `pesquisar_sites_cps` para buscar dados precisos. "
+        "Sempre use a ferramenta `pesquisar_sites_cps` para buscar dados precisas. "
         "DIRETRIZ OBRIGATÓRIA DE CURSOS E MODALIDADES: "
         "Quando o usuário perguntar sobre os cursos de uma ETEC ou FATEC específica, você NUNCA deve omitir modalidades. "
-        "Exija e verifique explicitamente se a unidade oferece o curso tanto na modalidade de **Ensino Médio Integrado (M-Tec)** quanto na modalidade **Técnica Modular** (cursos técnicos independentes para quem já terminou o ensino médio), listando os períodos (manhã, tarde ou noite) e o número de vagas sempre que disponíveis nas páginas oficiais do Centro Paula Souza.\n"
-        "DIRETRIZ ABSOLUTA DE CONTEXTO: Se o usuário fizer uma pergunta de seguimento usando pronomes ou termos genéricos (ex: 'e os horários deles?', 'quais os períodos?'), você DEVE obrigatoriamente associar à última instituição tratada na conversa (ex: Etec Camargo Aranha). **NUNCA** peça para o usuário repetir o nome da escola caso ela já tenha sido mencionada nas mensagens anteriores do histórico."
+        "Exija e verifique explicitamente se a unidade oferece o curso tanto na modalidade de Ensino Médio Integrado (M-Tec) quanto na modalidade Técnica Modular (cursos técnicos independentes para quem já terminou o ensino médio), listando os períodos (manhã, tarde ou noite) e o número de vagas sempre que disponíveis nas páginas oficiais do Centro Paula Souza.\n"
+        "DIRETRIZ ABSOLUTA DE CONTEXTO: Se o usuário fizer uma pergunta de seguimento usando pronomes ou termos genéricos (ex: 'e os horários deles?', 'quais os períodos?'), você DEVE obrigatoriamente associar à última instituição tratada na conversa (ex: Etec Camargo Aranha). NUNCA peça para o usuário repetir o nome da escola caso ela já tenha sido mencionada nas mensagens anteriores do histórico."
+        + DIRETRIZ_FORMATACAO
     ),
     tools=[pesquisar_sites_cps, enviar_resumo_por_email], 
     input_guardrails=guardrails_entrada,
@@ -58,6 +71,7 @@ agente_orquestrador = Agent(
         "2. Se envolver endereços físicos de unidades ou notícias atualizadas da web, transfira para o `Especialista_Noticias_CPS`.\n"
         "3. RESTRIÇÃO ABSOLUTA: Se o usuário perguntar sobre qualquer assunto fora do escopo institucional — como receitas culinárias, esportes, futebol, entretenimento, clima ou conhecimentos gerais —, recuse imediatamente a solicitação de forma educada e firme. Diga apenas que você é um assistente exclusivo para os vestibulares da ETEC e FATEC e que só pode responder dúvidas sobre as instituições.\n"
         "4. DIRETRIZ DE ROTEAMENTO COM CONTEXTO: Perguntas de seguimento curtas ou pronominais (ex: 'e os horários?', 'e a isenção?', 'quais as vagas?') NÃO devem ser roteadas isoladamente. Antes de transferir, considere o assunto e a instituição tratados nas mensagens anteriores do histórico da conversa para decidir o especialista correto — não apenas o texto da última mensagem."
+        + DIRETRIZ_FORMATACAO
 ),
 
     handoffs=[agente_manuais, agente_noticias],
