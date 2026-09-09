@@ -99,16 +99,24 @@ document.addEventListener('DOMContentLoaded', () => {
     if (chatToggleBtn) chatToggleBtn.addEventListener('click', toggleChat);
     if (closeChatBtn) closeChatBtn.addEventListener('click', toggleChat);
 
+      function limparMarkdown(texto) {
+        return texto
+            .replace(/^#{1,6}\s+/gm, '')
+            .replace(/\*\*(.*?)\*\*/g, '$1')
+            .replace(/\*(.*?)\*/g, '$1')
+            .replace(/`([^`]+)`/g, '$1');
+    }
+
     function addMessage(text, sender) {
         if (!text.trim() || !chatMessages) return;
         const msgDiv = document.createElement('div');
         msgDiv.classList.add('msg', sender);
-        msgDiv.textContent = text;
+        msgDiv.textContent = sender === 'bot' ? limparMarkdown(text) : text;
         chatMessages.appendChild(msgDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    const handleSend = async () => {
+        const handleSend = async () => {
         if (!chatInput) return;
         const text = chatInput.value.trim();
         
@@ -125,16 +133,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             }
 
+            if (!auth.currentUser) {
+                document.getElementById('typing-indicator')?.remove();
+                addMessage("Você precisa estar logado para usar o chat.", "bot");
+                return;
+            }
+
             try {
-                const userId = auth.currentUser ? auth.currentUser.uid : "aluno_padrao";
+                // Pega a credencial do Firebase Auth da pessoa logada. O servidor
+                // confere essa credencial antes de responder — assim ninguém
+                // consegue chamar o chatbot fingindo ser outro aluno, nem sem
+                // estar logado no site.
+                const token = await auth.currentUser.getIdToken();
 
                 const response = await fetch(CHATBOT_URL, {
                     method: "POST",
                     headers: {
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
                     },
                     body: JSON.stringify({
-                        id_usuario: userId,
                         mensagem: text
                     })
                 });

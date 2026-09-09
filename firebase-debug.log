@@ -1,48 +1,58 @@
-[debug] [2026-09-08T20:36:53.923Z] ----------------------------------------------------------------------
-[debug] [2026-09-08T20:36:53.926Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\Pichau\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js emulators:start --only functions firestore hosting
-[debug] [2026-09-08T20:36:53.926Z] CLI Version:   15.29.0
-[debug] [2026-09-08T20:36:53.926Z] Platform:      win32
-[debug] [2026-09-08T20:36:53.926Z] Node Version:  v24.20.0
-[debug] [2026-09-08T20:36:53.926Z] Detected Agent: unknown
-[debug] [2026-09-08T20:36:53.926Z] Time:          Tue Sep 08 2026 17:36:53 GMT-0300 (Horário Padrão de Brasília)
-[debug] [2026-09-08T20:36:53.926Z] ----------------------------------------------------------------------
+[debug] [2026-09-09T03:12:36.456Z] ----------------------------------------------------------------------
+[debug] [2026-09-09T03:12:36.458Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\Pichau\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js emulators:start --only functions firestore hosting
+[debug] [2026-09-09T03:12:36.458Z] CLI Version:   15.29.0
+[debug] [2026-09-09T03:12:36.458Z] Platform:      win32
+[debug] [2026-09-09T03:12:36.459Z] Node Version:  v24.20.0
+[debug] [2026-09-09T03:12:36.459Z] Detected Agent: unknown
+[debug] [2026-09-09T03:12:36.459Z] Time:          Wed Sep 09 2026 00:12:36 GMT-0300 (Horário Padrão de Brasília)
+[debug] [2026-09-09T03:12:36.459Z] ----------------------------------------------------------------------
 [debug] 
-[debug] [2026-09-08T20:36:55.055Z] Field "/functions" in "firebase.json" is possibly invalid: must be object
-[debug] [2026-09-08T20:36:55.055Z] Field "/functions" in "firebase.json" is possibly invalid: must be object
-[debug] [2026-09-08T20:36:55.055Z] Field "/functions" in "firebase.json" is possibly invalid: must be object
-[debug] [2026-09-08T20:36:55.056Z] Object "/functions/0" in "firebase.json" is missing required property: {"missingProperty":"instances"}
-[debug] [2026-09-08T20:36:55.056Z] Object "/functions/0" in "firebase.json" has unknown property: {"additionalProperty":"python_version"}
-[debug] [2026-09-08T20:36:55.056Z] Object "/functions/0" in "firebase.json" is missing required property: {"missingProperty":"remoteSource"}
-[debug] [2026-09-08T20:36:55.056Z] Field "/functions/0" in "firebase.json" is possibly invalid: must match a schema in anyOf
-[debug] [2026-09-08T20:36:55.056Z] Field "/functions" in "firebase.json" is possibly invalid: must match a schema in anyOf
-[debug] [2026-09-08T20:36:55.059Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
-[debug] [2026-09-08T20:36:55.060Z] > authorizing via signed-in user (fhlembo@gmail.com)
-[debug] [2026-09-08T20:36:55.136Z] openjdk version "25.0.4.1" 2026-08-18 LTS
+[debug] [2026-09-09T03:12:37.613Z] Field "/functions" in "firebase.json" is possibly invalid: must be object
+[debug] [2026-09-09T03:12:37.614Z] Field "/functions" in "firebase.json" is possibly invalid: must be object
+[debug] [2026-09-09T03:12:37.614Z] Field "/functions" in "firebase.json" is possibly invalid: must be object
+[debug] [2026-09-09T03:12:37.614Z] Object "/functions/0" in "firebase.json" is missing required property: {"missingProperty":"instances"}
+[debug] [2026-09-09T03:12:37.614Z] Object "/functions/0" in "firebase.json" has unknown property: {"additionalProperty":"python_version"}
+[debug] [2026-09-09T03:12:37.614Z] Object "/functions/0" in "firebase.json" is missing required property: {"missingProperty":"remoteSource"}
+[debug] [2026-09-09T03:12:37.614Z] Field "/functions/0" in "firebase.json" is possibly invalid: must match a schema in anyOf
+[debug] [2026-09-09T03:12:37.614Z] Field "/functions" in "firebase.json" is possibly invalid: must match a schema in anyOf
+[debug] [2026-09-09T03:12:37.618Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-09-09T03:12:37.618Z] > authorizing via signed-in user (fhlembo@gmail.com)
+[debug] [2026-09-09T03:12:37.710Z] openjdk version "25.0.4.1" 2026-08-18 LTS
 
-[debug] [2026-09-08T20:36:55.136Z] OpenJDK Runtime Environment Temurin-25.0.4.1+1 (build 25.0.4.1+1-LTS)
+[debug] [2026-09-09T03:12:37.711Z] OpenJDK Runtime Environment Temurin-25.0.4.1+1 (build 25.0.4.1+1-LTS)
 OpenJDK 64-Bit Server VM Temurin-25.0.4.1+1 (build 25.0.4.1+1-LTS, mixed mode, sharing)
 
-[debug] [2026-09-08T20:36:55.144Z] Parsed Java major version: 25
+[debug] [2026-09-09T03:12:37.720Z] Parsed Java major version: 25
 [info] i  emulators: Starting emulators: functions, firestore, hosting {"metadata":{"emulator":{"name":"hub"},"message":"Starting emulators: functions, firestore, hosting"}}
-[debug] [2026-09-08T20:36:55.164Z] [logging] Logging Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
-[debug] [2026-09-08T20:36:55.164Z] [firestore] Firestore Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
-[debug] [2026-09-08T20:36:55.164Z] [firestore.websocket] websocket server for firestore only supports listening on one address (127.0.0.1). Not listening on ::1
-[debug] [2026-09-08T20:36:55.164Z] [hosting] Hosting Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
-[debug] [2026-09-08T20:36:55.165Z] assigned listening specs for emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"firestore":[{"address":"127.0.0.1","family":"IPv4","port":8080}],"firestore.websocket":[{"address":"127.0.0.1","family":"IPv4","port":9150}],"hosting":[{"address":"127.0.0.1","family":"IPv4","port":5000}]},"metadata":{"message":"assigned listening specs for emulators"}}
-[debug] [2026-09-08T20:36:55.169Z] Write emulator hub locator at C:\Users\Pichau\AppData\Local\Temp\hub-futuroplus-bce54.json
-[debug] [2026-09-08T20:36:55.182Z] [functions] Functions Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
-[debug] [2026-09-08T20:36:55.182Z] [eventarc] Eventarc Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
-[debug] [2026-09-08T20:36:55.182Z] [tasks] Cloud Tasks Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
-[debug] [2026-09-08T20:36:55.182Z] late-assigned ports for functions and eventarc emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"firestore":[{"address":"127.0.0.1","family":"IPv4","port":8080}],"firestore.websocket":[{"address":"127.0.0.1","family":"IPv4","port":9150}],"hosting":[{"address":"127.0.0.1","family":"IPv4","port":5000}],"functions":[{"address":"127.0.0.1","family":"IPv4","port":5001}],"eventarc":[{"address":"127.0.0.1","family":"IPv4","port":9299}],"tasks":[{"address":"127.0.0.1","family":"IPv4","port":9499}]},"metadata":{"message":"late-assigned ports for functions and eventarc emulators"}}
+[debug] [2026-09-09T03:12:37.744Z] [logging] Logging Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2026-09-09T03:12:37.744Z] [firestore] Firestore Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2026-09-09T03:12:37.744Z] [firestore.websocket] websocket server for firestore only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2026-09-09T03:12:37.744Z] [hosting] Hosting Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2026-09-09T03:12:37.744Z] assigned listening specs for emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"firestore":[{"address":"127.0.0.1","family":"IPv4","port":8080}],"firestore.websocket":[{"address":"127.0.0.1","family":"IPv4","port":9150}],"hosting":[{"address":"127.0.0.1","family":"IPv4","port":5000}]},"metadata":{"message":"assigned listening specs for emulators"}}
+[debug] [2026-09-09T03:12:37.748Z] Write emulator hub locator at C:\Users\Pichau\AppData\Local\Temp\hub-futuroplus-bce54.json
+[debug] [2026-09-09T03:12:37.761Z] [functions] Functions Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2026-09-09T03:12:37.762Z] [eventarc] Eventarc Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2026-09-09T03:12:37.762Z] [tasks] Cloud Tasks Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2026-09-09T03:12:37.762Z] late-assigned ports for functions and eventarc emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"firestore":[{"address":"127.0.0.1","family":"IPv4","port":8080}],"firestore.websocket":[{"address":"127.0.0.1","family":"IPv4","port":9150}],"hosting":[{"address":"127.0.0.1","family":"IPv4","port":5000}],"functions":[{"address":"127.0.0.1","family":"IPv4","port":5001}],"eventarc":[{"address":"127.0.0.1","family":"IPv4","port":9299}],"tasks":[{"address":"127.0.0.1","family":"IPv4","port":9499}]},"metadata":{"message":"late-assigned ports for functions and eventarc emulators"}}
 [warn] !  functions: The following emulators are not running, calls to these services from the Functions emulator will affect production: apphosting, auth, database, pubsub, storage, dataconnect {"metadata":{"emulator":{"name":"functions"},"message":"The following emulators are not running, calls to these services from the Functions emulator will affect production: \u001b[1mapphosting, auth, database, pubsub, storage, dataconnect\u001b[22m"}}
-[debug] [2026-09-08T20:36:55.206Z] defaultcredentials: writing to file C:\Users\Pichau\AppData\Roaming\firebase\fhlembo_gmail_com_application_default_credentials.json
-[debug] [2026-09-08T20:36:55.207Z] Setting GAC to C:\Users\Pichau\AppData\Roaming\firebase\fhlembo_gmail_com_application_default_credentials.json {"metadata":{"emulator":{"name":"functions"},"message":"Setting GAC to C:\\Users\\Pichau\\AppData\\Roaming\\firebase\\fhlembo_gmail_com_application_default_credentials.json"}}
-[debug] [2026-09-08T20:36:55.220Z] Checked if tokens are valid: true, expires at: 1788901892099
-[debug] [2026-09-08T20:36:55.220Z] Checked if tokens are valid: true, expires at: 1788901892099
-[debug] [2026-09-08T20:36:55.221Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/futuroplus-bce54/adminSdkConfig [none]
-[debug] [2026-09-08T20:36:55.657Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/futuroplus-bce54/adminSdkConfig 200
-[debug] [2026-09-08T20:36:55.657Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/futuroplus-bce54/adminSdkConfig {"projectId":"futuroplus-bce54","storageBucket":"futuroplus-bce54.firebasestorage.app"}
-[info] i  firestore: downloading cloud-firestore-emulator-v1.22.0.jar... {"metadata":{"emulator":{"name":"firestore"},"message":"downloading cloud-firestore-emulator-v1.22.0.jar..."}}
-[debug] [2026-09-08T20:36:55.706Z] >>> [apiv2][query] GET https://storage.googleapis.com/firebase-preview-drop/emulator/cloud-firestore-emulator-v1.22.0.jar 
-[debug] [2026-09-08T20:36:55.974Z] <<< [apiv2][status] GET https://storage.googleapis.com/firebase-preview-drop/emulator/cloud-firestore-emulator-v1.22.0.jar 200
-[debug] [2026-09-08T20:36:55.974Z] <<< [apiv2][body] GET https://storage.googleapis.com/firebase-preview-drop/emulator/cloud-firestore-emulator-v1.22.0.jar [stream]
+[debug] [2026-09-09T03:12:37.788Z] defaultcredentials: writing to file C:\Users\Pichau\AppData\Roaming\firebase\fhlembo_gmail_com_application_default_credentials.json
+[debug] [2026-09-09T03:12:37.789Z] Setting GAC to C:\Users\Pichau\AppData\Roaming\firebase\fhlembo_gmail_com_application_default_credentials.json {"metadata":{"emulator":{"name":"functions"},"message":"Setting GAC to C:\\Users\\Pichau\\AppData\\Roaming\\firebase\\fhlembo_gmail_com_application_default_credentials.json"}}
+[debug] [2026-09-09T03:12:37.802Z] Checked if tokens are valid: false, expires at: 1788923622236
+[debug] [2026-09-09T03:12:37.802Z] Checked if tokens are valid: false, expires at: 1788923622236
+[debug] [2026-09-09T03:12:37.802Z] > refreshing access token with scopes: []
+[debug] [2026-09-09T03:12:37.805Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2026-09-09T03:12:37.805Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-09-09T03:12:37.970Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2026-09-09T03:12:37.970Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-09-09T03:12:37.983Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/futuroplus-bce54/adminSdkConfig [none]
+[debug] [2026-09-09T03:12:38.378Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/futuroplus-bce54/adminSdkConfig 200
+[debug] [2026-09-09T03:12:38.379Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/futuroplus-bce54/adminSdkConfig {"projectId":"futuroplus-bce54","storageBucket":"futuroplus-bce54.firebasestorage.app"}
+[debug] [2026-09-09T03:12:38.398Z] Ignoring unsupported arg: auto_download {"metadata":{"emulator":{"name":"firestore"},"message":"Ignoring unsupported arg: auto_download"}}
+[debug] [2026-09-09T03:12:38.398Z] Ignoring unsupported arg: single_project_mode_error {"metadata":{"emulator":{"name":"firestore"},"message":"Ignoring unsupported arg: single_project_mode_error"}}
+[debug] [2026-09-09T03:12:38.399Z] Starting Firestore Emulator with command {"binary":"java","args":["-Dgoogle.cloud_firestore.debug_log_level=FINE","-Duser.language=en","-jar","C:\\Users\\Pichau\\.cache\\firebase\\emulators\\cloud-firestore-emulator-v1.22.0.jar","--host","127.0.0.1","--port",8080,"--websocket_port",9150,"--database-edition","standard","--project_id","futuroplus-bce54","--rules","C:\\Users\\Pichau\\Desktop\\Futuro-Plus\\firestore.rules","--single_project_mode",true,"--functions_emulator","127.0.0.1:5001"],"optionalArgs":["port","webchannel_port","host","rules","websocket_port","database-edition","functions_emulator","seed_from_export","project_id","single_project_mode"],"joinArgs":false,"shell":false,"port":8080} {"metadata":{"emulator":{"name":"firestore"},"message":"Starting Firestore Emulator with command {\"binary\":\"java\",\"args\":[\"-Dgoogle.cloud_firestore.debug_log_level=FINE\",\"-Duser.language=en\",\"-jar\",\"C:\\\\Users\\\\Pichau\\\\.cache\\\\firebase\\\\emulators\\\\cloud-firestore-emulator-v1.22.0.jar\",\"--host\",\"127.0.0.1\",\"--port\",8080,\"--websocket_port\",9150,\"--database-edition\",\"standard\",\"--project_id\",\"futuroplus-bce54\",\"--rules\",\"C:\\\\Users\\\\Pichau\\\\Desktop\\\\Futuro-Plus\\\\firestore.rules\",\"--single_project_mode\",true,\"--functions_emulator\",\"127.0.0.1:5001\"],\"optionalArgs\":[\"port\",\"webchannel_port\",\"host\",\"rules\",\"websocket_port\",\"database-edition\",\"functions_emulator\",\"seed_from_export\",\"project_id\",\"single_project_mode\"],\"joinArgs\":false,\"shell\":false,\"port\":8080}"}}
+[info] i  firestore: Firestore Emulator logging to firestore-debug.log {"metadata":{"emulator":{"name":"firestore"},"message":"Firestore Emulator logging to \u001b[1mfirestore-debug.log\u001b[22m"}}
+[debug] [2026-09-09T03:12:38.776Z] WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::allocateMemory has been called by io.netty.util.internal.PlatformDependent0$2 (file:/C:/Users/Pichau/.cache/firebase/emulators/cloud-firestore-emulator-v1.22.0.jar)
+WARNING: Please consider reporting this to the maintainers of class io.netty.util.internal.PlatformDependent0$2
+WARNING: sun.misc.Unsafe::allocateMemory will be removed in a future release
+ {"metadata":{"emulator":{"name":"firestore"},"message":"WARNING: A terminally deprecated method in sun.misc.Unsafe has been called\nWARNING: sun.misc.Unsafe::allocateMemory has been called by io.netty.util.internal.PlatformDependent0$2 (file:/C:/Users/Pichau/.cache/firebase/emulators/cloud-firestore-emulator-v1.22.0.jar)\nWARNING: Please consider reporting this to the maintainers of class io.netty.util.internal.PlatformDependent0$2\nWARNING: sun.misc.Unsafe::allocateMemory will be removed in a future release\r\n"}}
