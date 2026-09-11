@@ -14,7 +14,8 @@ const botaoAvancar = document.getElementById("afinidades-avancar");
 
 let blocoAtual = 0;
 
-// notasPorBloco[indiceDoBloco][letra] = nota de 0 a 10 que a pessoa deu
+// notasPorBloco[indiceDoBloco][letra] = posição de 1 a 8 dada pela pessoa
+// (ranking: cada número só pode ser usado uma vez dentro do bloco)
 const notasPorBloco = blocosAfinidades.map(() => ({}));
 
 
@@ -31,6 +32,9 @@ function renderizarBloco() {
 
     linhasContainer.innerHTML = "";
 
+    const totalLinhas = bloco.linhas.length;
+    const selects = [];
+
     bloco.linhas.forEach(linha => {
         const linhaEl = document.createElement("div");
         linhaEl.className = "linha-afinidade";
@@ -45,7 +49,10 @@ function renderizarBloco() {
 
         const notaEl = document.createElement("select");
         notaEl.className = "linha-afinidade-nota";
-        notaEl.setAttribute("aria-label", `Nota de 0 a 10 para: ${linha.texto}`);
+        notaEl.setAttribute(
+            "aria-label",
+            `Posição de 1 a ${totalLinhas} para: ${linha.texto}`
+        );
 
         const opcaoVazia = document.createElement("option");
         opcaoVazia.value = "";
@@ -53,10 +60,10 @@ function renderizarBloco() {
         opcaoVazia.disabled = true;
         notaEl.appendChild(opcaoVazia);
 
-        for (let nota = 0; nota <= 10; nota++) {
+        for (let posicao = 1; posicao <= totalLinhas; posicao++) {
             const opcao = document.createElement("option");
-            opcao.value = String(nota);
-            opcao.textContent = String(nota);
+            opcao.value = String(posicao);
+            opcao.textContent = String(posicao);
             notaEl.appendChild(opcao);
         }
 
@@ -65,17 +72,38 @@ function renderizarBloco() {
 
         notaEl.addEventListener("change", () => {
             notasPorBloco[blocoAtual][linha.letra] = Number(notaEl.value);
+            atualizarOpcoesDisponiveis(selects);
         });
 
         linhaEl.appendChild(letraEl);
         linhaEl.appendChild(textoEl);
         linhaEl.appendChild(notaEl);
         linhasContainer.appendChild(linhaEl);
+
+        selects.push(notaEl);
     });
+
+    atualizarOpcoesDisponiveis(selects);
 
     botaoVoltar.style.visibility = blocoAtual === 0 ? "hidden" : "visible";
     botaoAvancar.textContent =
         blocoAtual === blocosAfinidades.length - 1 ? "Enviar teste" : "Próximo";
+}
+
+// Cada posição (1 a 8) só pode ser usada uma vez por bloco — desabilita nos
+// outros selects o valor que já foi escolhido em algum deles, pra evitar
+// repetição sem precisar validar isso só no final.
+function atualizarOpcoesDisponiveis(selects) {
+    const valoresUsados = selects
+        .map(select => select.value)
+        .filter(valor => valor !== "");
+
+    selects.forEach(select => {
+        Array.from(select.options).forEach(opcao => {
+            if (opcao.value === "") return;
+            opcao.disabled = valoresUsados.includes(opcao.value) && opcao.value !== select.value;
+        });
+    });
 }
 
 function blocoEstaCompleto() {
@@ -121,10 +149,12 @@ function finalizarTeste() {
     const maxPorCategoria = {};
 
     blocosAfinidades.forEach((bloco, indiceBloco) => {
+        const posicaoMaxima = bloco.linhas.length;
+
         bloco.linhas.forEach(linha => {
-            const nota = notasPorBloco[indiceBloco][linha.letra] || 0;
-            somaPorCategoria[linha.categoria] = (somaPorCategoria[linha.categoria] || 0) + nota;
-            maxPorCategoria[linha.categoria] = (maxPorCategoria[linha.categoria] || 0) + 10;
+            const posicao = notasPorBloco[indiceBloco][linha.letra] || 0;
+            somaPorCategoria[linha.categoria] = (somaPorCategoria[linha.categoria] || 0) + posicao;
+            maxPorCategoria[linha.categoria] = (maxPorCategoria[linha.categoria] || 0) + posicaoMaxima;
         });
     });
 
