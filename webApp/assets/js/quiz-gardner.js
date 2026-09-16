@@ -361,13 +361,45 @@ function showResult() {
 
 
     // --------------------------------------------------------
-    // Adicionar inteligência secundária
+    // Perfil complementar + ranking completo: só aparecem pra
+    // quem está logado. Sem login, mostra só o resultado principal
+    // e um convite pra criar conta/logar e ver o restante.
     // --------------------------------------------------------
 
-    if (
-        secondaryCategory &&
-        percentages[secondaryCategory] > 0
-    ) {
+    if (usuarioLogado) {
+
+        if (
+            secondaryCategory &&
+            percentages[secondaryCategory] > 0
+        ) {
+
+            combinedDesc += `
+                <hr style="
+                    border:0;
+                    border-top:1px solid #ddd;
+                    margin:25px 0;
+                ">
+
+                <div style="margin-bottom: 25px;">
+
+                    <h3>
+                        Perfil complementar:
+                        ${resultData[secondaryCategory].title}
+                    </h3>
+
+                    <div style="
+                        font-size: 18px;
+                        font-weight: bold;
+                        margin: 10px 0;
+                    ">
+                        ${Math.round(percentages[secondaryCategory])}% de afinidade
+                    </div>
+
+                    ${resultData[secondaryCategory].desc}
+
+                </div>
+            `;
+        }
 
         combinedDesc += `
             <hr style="
@@ -376,109 +408,94 @@ function showResult() {
                 margin:25px 0;
             ">
 
-            <div style="margin-bottom: 25px;">
+            <h3>📊 Seu perfil completo</h3>
 
-                <h3>
-                    Perfil complementar:
-                    ${resultData[secondaryCategory].title}
-                </h3>
-
-                <div style="
-                    font-size: 18px;
-                    font-weight: bold;
-                    margin: 10px 0;
-                ">
-                    ${Math.round(percentages[secondaryCategory])}% de afinidade
-                </div>
-
-                ${resultData[secondaryCategory].desc}
-
-            </div>
+            <div style="margin-top: 15px;">
         `;
-    }
 
+        ranking.forEach((category, index) => {
 
-    // --------------------------------------------------------
-    // Ranking completo
-    // --------------------------------------------------------
+            const percentage =
+                Math.round(percentages[category]);
 
-    combinedDesc += `
-        <hr style="
-            border:0;
-            border-top:1px solid #ddd;
-            margin:25px 0;
-        ">
-
-        <h3>📊 Seu perfil completo</h3>
-
-        <div style="margin-top: 15px;">
-    `;
-
-
-    ranking.forEach((category, index) => {
-
-        const percentage =
-            Math.round(percentages[category]);
-
-        combinedDesc += `
-            <div style="
-                margin-bottom: 15px;
-            ">
-
+            combinedDesc += `
                 <div style="
-                    display:flex;
-                    justify-content:space-between;
-                    margin-bottom:5px;
-                    font-weight:bold;
-                ">
-
-                    <span>
-                        ${index + 1}º -
-                        ${resultData[category].title}
-                    </span>
-
-                    <span>
-                        ${percentage}%
-                    </span>
-
-                </div>
-
-                <div style="
-                    width:100%;
-                    height:10px;
-                    background:#e5e5e5;
-                    border-radius:10px;
-                    overflow:hidden;
+                    margin-bottom: 15px;
                 ">
 
                     <div style="
-                        width:${percentage}%;
-                        height:100%;
-                        background:currentColor;
+                        display:flex;
+                        justify-content:space-between;
+                        margin-bottom:5px;
+                        font-weight:bold;
+                    ">
+
+                        <span>
+                            ${index + 1}º -
+                            ${resultData[category].title}
+                        </span>
+
+                        <span>
+                            ${percentage}%
+                        </span>
+
+                    </div>
+
+                    <div style="
+                        width:100%;
+                        height:10px;
+                        background:#e5e5e5;
                         border-radius:10px;
-                    "></div>
+                        overflow:hidden;
+                    ">
+
+                        <div style="
+                            width:${percentage}%;
+                            height:100%;
+                            background:currentColor;
+                            border-radius:10px;
+                        "></div>
+
+                    </div>
 
                 </div>
+            `;
 
+        });
+
+        combinedDesc += `
             </div>
+
+            <p style="
+                margin-top:25px;
+                font-size:14px;
+                opacity:0.75;
+            ">
+                💡 O resultado representa um perfil de afinidade
+                com base nas respostas escolhidas. Ele não determina
+                sozinho uma profissão ou curso ideal.
+            </p>
         `;
 
-    });
+    } else {
 
+        combinedDesc += `
+            <hr style="
+                border:0;
+                border-top:1px solid #ddd;
+                margin:25px 0;
+            ">
 
-    combinedDesc += `
-        </div>
+            <p style="
+                font-size: 14.5px;
+                line-height: 1.6;
+            ">
+                🔒 <strong>Crie sua conta ou faça login</strong> para ver seu
+                perfil complementar e o ranking completo das suas 8 inteligências.
+            </p>
+        `;
 
-        <p style="
-            margin-top:25px;
-            font-size:14px;
-            opacity:0.75;
-        ">
-            💡 O resultado representa um perfil de afinidade
-            com base nas respostas escolhidas. Ele não determina
-            sozinho uma profissão ou curso ideal.
-        </p>
-    `;
+    }
 
 
     // --------------------------------------------------------

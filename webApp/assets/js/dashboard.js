@@ -131,8 +131,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const CHAT_BOT_URL = (location.hostname === "localhost" || location.hostname === "127.0.0.1")
-        ? "http://127.0.0.1:5001/futuroplus-bce54/us-central1/chat_bot"
-        : "https://us-central1-futuroplus-bce54.cloudfunctions.net/chat_bot";
+        ? "http://127.0.0.1:5001/futuroplus-bce54/southamerica-east1/chat_bot"
+        : "https://southamerica-east1-futuroplus-bce54.cloudfunctions.net/chat_bot";
 
     const handleSend = async () => {
         const text = chatInput.value.trim();

@@ -9,10 +9,17 @@ if not firebase_admin._apps:
 
 @https_fn.on_request(
     cors=options.CorsOptions(cors_origins="*", cors_methods=["get", "post"]),
+    # São Paulo em vez do padrão (Iowa, EUA) — reduz a latência de rede pra
+    # quem acessa do Brasil.
+    region=options.SupportedRegion.SOUTHAMERICA_EAST1,
     # Limita quantas cópias da função podem rodar ao mesmo tempo. Evita que um
     # pico de acessos (ou uso malicioso) gere uma fatura alta de uma vez.
     # Ajuste esse número conforme o uso real do site crescer.
     max_instances=10,
+    # O padrão (256 MiB) não é suficiente para essa stack (openai-agents,
+    # google-cloud, grpcio) — os logs mostravam "Memory limit exceeded"
+    # derrubando a instância no meio de várias respostas.
+    memory=options.MemoryOption.MB_512,
     secrets=["OPENAI_API_KEY", "TAVILY_API_KEY", "ASSISTANT_ID", "VECTOR_STORE_ID"],
 )
 def chat_bot(req: https_fn.Request) -> https_fn.Response:

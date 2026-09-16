@@ -1,4 +1,4 @@
-from agents import Agent
+from agents import Agent, ModelSettings
 from guardrails import (
     bloquear_injecao_prompt, 
     bloquear_linguagem_inapropriada_entrada, 
@@ -18,8 +18,19 @@ DIRETRIZ_FORMATACAO = (
     "NUNCA use asteriscos para negrito (**texto**), NUNCA use # para títulos, "
     "e NUNCA use crases para código. Para listas, use apenas um hífen e espaço "
     "no início da linha (- Item), sem numeração especial nem símbolos extras. "
-    "Use quebras de linha simples para separar tópicos."
+    "Use quebras de linha simples para separar tópicos.\n"
+    "DIRETRIZ DE CONCISÃO: Seja direto e objetivo. Responda no máximo em 3 "
+    "parágrafos curtos (ou uma lista curta), sem repetir informação já dita "
+    "e sem enrolação antes de ir ao ponto."
 )
+
+# Limite de tokens de saída por resposta — controla o custo e o tamanho da
+# resposta. Precisa ser alto o suficiente pra caber uma chamada de ferramenta
+# (nome + argumentos) ANTES do texto final, senão o corte no meio faz o SDK
+# tentar de novo e a resposta demorar muito mais (chegando a estourar o
+# timeout da função). Ajuste pra baixo com cuidado, testando com perguntas
+# que exigem ferramenta (RAG ou busca na web).
+CONFIGURACAO_MODELO = ModelSettings(max_tokens=1000)
 
 # Agente 1: Especialista em Manuais (Usa o RAG)
 agente_manuais = Agent(
@@ -39,6 +50,7 @@ agente_manuais = Agent(
     input_guardrails=guardrails_entrada,
     output_guardrails=guardrails_saida,
     model="gpt-4o-mini",
+    model_settings=CONFIGURACAO_MODELO,
 )
 
 # Agente 2: Especialista em Atualizações (Usa a Web)
@@ -54,10 +66,11 @@ agente_noticias = Agent(
         "DIRETRIZ ABSOLUTA DE CONTEXTO: Se o usuário fizer uma pergunta de seguimento usando pronomes ou termos genéricos (ex: 'e os horários deles?', 'quais os períodos?'), você DEVE obrigatoriamente associar à última instituição tratada na conversa (ex: Etec Camargo Aranha). NUNCA peça para o usuário repetir o nome da escola caso ela já tenha sido mencionada nas mensagens anteriores do histórico."
         + DIRETRIZ_FORMATACAO
     ),
-    tools=[pesquisar_sites_cps, enviar_resumo_por_email], 
+    tools=[pesquisar_sites_cps, enviar_resumo_por_email],
     input_guardrails=guardrails_entrada,
     output_guardrails=guardrails_saida,
     model="gpt-4o-mini",
+    model_settings=CONFIGURACAO_MODELO,
 )
 # Agente 3: O Roteador / Atendimento Principal
 agente_orquestrador = Agent(
@@ -78,4 +91,5 @@ agente_orquestrador = Agent(
     input_guardrails=guardrails_entrada,
     output_guardrails=guardrails_saida,
     model="gpt-4o-mini",
+    model_settings=CONFIGURACAO_MODELO,
 )
