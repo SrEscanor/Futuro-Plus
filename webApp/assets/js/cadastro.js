@@ -1,6 +1,7 @@
 import { auth, db } from './firebase-config.js';
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
+import { integrarResultadoPendenteComPerfil } from "./resultado-teste.js";
 
 document.addEventListener('DOMContentLoaded', () => {
   const cepInput = document.getElementById('cep');
@@ -58,6 +59,16 @@ document.addEventListener('DOMContentLoaded', () => {
       e.target.value = e.target.value.replace(/\D/g, '');
     });
   }
+
+  // Máscara automática de CEP: 00000-000
+  cepInput.addEventListener('input', (e) => {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length > 8) value = value.slice(0, 8);
+
+    value = value.replace(/(\d{5})(\d)/, '$1-$2');
+
+    e.target.value = value;
+  });
 
   // ViaCEP
   cepInput.addEventListener('blur', async (e) => {
@@ -153,6 +164,10 @@ document.addEventListener('DOMContentLoaded', () => {
         estado: document.getElementById('estado').value,
         criadoEm: new Date().toISOString()
       });
+
+      // Se a pessoa fez o teste antes de criar a conta, vincula o resultado agora
+      await integrarResultadoPendenteComPerfil(user.uid)
+        .catch(erro => console.error("Erro ao vincular resultado do teste:", erro));
 
       alert("Cadastro realizado com sucesso!");
       window.location.href = "login.html";

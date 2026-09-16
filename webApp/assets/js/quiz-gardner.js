@@ -1,3 +1,7 @@
+import { auth } from "./firebase-config.js";
+import { salvarResultadoPendente, salvarResultadoNoPerfil } from "./resultado-teste.js";
+import { descricoesInteligencias as resultData } from "./descricoes-inteligencias.js";
+
 const questions = [
     {
         text: "1. Como você prefere receber as instruções para montar um equipamento novo?",
@@ -23,7 +27,7 @@ const questions = [
             { text: "A trilha sonora e os efeitos sonoros marcantes.", category: "musical" },
             { text: "A fotografia cinematográfica e a paleta de cores das cenas.", category: "espacial" },
             { text: "Os diálogos complexos e o roteiro bem construído.", category: "linguistica" },
-            { text: "A evolução psicológica dos personagens e suas motivações profundas.", category: "intrapessoal" }
+            { text: "As cenas que me fazem refletir sobre meus próprios sentimentos e valores.", category: "intrapessoal" }
         ]
     },
     {
@@ -111,7 +115,7 @@ const questions = [
         text: "13. O que mais incomoda você em um ambiente de trabalho?",
         options: [
             { text: "A falta de clareza nas metas e regras desorganizadas.", category: "logica" },
-            { text: "Um ambiente cinza, sem janelas, sem decoração ou plantas.", category: "espacial" },
+            { text: "Um ambiente cinza, apertado e mal iluminado, sem nenhum cuidado com o design do espaço.", category: "espacial" },
             { text: "Fofocas, intrigas e falta de união na equipe.", category: "interpessoal" },
             { text: "Poluição sonora persistente, como alarmes, obras ou ruídos repetitivos.", category: "musical" }
         ]
@@ -221,52 +225,8 @@ function selectOption(category) {
 }
 
 
-// ============================================================
-// DADOS DOS RESULTADOS
-// ============================================================
-
-const resultData = {
-
-    logica: {
-        title: "Inteligência Lógico-Matemática",
-        desc: "Você tem facilidade com lógica, números, padrões e programação. Seu perfil é analítico e focado na resolução de problemas complexos.<br><br><strong>🎯 Cursos que podem combinar com esse perfil:</strong><br><strong>Etec:</strong> Desenvolvimento de Sistemas, Contabilidade<br><strong>Fatec:</strong> Análise e Desenvolvimento de Sistemas (ADS)"
-    },
-
-    interpessoal: {
-        title: "Inteligência Interpessoal",
-        desc: "Você entende bem as pessoas, tem empatia e perfil de liderança. Excelente em trabalhos de equipe e comunicação humana.<br><br><strong>🎯 Cursos que podem combinar com esse perfil:</strong><br><strong>Etec:</strong> Administração, Recursos Humanos<br><strong>Fatec:</strong> Gestão de Recursos Humanos, Gestão Empresarial"
-    },
-
-    espacial: {
-        title: "Inteligência Espacial",
-        desc: "Você percebe o mundo visualmente com clareza e entende o espaço físico, proporções e estética.<br><br><strong>🎯 Cursos que podem combinar com esse perfil:</strong><br><strong>Etec:</strong> Design Gráfico, Edificações<br><strong>Fatec:</strong> Jogos Digitais, Construção de Edifícios"
-    },
-
-    corporal: {
-        title: "Inteligência Corporal-Cinestésica",
-        desc: "Você usa seu corpo e o tato de forma muito expressiva e habilidosa, aprendendo melhor na prática e na experimentação.<br><br><strong>🎯 Cursos que podem combinar com esse perfil:</strong><br><strong>Etec:</strong> Enfermagem, Mecatrônica<br><strong>Fatec:</strong> Mecatrônica Industrial, Logística"
-    },
-
-    linguistica: {
-        title: "Inteligência Linguística",
-        desc: "Você domina a comunicação oral e escrita com facilidade. Sabe persuadir, explicar e criar através das palavras.<br><br><strong>🎯 Cursos que podem combinar com esse perfil:</strong><br><strong>Etec:</strong> Marketing, Secretariado<br><strong>Fatec:</strong> Gestão Comercial, Secretariado Executivo"
-    },
-
-    intrapessoal: {
-        title: "Inteligência Intrapessoal",
-        desc: "Você tem alto autoconhecimento, foco e trabalha muito bem de forma autônoma. Tem forte perfil analítico e empreendedor.<br><br><strong>🎯 Cursos que podem combinar com esse perfil:</strong><br><strong>Etec:</strong> Administração, Marketing<br><strong>Fatec:</strong> Gestão Empresarial, Gestão Financeira"
-    },
-
-    musical: {
-        title: "Inteligência Musical",
-        desc: "Você tem uma sensibilidade gigante para sons, ritmos e tons. Capta padrões sonoros que a maioria não percebe.<br><br><strong>🎯 Cursos que podem combinar com esse perfil:</strong><br><strong>Etec:</strong> Canto, Dança (Etec de Artes), Eventos<br><strong>Fatec:</strong> Produção Fonográfica, Eventos"
-    },
-
-    naturalista: {
-        title: "Inteligência Naturalista",
-        desc: "Você tem forte conexão com o meio ambiente, biologia e seres vivos, notando padrões na natureza com facilidade.<br><br><strong>🎯 Cursos que podem combinar com esse perfil:</strong><br><strong>Etec:</strong> Meio Ambiente, Agropecuária<br><strong>Fatec:</strong> Agronegócio, Gestão Ambiental"
-    }
-};
+// Descrições dos resultados (título + sugestões de curso) vêm de
+// ./descricoes-inteligencias.js, compartilhado com o Teste de Afinidades.
 
 
 // ============================================================
@@ -343,6 +303,30 @@ function showResult() {
 
     const secondaryCategory =
         ranking.length > 1 ? ranking[1] : null;
+
+
+    // --------------------------------------------------------
+    // Integrar o resultado com o perfil (logado agora, ou só
+    // quando fizer login/cadastro depois)
+    // --------------------------------------------------------
+
+    const dadosResultado = {
+        categoriaPrincipal: primaryCategory,
+        categoriaSecundaria: secondaryCategory,
+        porcentagens: percentages,
+        ranking: ranking,
+        concluidoEm: new Date().toISOString()
+    };
+
+    const usuarioLogado = auth.currentUser;
+
+    if (usuarioLogado) {
+        salvarResultadoNoPerfil(usuarioLogado.uid, "gardner", dadosResultado)
+            .then(() => marcarResultadoComoSalvo())
+            .catch(erro => console.error("Erro ao salvar resultado no perfil:", erro));
+    } else {
+        salvarResultadoPendente("gardner", dadosResultado);
+    }
 
 
     // --------------------------------------------------------
@@ -506,6 +490,22 @@ function showResult() {
 
     document.getElementById("result-desc").innerHTML =
         combinedDesc;
+}
+
+
+// ============================================================
+// CTA DE SALVAR NO PERFIL
+// ============================================================
+
+function marcarResultadoComoSalvo() {
+    const cta = document.getElementById("result-cta");
+    if (!cta) return;
+
+    cta.innerHTML = `
+        <p style="font-size: 14.5px; line-height: 1.5;">
+            <strong>✅ Resultado salvo no seu perfil!</strong>
+        </p>
+    `;
 }
 
 

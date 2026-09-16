@@ -25,12 +25,12 @@ body {
 /* ---- PAINEL ESQUERDO (FORMULÁRIO) ---- */
 .left-panel {
     flex: 0 0 45%;
-    min-width: 420px;
+    min-width: 400px;
     height: 100%;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
-    padding: 4vh 6% 30px;
+    justify-content: safe center;
+    padding: 1vh 1% 30px;
     background: #ffffff;
     z-index: 2;
     overflow-y: auto;
@@ -122,6 +122,23 @@ select {
     margin-bottom: 16px;
 }
 
+.forgot {
+    text-align: right;
+    margin-top: -6px;
+    margin-bottom: 20px;
+}
+
+.forgot a {
+    font-size: 13px;
+    color: #4e6ee8;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.forgot a:hover {
+    text-decoration: underline;
+}
+
 .register-link {
     font-size: 13px;
     color: #789bc9;
@@ -164,7 +181,9 @@ select {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: center;
+    object-position: top;
+    transform: scale(1.3);
+    transform-origin: -10% 0%;
 }
 
 /* Responsividade Mobile */
