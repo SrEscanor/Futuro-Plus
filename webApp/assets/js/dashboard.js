@@ -116,61 +116,38 @@ document.addEventListener('DOMContentLoaded', () => {
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-        const handleSend = async () => {
-        if (!chatInput) return;
+    const CHAT_BOT_URL = (location.hostname === "localhost" || location.hostname === "127.0.0.1")
+        ? "http://127.0.0.1:5001/futuroplus-bce54/us-central1/chat_bot"
+        : "https://us-central1-futuroplus-bce54.cloudfunctions.net/chat_bot";
+
+    const handleSend = async () => {
         const text = chatInput.value.trim();
-        
-        if (text) {
-            addMessage(text, 'user');
-            chatInput.value = '';
+        if (!text) return;
 
-            const typingDiv = document.createElement('div');
-            typingDiv.classList.add('msg', 'bot');
-            typingDiv.textContent = "Digitando...";
-            typingDiv.id = "typing-indicator";
-            if (chatMessages) {
-                chatMessages.appendChild(typingDiv);
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-            }
+        addMessage(text, 'user');
+        chatInput.value = '';
 
-            if (!auth.currentUser) {
-                document.getElementById('typing-indicator')?.remove();
-                addMessage("Você precisa estar logado para usar o chat.", "bot");
+        try {
+            const user = auth.currentUser;
+            if (!user) {
+                addMessage("Você precisa estar logado para usar o assistente.", "bot");
                 return;
             }
+            const token = await user.getIdToken();
 
-            try {
-                // Pega a credencial do Firebase Auth da pessoa logada. O servidor
-                // confere essa credencial antes de responder — assim ninguém
-                // consegue chamar o chatbot fingindo ser outro aluno, nem sem
-                // estar logado no site.
-                const token = await auth.currentUser.getIdToken();
-
-                const response = await fetch(CHATBOT_URL, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        mensagem: text
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Erro de comunicação: ${response.status}`);
-                }
-
-                const data = await response.json();
-                
-                document.getElementById('typing-indicator')?.remove();
-                addMessage(data.resposta, 'bot');
-
-            } catch (error) {
-                console.error("Erro no Chatbot:", error);
-                document.getElementById('typing-indicator')?.remove();
-                addMessage("Desculpe, deu um erro de conexão. O servidor está rodando?", "bot");
-            }
+            const resp = await fetch(CHAT_BOT_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                },
+                body: JSON.stringify({ mensagem: text })
+            });
+            const dados = await resp.json();
+            addMessage(dados.resposta || dados.erro || "Erro ao obter resposta.", "bot");
+        } catch (err) {
+            console.error("Erro ao chamar o chatbot:", err);
+            addMessage("Não consegui me conectar agora. Tente novamente.", "bot");
         }
     };
 
