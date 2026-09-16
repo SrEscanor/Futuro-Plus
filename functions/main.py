@@ -13,6 +13,7 @@ if not firebase_admin._apps:
     # pico de acessos (ou uso malicioso) gere uma fatura alta de uma vez.
     # Ajuste esse número conforme o uso real do site crescer.
     max_instances=10,
+    secrets=["OPENAI_API_KEY", "TAVILY_API_KEY", "ASSISTANT_ID", "VECTOR_STORE_ID"],
 )
 def chat_bot(req: https_fn.Request) -> https_fn.Response:
     if req.method == "OPTIONS":
