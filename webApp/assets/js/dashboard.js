@@ -1,6 +1,6 @@
 import { auth, db } from './firebase-config.js';
-import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { signOut, onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -116,6 +116,20 @@ document.addEventListener('DOMContentLoaded', () => {
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
+    function mostrarDigitando() {
+        if (!chatMessages) return;
+        const typingDiv = document.createElement('div');
+        typingDiv.classList.add('msg', 'bot');
+        typingDiv.textContent = "Digitando...";
+        typingDiv.id = "typing-indicator";
+        chatMessages.appendChild(typingDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function removerDigitando() {
+        document.getElementById('typing-indicator')?.remove();
+    }
+
     const CHAT_BOT_URL = (location.hostname === "localhost" || location.hostname === "127.0.0.1")
         ? "http://127.0.0.1:5001/futuroplus-bce54/us-central1/chat_bot"
         : "https://us-central1-futuroplus-bce54.cloudfunctions.net/chat_bot";
@@ -127,12 +141,15 @@ document.addEventListener('DOMContentLoaded', () => {
         addMessage(text, 'user');
         chatInput.value = '';
 
+        const user = auth.currentUser;
+        if (!user) {
+            addMessage("Você precisa estar logado para usar o assistente.", "bot");
+            return;
+        }
+
+        mostrarDigitando();
+
         try {
-            const user = auth.currentUser;
-            if (!user) {
-                addMessage("Você precisa estar logado para usar o assistente.", "bot");
-                return;
-            }
             const token = await user.getIdToken();
 
             const resp = await fetch(CHAT_BOT_URL, {
@@ -144,9 +161,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ mensagem: text })
             });
             const dados = await resp.json();
+            removerDigitando();
             addMessage(dados.resposta || dados.erro || "Erro ao obter resposta.", "bot");
         } catch (err) {
             console.error("Erro ao chamar o chatbot:", err);
+            removerDigitando();
             addMessage("Não consegui me conectar agora. Tente novamente.", "bot");
         }
     };
