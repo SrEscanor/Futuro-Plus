@@ -209,47 +209,63 @@ function mostrarResultado({ categoriaPrincipal, categoriaSecundaria, porcentagen
         </div>
     `;
 
-    if (categoriaSecundaria && porcentagens[categoriaSecundaria] > 0) {
+    // Perfil complementar + ranking completo: só pra quem está logado.
+    // Sem login, mostra só o resultado principal e um convite pra ver o resto.
+    if (auth.currentUser) {
+
+        if (categoriaSecundaria && porcentagens[categoriaSecundaria] > 0) {
+            descricao += `
+                <hr style="border:0; border-top:1px solid #ddd; margin:25px 0;">
+                <div style="margin-bottom: 25px;">
+                    <h3>Perfil complementar: ${descricoesInteligencias[categoriaSecundaria].title}</h3>
+                    <div style="font-size: 18px; font-weight: bold; margin: 10px 0;">
+                        ${Math.round(porcentagens[categoriaSecundaria])}% de afinidade
+                    </div>
+                    ${descricoesInteligencias[categoriaSecundaria].desc}
+                </div>
+            `;
+        }
+
         descricao += `
             <hr style="border:0; border-top:1px solid #ddd; margin:25px 0;">
-            <div style="margin-bottom: 25px;">
-                <h3>Perfil complementar: ${descricoesInteligencias[categoriaSecundaria].title}</h3>
-                <div style="font-size: 18px; font-weight: bold; margin: 10px 0;">
-                    ${Math.round(porcentagens[categoriaSecundaria])}% de afinidade
-                </div>
-                ${descricoesInteligencias[categoriaSecundaria].desc}
-            </div>
+            <h3>📊 Seu perfil completo</h3>
+            <div style="margin-top: 15px;">
         `;
-    }
 
-    descricao += `
-        <hr style="border:0; border-top:1px solid #ddd; margin:25px 0;">
-        <h3>📊 Seu perfil completo</h3>
-        <div style="margin-top: 15px;">
-    `;
+        ranking.forEach((categoria, indice) => {
+            const percentual = Math.round(porcentagens[categoria]);
+            descricao += `
+                <div style="margin-bottom: 15px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-weight:bold;">
+                        <span>${indice + 1}º - ${descricoesInteligencias[categoria].title}</span>
+                        <span>${percentual}%</span>
+                    </div>
+                    <div style="width:100%; height:10px; background:#e5e5e5; border-radius:10px; overflow:hidden;">
+                        <div style="width:${percentual}%; height:100%; background:currentColor; border-radius:10px;"></div>
+                    </div>
+                </div>
+            `;
+        });
 
-    ranking.forEach((categoria, indice) => {
-        const percentual = Math.round(porcentagens[categoria]);
         descricao += `
-            <div style="margin-bottom: 15px;">
-                <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-weight:bold;">
-                    <span>${indice + 1}º - ${descricoesInteligencias[categoria].title}</span>
-                    <span>${percentual}%</span>
-                </div>
-                <div style="width:100%; height:10px; background:#e5e5e5; border-radius:10px; overflow:hidden;">
-                    <div style="width:${percentual}%; height:100%; background:currentColor; border-radius:10px;"></div>
-                </div>
             </div>
+            <p style="margin-top:25px; font-size:14px; opacity:0.75;">
+                💡 O resultado representa um perfil de afinidade com base nas notas dadas.
+                Ele não determina sozinho uma profissão ou curso ideal.
+            </p>
         `;
-    });
 
-    descricao += `
-        </div>
-        <p style="margin-top:25px; font-size:14px; opacity:0.75;">
-            💡 O resultado representa um perfil de afinidade com base nas notas dadas.
-            Ele não determina sozinho uma profissão ou curso ideal.
-        </p>
-    `;
+    } else {
+
+        descricao += `
+            <hr style="border:0; border-top:1px solid #ddd; margin:25px 0;">
+            <p style="font-size: 14.5px; line-height: 1.6;">
+                🔒 <strong>Crie sua conta ou faça login</strong> para ver seu
+                perfil complementar e o ranking completo das suas 8 inteligências.
+            </p>
+        `;
+
+    }
 
     document.getElementById("afinidades-resultado-titulo").textContent =
         descricoesInteligencias[categoriaPrincipal].title;
