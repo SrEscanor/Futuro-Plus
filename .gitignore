@@ -39,3 +39,6 @@ xcuserdata
 node_modules/
 web/node_modules/
 .DS_Store
+
+firebase-debug.log
+functions/.env

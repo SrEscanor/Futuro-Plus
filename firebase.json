@@ -18,7 +18,7 @@
     "rules": "firestore.rules"
   },
   "hosting": {
-    "public": "webApp",
+    "public": "webApp/dist",
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -32,6 +32,9 @@
     ]
   },
   "emulators": {
+    "auth": {
+      "port": 9099
+    },
     "functions": {
       "port": 5001
     },
