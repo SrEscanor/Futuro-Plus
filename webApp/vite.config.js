@@ -11,7 +11,9 @@ export default defineConfig({
         quiz: resolve(__dirname, 'quiz-gardner.html'),
         afinidades: resolve(__dirname, 'teste-afinidades.html'),
         testes: resolve(__dirname, 'testes.html'),
-        cadastro: resolve(__dirname, 'cadastro.html')
+        cadastro: resolve(__dirname, 'cadastro.html'),
+        adminEtecs: resolve(__dirname, 'admin-etecs.html'),
+        cursos: resolve(__dirname, 'cursos.html')
       }
     }
   },

@@ -4,9 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Futuro+ | Testes</title>
+    <title>Futuro+ | Cursos</title>
     <link rel="icon" type="image/png" href="/icon-192.png">
     <link rel="stylesheet" href="assets/css/dashboard.css">
+    <link rel="stylesheet" href="assets/css/cursos-etec.css">
 </head>
 
 <body>
@@ -15,10 +16,13 @@
         <div class="menu-header">menu</div>
 
         <a href="index.html" class="menu-item">Recomendação semanal</a>
-        <a href="testes.html" class="menu-item" style="font-weight: 700; color: #4e6ee8;">Testes</a>
+        <a href="testes.html" class="menu-item">Testes</a>
         <a href="mural.html" class="menu-item">Mural</a>
-        <a href="cursos.html" class="menu-item">Cursos</a>
+        <a href="cursos.html" class="menu-item" style="font-weight: 700; color: #4e6ee8;">Cursos</a>
         <a href="perfil.html" class="menu-item">Perfil</a>
+        <a href="admin-etecs.html" id="menu-admin" class="menu-item" style="display:none;">Painel Admin (ETEC)</a>
+
+        <button id="logout-btn" class="btn-sair">Sair da Conta</button>
 
         <div class="menu-logo-area">
             <img src="assets/images/logo.png" alt="Futuro+ Logo" class="logo-png-img">
@@ -31,7 +35,7 @@
                 <span></span><span></span><span></span>
             </button>
             <div class="search-bar">
-                <input type="text" placeholder="Buscar testes..." aria-label="Buscar testes">
+                <input type="text" placeholder="Buscar cursos..." aria-label="Buscar cursos">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <circle cx="11" cy="11" r="8" />
                     <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -61,38 +65,34 @@
     </nav>
 
     <div class="main">
-        <div class="greeting">
-            Central de <span style="color: #4e6ee8;">Testes</span> 🧠
+        <div class="cursos-hero">
+            <div class="greeting">
+                Cursos <span style="color: #4e6ee8;">ETEC</span> 🎓
+            </div>
+            <div class="cursos-subtitle">
+                Explore os cursos técnicos oferecidos pelas unidades ETEC de São Paulo. Em breve, os cursos da FATEC
+                entram aqui também.
+            </div>
         </div>
 
-        <div class="cursos-subtitle" style="text-align: left; margin-bottom: 30px;">
-            Descubra suas vocações, mapeie suas habilidades e encontre a área profissional que mais combina com você.
+        <div class="filtros-cursos">
+            <div class="busca-cursos-area">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                <input type="text" id="busca-cursos" placeholder="Buscar por curso, unidade, cidade ou região...">
+            </div>
+            <div class="contagem-resultados" id="contagem-resultados"></div>
         </div>
 
-        <div class="testes-row">
-            <div class="teste-card">
-                <p>
-                    <strong>Teste de Múltiplas Inteligências</strong>
-                    Baseado na teoria de Howard Gardner, descubra quais são as suas inteligências predominantes (lógica,
-                    linguística, espacial, interpessoal, etc.) e veja qual área profissional foi feita para o seu
-                    talento natural.
-                </p>
-                <button class="btn-teste" onclick="location.href='quiz-gardner.html'">Iniciar Teste de Perfil</button>
-            </div>
-
-            <div class="teste-card">
-                <p>
-                    <strong>Teste de Afinidades</strong>
-                    Avalie de 0 a 10 o quanto cada característica combina com você. Um jeito mais detalhado de
-                    descobrir sua inteligência dominante, também baseado na teoria de Howard Gardner.
-                </p>
-                <button class="btn-teste" style="background: #f5a623; color: #fff;"
-                    onclick="location.href='teste-afinidades.html'">Fazer Teste de Afinidades</button>
-            </div>
+        <div class="grid-unidades" id="grid-unidades">
+            <p class="carregando-cursos">Carregando unidades...</p>
         </div>
     </div>
 
     <script type="module" src="assets/js/dashboard.js"></script>
+    <script type="module" src="assets/js/cursos-etec.js"></script>
 </body>
 
 </html>
