@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Futuro+ | Admin · Unidades ETEC</title>
+    <link rel="icon" type="image/png" href="./icon-192.png">
+  <script type="module" crossorigin src="./assets/adminEtecs-Ufh1NaWk.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/firebase-config-2TrdlHoc.js">
+  <link rel="stylesheet" crossorigin href="./assets/adminEtecs-cdq3TgSi.css">
+</head>
+
+<body>
+
+    <header class="topo-admin">
+        <div class="titulo-area">
+            <h1>Painel Admin · Unidades ETEC</h1>
+            <a href="index.html" class="voltar">&larr; Voltar ao Futuro+</a>
+        </div>
+        <div class="usuario-area">
+            <span id="admin-email"></span>
+            <button id="logout-btn" class="btn-sair-admin">Sair</button>
+        </div>
+    </header>
+
+    <div id="acesso-negado" class="acesso-negado">
+        <h2>Acesso restrito</h2>
+        <p>Esta área é exclusiva para administradores do Futuro+. Se você acredita que deveria ter acesso, fale com
+            quem administra o projeto.</p>
+        <a href="index.html" class="btn btn-secundario">Voltar ao início</a>
+    </div>
+
+    <main id="admin-app" style="display:none;">
+        <div class="container-admin">
+
+            <div class="toolbar">
+                <div class="busca-area">
+                    <input type="search" id="busca-unidade" placeholder="Buscar por nome, município ou código...">
+                </div>
+                <div class="acoes-toolbar">
+                    <button type="button" id="btn-importar-csv" class="btn btn-secundario">⬆ Importar CSV</button>
+                    <button type="button" id="btn-extrair-logos" class="btn btn-secundario">🖼 Extrair logos</button>
+                    <button type="button" id="btn-nova-unidade" class="btn btn-primario">+ Adicionar unidade</button>
+                    <input type="file" id="input-csv" accept=".csv,text/csv" style="display:none;">
+                </div>
+            </div>
+
+            <div id="status-importacao" class="status-importacao"></div>
+
+            <div class="tabela-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Unidade</th>
+                            <th>Município</th>
+                            <th>Região</th>
+                            <th>Cursos</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-etecs-corpo">
+                        <tr>
+                            <td colspan="6" class="tabela-vazia">Carregando unidades...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- ---------- MODAL: FORMULÁRIO DE UNIDADE ---------- -->
+    <div id="modal-form" class="modal-overlay">
+        <div class="modal">
+            <form id="form-etec">
+                <div class="modal-cabecalho">
+                    <h2 id="form-titulo">Nova unidade</h2>
+                    <button type="button" id="btn-fechar-form" class="btn-fechar-modal" aria-label="Fechar">&times;</button>
+                </div>
+
+                <div class="modal-corpo">
+
+                    <!-- Dados básicos -->
+                    <div class="secao-form">
+                        <h3>Dados básicos</h3>
+                        <div class="grid-2">
+                            <div class="campo">
+                                <label for="f-codigo">Código da unidade *</label>
+                                <input type="text" id="f-codigo" required>
+                            </div>
+                            <div class="campo">
+                                <label for="f-nome">Nome da unidade *</label>
+                                <input type="text" id="f-nome" required>
+                            </div>
+                        </div>
+                        <div class="grid-2">
+                            <div class="campo">
+                                <label for="f-cnpj">CNPJ</label>
+                                <input type="text" id="f-cnpj">
+                            </div>
+                            <div class="campo">
+                                <label for="f-regiao">Região Administrativa</label>
+                                <input type="text" id="f-regiao">
+                            </div>
+                        </div>
+                        <div class="grid-2">
+                            <div class="campo">
+                                <label for="f-municipio">Município</label>
+                                <input type="text" id="f-municipio">
+                            </div>
+                            <div class="campo">
+                                <label for="f-aniversario">Aniversário da cidade</label>
+                                <input type="text" id="f-aniversario" placeholder="Ex: 25/01">
+                            </div>
+                        </div>
+                        <div class="campo">
+                            <label for="f-endereco">Endereço</label>
+                            <input type="text" id="f-endereco">
+                        </div>
+                        <div class="grid-2">
+                            <div class="campo">
+                                <label for="f-telefone">Telefone</label>
+                                <input type="text" id="f-telefone">
+                            </div>
+                            <div class="campo">
+                                <label for="f-discagem">Discagem abreviada (CPS)</label>
+                                <input type="text" id="f-discagem" placeholder="Ex: (6) 224">
+                            </div>
+                        </div>
+                        <div class="grid-2">
+                            <div class="campo">
+                                <label for="f-site">Site oficial</label>
+                                <input type="url" id="f-site" placeholder="https://...">
+                            </div>
+                            <div class="campo">
+                                <label for="f-logotipo">Link do logotipo</label>
+                                <input type="url" id="f-logotipo" placeholder="https://... (vazio = imagem padrão)">
+                            </div>
+                        </div>
+                        <div class="campo">
+                            <label for="f-historico">Histórico</label>
+                            <textarea id="f-historico"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Direção -->
+                    <div class="secao-form">
+                        <h3>Direção</h3>
+                        <div class="subsecao-direcao">
+                            <h4>Diretor(a) geral</h4>
+                            <div class="grid-2">
+                                <div class="campo">
+                                    <label for="f-dir-nome">Nome</label>
+                                    <input type="text" id="f-dir-nome">
+                                </div>
+                                <div class="campo">
+                                    <label for="f-dir-email">E-mail</label>
+                                    <input type="email" id="f-dir-email">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="subsecao-direcao">
+                            <h4>Diretor(a) administrativo(a)</h4>
+                            <div class="grid-2">
+                                <div class="campo">
+                                    <label for="f-adm-nome">Nome</label>
+                                    <input type="text" id="f-adm-nome">
+                                </div>
+                                <div class="campo">
+                                    <label for="f-adm-email">E-mail</label>
+                                    <input type="email" id="f-adm-email">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="subsecao-direcao">
+                            <h4>Diretor(a) acadêmico(a)</h4>
+                            <div class="grid-2">
+                                <div class="campo">
+                                    <label for="f-acad-nome">Nome</label>
+                                    <input type="text" id="f-acad-nome">
+                                </div>
+                                <div class="campo">
+                                    <label for="f-acad-email">E-mail</label>
+                                    <input type="email" id="f-acad-email">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Redes sociais -->
+                    <div class="secao-form">
+                        <h3>Redes sociais</h3>
+                        <div class="linha-add-lista tres-colunas">
+                            <div class="campo" style="margin-bottom:0;">
+                                <input type="text" id="add-rede-nome" list="sugestoes-redes" placeholder="Rede (ex: Instagram)">
+                                <datalist id="sugestoes-redes">
+                                    <option value="Facebook"></option>
+                                    <option value="Instagram"></option>
+                                    <option value="X"></option>
+                                    <option value="Linkedin"></option>
+                                    <option value="Youtube"></option>
+                                    <option value="Tiktok"></option>
+                                    <option value="Whatsapp"></option>
+                                </datalist>
+                            </div>
+                            <div class="campo" style="margin-bottom:0;">
+                                <input type="url" id="add-rede-url" placeholder="https://...">
+                            </div>
+                            <button type="button" id="btn-add-rede" class="btn btn-secundario">+ Adicionar</button>
+                        </div>
+                        <div id="lista-redes" class="lista-itens"></div>
+                    </div>
+
+                    <!-- Documentos legais -->
+                    <div class="secao-form">
+                        <h3>Documentos legais / decretos</h3>
+                        <div class="linha-add-lista tres-colunas">
+                            <div class="campo" style="margin-bottom:0;">
+                                <input type="text" id="add-doc-tipo" list="sugestoes-docs" placeholder="Tipo (ex: Decreto de Criação)">
+                                <datalist id="sugestoes-docs">
+                                    <option value="Decreto de Criação"></option>
+                                    <option value="Decreto de Denominação"></option>
+                                    <option value="Decreto de Integração"></option>
+                                    <option value="Lei de Denominação"></option>
+                                </datalist>
+                            </div>
+                            <div class="campo" style="margin-bottom:0;">
+                                <input type="text" id="add-doc-descricao" placeholder="Número e data">
+                            </div>
+                            <button type="button" id="btn-add-doc" class="btn btn-secundario">+ Adicionar</button>
+                        </div>
+                        <div class="campo">
+                            <input type="url" id="add-doc-url" placeholder="https:// (link do documento)">
+                        </div>
+                        <div id="lista-documentos" class="lista-itens"></div>
+                    </div>
+
+                    <!-- Cursos -->
+                    <div class="secao-form">
+                        <h3>Cursos</h3>
+                        <div class="linha-add-lista tres-colunas">
+                            <div class="campo" style="margin-bottom:0;">
+                                <input type="text" id="add-curso-categoria" list="sugestoes-categorias" placeholder="Categoria">
+                                <datalist id="sugestoes-categorias">
+                                    <option value="Cursos Técnicos - Modalidade Presencial"></option>
+                                    <option value="Cursos Técnicos - Modalidade Online"></option>
+                                    <option value="Ensino Médio"></option>
+                                    <option value="Ensino Médio integrado ao técnico (M-Tec)"></option>
+                                    <option value="Ensino Médio integrado ao técnico em período integral (M-Tec-PI)"></option>
+                                    <option value="Ensino Médio integrado ao técnico no período noturno (M-Tec-N)"></option>
+                                    <option value="Articulação dos Ensinos Médio - Técnico e Superior (AMS)"></option>
+                                    <option value="Especialização Técnica"></option>
+                                </datalist>
+                            </div>
+                            <div class="campo" style="margin-bottom:0;">
+                                <input type="text" id="add-curso-nome" placeholder="Nome do curso">
+                            </div>
+                            <button type="button" id="btn-add-curso" class="btn btn-secundario">+ Adicionar</button>
+                        </div>
+                        <div id="lista-cursos" class="lista-itens"></div>
+                    </div>
+
+                </div>
+
+                <div class="modal-rodape">
+                    <button type="button" id="btn-cancelar-form" class="btn btn-secundario">Cancelar</button>
+                    <button type="submit" class="btn btn-primario">Salvar unidade</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</body>
+
+</html>

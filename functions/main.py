@@ -1,6 +1,11 @@
+import io
 import json
+import re
+import zipfile
+
+import requests
 import firebase_admin
-from firebase_admin import firestore, auth as firebase_auth
+from firebase_admin import firestore, auth as firebase_auth, storage
 from firebase_functions import https_fn, options
 
 # Inicializa o Firebase apenas uma vez e de forma leve
@@ -91,4 +96,92 @@ def chat_bot(req: https_fn.Request) -> https_fn.Response:
 
     except Exception as e:
         print(f"Erro no servidor: {e}")
+        return https_fn.Response(json.dumps({"erro": f"Erro interno: {str(e)}"}), status=500)
+
+
+# Domínio oficial do CPS onde os pacotes .zip de logotipo das Etecs ficam
+# hospedados. Só baixamos arquivos desse domínio para essa função não virar
+# um proxy aberto para baixar qualquer URL arbitrária.
+DOMINIOS_ZIP_PERMITIDOS = ("blob.core.windows.net",)
+
+
+@https_fn.on_request(
+    cors=options.CorsOptions(cors_origins="*", cors_methods=["get", "post"]),
+    region=options.SupportedRegion.SOUTHAMERICA_EAST1,
+    max_instances=10,
+    memory=options.MemoryOption.MB_256,
+)
+def extrair_logo_etec(req: https_fn.Request) -> https_fn.Response:
+    """Baixa o .zip de logotipo de uma Etec (hospedado no CPS), extrai a
+    versão colorida (\"_cor.png\") e sobe pro Firebase Storage, retornando a
+    URL pública da imagem. Usado pelo CMS de unidades ETEC para preencher o
+    logotipo automaticamente durante a importação do CSV."""
+    if req.method == "OPTIONS":
+        return https_fn.Response(status=204)
+
+    cabecalho_auth = req.headers.get("Authorization", "")
+    if not cabecalho_auth.startswith("Bearer "):
+        return https_fn.Response(json.dumps({"erro": "Não autenticado."}), status=401)
+
+    token = cabecalho_auth.removeprefix("Bearer ").strip()
+    try:
+        token_decodificado = firebase_auth.verify_id_token(token)
+        id_usuario = token_decodificado["uid"]
+    except Exception:
+        return https_fn.Response(json.dumps({"erro": "Sessão inválida ou expirada. Faça login novamente."}), status=401)
+
+    try:
+        db = firestore.client()
+        perfil = db.collection("usuarios").document(id_usuario).get()
+        if not perfil.exists or perfil.to_dict().get("admin") is not True:
+            return https_fn.Response(json.dumps({"erro": "Acesso restrito a administradores."}), status=403)
+
+        dados = req.get_json(silent=True) or {}
+        zip_url = (dados.get("zipUrl") or "").strip()
+        codigo = (dados.get("codigo") or "").strip()
+
+        if not zip_url or not codigo:
+            return https_fn.Response(json.dumps({"erro": "Parâmetros 'zipUrl' e 'codigo' são obrigatórios."}), status=400)
+
+        if not zip_url.lower().startswith("https://") or not any(dominio in zip_url for dominio in DOMINIOS_ZIP_PERMITIDOS):
+            return https_fn.Response(json.dumps({"erro": "URL de origem não permitida."}), status=400)
+
+        codigo_seguro = re.sub(r"[^a-zA-Z0-9_-]", "_", codigo)
+
+        resposta = requests.get(zip_url, timeout=25)
+        resposta.raise_for_status()
+
+        with zipfile.ZipFile(io.BytesIO(resposta.content)) as arquivo_zip:
+            candidatos = [
+                nome for nome in arquivo_zip.namelist()
+                if not nome.startswith("__MACOSX") and nome.lower().endswith(".png")
+            ]
+            escolhido = (
+                next((n for n in candidatos if re.search(r"_cor\.png$", n, re.IGNORECASE)), None)
+                or next((n for n in candidatos if re.search(r"_pb\.png$", n, re.IGNORECASE)), None)
+                or (candidatos[0] if candidatos else None)
+            )
+
+            if not escolhido:
+                return https_fn.Response(json.dumps({"erro": "Nenhuma imagem PNG encontrada no arquivo."}), status=404)
+
+            conteudo_imagem = arquivo_zip.read(escolhido)
+
+        bucket = storage.bucket("futuroplus-bce54.firebasestorage.app")
+        blob = bucket.blob(f"etecs-logos/{codigo_seguro}.png")
+        blob.upload_from_string(conteudo_imagem, content_type="image/png")
+        blob.make_public()
+
+        return https_fn.Response(
+            json.dumps({"url": blob.public_url}),
+            status=200,
+            headers={"Content-Type": "application/json"}
+        )
+
+    except requests.RequestException as e:
+        return https_fn.Response(json.dumps({"erro": f"Erro ao baixar o arquivo de origem: {str(e)}"}), status=502)
+    except zipfile.BadZipFile:
+        return https_fn.Response(json.dumps({"erro": "O arquivo baixado não é um .zip válido."}), status=422)
+    except Exception as e:
+        print(f"Erro ao extrair logo: {e}")
         return https_fn.Response(json.dumps({"erro": f"Erro interno: {str(e)}"}), status=500)

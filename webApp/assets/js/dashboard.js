@@ -31,6 +31,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else {
                         console.warn("O campo 'nome' não existe no documento do Firestore.");
                     }
+
+                    const menuAdmin = document.getElementById("menu-admin");
+                    if (dados.admin === true && menuAdmin) {
+                        menuAdmin.style.display = "";
+                    }
                 } else {
                     console.warn("Nenhum documento encontrado na coleção 'usuarios' para este UID.");
                 }
