@@ -401,6 +401,62 @@ tbody tr:hover {
     min-height: 70px;
 }
 
+.campo-dica {
+    display: block;
+    margin-top: 5px;
+    font-size: 11.5px;
+    color: var(--ink-soft);
+}
+
+.alerta-localizacao {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+    padding: 14px 18px;
+    border-radius: var(--radius-md);
+    background: var(--gold-soft);
+    border: 1px solid rgba(245, 166, 35, 0.35);
+    border-left: 5px solid var(--gold);
+    color: #6b4a07;
+    font-size: 13.5px;
+    line-height: 1.5;
+}
+
+.alerta-localizacao[hidden] {
+    display: none;
+}
+
+.alerta-localizacao-texto p {
+    margin-top: 4px;
+}
+
+.alerta-localizacao-texto ul {
+    margin: 6px 0 2px 18px;
+}
+
+.alerta-localizacao .btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+    .alerta-localizacao {
+        flex-direction: column;
+    }
+}
+
+.col-mapa {
+    text-align: center;
+    cursor: help;
+}
+
+.btn:disabled {
+    opacity: 0.55;
+    cursor: wait;
+}
+
 .subsecao-direcao {
     border: 1px solid var(--line);
     border-radius: var(--radius-md);

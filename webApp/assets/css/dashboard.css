@@ -49,7 +49,8 @@
     -webkit-tap-highlight-color: transparent;
 }
 
-html, body {
+html,
+body {
     width: 100%;
     min-height: 100vh;
     overflow-x: hidden;
@@ -68,8 +69,16 @@ body {
     background-repeat: no-repeat;
 }
 
-h1, h2, h3, .greeting, .chart-percent, .section-title, .rec-courses-title,
-.course-title, .teste-card p strong, .inst-name {
+h1,
+h2,
+h3,
+.greeting,
+.chart-percent,
+.section-title,
+.rec-courses-title,
+.course-title,
+.teste-card p strong,
+.inst-name {
     font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
 }
 
@@ -138,25 +147,34 @@ h1, h2, h3, .greeting, .chart-percent, .section-title, .rec-courses-title,
 }
 
 /* "escadinha": cada barra um pouco mais curta que a de cima */
-.hamburger span:nth-child(1) { width: 22px; }
-.hamburger span:nth-child(2) { width: 16px; }
-.hamburger span:nth-child(3) { width: 10px; }
+.hamburger span:nth-child(1) {
+    width: 22px;
+}
+
+.hamburger span:nth-child(2) {
+    width: 16px;
+}
+
+.hamburger span:nth-child(3) {
+    width: 10px;
+}
 
 .search-bar {
     display: flex;
     align-items: center;
-    border: 1.5px solid var(--blue);
-    border-radius: 22px;
-    padding: 8px 18px;
+    border: 1.5px solid transparent;
+    border-radius: 99px;
+    padding: 9px 18px;
     gap: 8px;
-    background: var(--surface);
+    background: #f5f7fd;
     width: 230px;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
 }
 
 .search-bar:focus-within {
-    border-color: var(--blue-dark);
-    box-shadow: 0 0 0 3px var(--blue-soft);
+    border-color: var(--blue);
+    background: var(--surface);
+    box-shadow: 0 0 0 4px var(--blue-soft);
 }
 
 .search-bar input {
@@ -238,6 +256,51 @@ h1, h2, h3, .greeting, .chart-percent, .section-title, .rec-courses-title,
     color: var(--ink);
 }
 
+/* sem isso o <h1> dentro da saudação usa o 2em padrão do navegador e
+   estoura no celular, quebrando o emoji para a linha de baixo */
+.greeting h1 {
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: 1.3;
+}
+
+/* ---- TOPO AZUL DA HOME (mesma linguagem do cadastro) ---- */
+.home-hero {
+    position: relative;
+    /* a onda da frente fecha no fundo da página, não no branco */
+    --onda-fundo: var(--bg);
+    background: linear-gradient(155deg, #5c79ee 0%, var(--blue) 45%, var(--blue-dark) 100%);
+    color: #fff;
+    padding: 34px 24px 86px;
+    overflow: hidden;
+}
+
+.home-hero-conteudo {
+    max-width: 1280px;
+    width: 95%;
+    margin: 0 auto;
+}
+
+.home-hero h1 {
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+}
+
+.home-hero-sub {
+    margin-top: 8px;
+    font-size: 14px;
+    line-height: 1.55;
+    color: rgba(255, 255, 255, 0.88);
+    max-width: 520px;
+}
+
+.home-hero+.main {
+    margin-top: 22px;
+}
+
 /* ---- WEEKLY REC CARD ---- */
 .weekly-card {
     background: var(--surface);
@@ -266,7 +329,10 @@ h1, h2, h3, .greeting, .chart-percent, .section-title, .rec-courses-title,
     scroll-snap-type: x mandatory;
 }
 
+/* largura fixa: sem ela o selo de motivo (texto longo) esticava cada card
+   de um jeito e escondia a dica de rolagem lateral no celular */
 .course-card-mini {
+    width: 225px;
     min-width: 205px;
     border: 1px solid var(--line);
     border-radius: var(--radius-md);
@@ -317,8 +383,8 @@ h1, h2, h3, .greeting, .chart-percent, .section-title, .rec-courses-title,
     width: 100%;
     text-align: center;
     border: 1.5px solid var(--line);
-    border-radius: 16px;
-    padding: 7px 8px;
+    border-radius: 99px;
+    padding: 8px;
     font-size: 11.5px;
     font-weight: 600;
     color: var(--blue-dark);
@@ -330,6 +396,113 @@ h1, h2, h3, .greeting, .chart-percent, .section-title, .rec-courses-title,
 .btn-saiba:hover {
     background: var(--blue);
     color: #fff;
+}
+
+a.btn-saiba {
+    text-decoration: none;
+    box-sizing: border-box;
+}
+
+.inst-logo-img {
+    height: 26px;
+    width: auto;
+    display: block;
+}
+
+/* ---- RECOMENDAÇÕES (home e resultado dos testes) ---- */
+.weekly-cabecalho {
+    margin-bottom: 16px;
+}
+
+.weekly-cabecalho h3 {
+    margin-bottom: 4px;
+}
+
+.weekly-sub {
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+}
+
+.weekly-sub a {
+    color: var(--blue);
+    font-weight: 700;
+}
+
+.course-motivo {
+    display: inline-block;
+    align-self: flex-start;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--blue-dark);
+    background: var(--blue-soft);
+    border-radius: 99px;
+    padding: 3px 9px;
+    margin: 2px 0 8px;
+    line-height: 1.35;
+}
+
+.recomendacoes-carregando {
+    font-size: 13px;
+    color: var(--ink-soft);
+    padding: 18px 4px;
+}
+
+.recomendacoes-teste {
+    text-align: left;
+    margin: 6px 0 25px;
+}
+
+.recomendacoes-teste-sub {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin: 6px 0 14px;
+    line-height: 1.5;
+}
+
+.lista-recomendacoes {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 0;
+    margin: 0;
+}
+
+.lista-recomendacoes a {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 12px 16px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    text-decoration: none;
+    color: var(--ink);
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+}
+
+.lista-recomendacoes a:hover {
+    border-color: transparent;
+    box-shadow: var(--shadow-card-hover);
+    transform: translateX(2px);
+}
+
+.recomendacao-nome {
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 14.5px;
+    font-weight: 700;
+}
+
+.recomendacao-motivo {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--blue-dark);
+}
+
+.recomendacao-oferta {
+    font-size: 12px;
+    color: var(--ink-soft);
 }
 
 /* ---- MIDDLE ROW (CHART + MURAL) ---- */
@@ -455,8 +628,9 @@ h1, h2, h3, .greeting, .chart-percent, .section-title, .rec-courses-title,
 .btn-mural {
     background: #fff;
     border: none;
-    border-radius: 20px;
-    padding: 11px 22px;
+    border-radius: 99px;
+    padding: 12px 22px;
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
     font-size: 13px;
     font-weight: 700;
     color: var(--green-dark);
@@ -543,11 +717,13 @@ h1, h2, h3, .greeting, .chart-percent, .section-title, .rec-courses-title,
     background: var(--blue);
     color: #fff;
     border: none;
-    border-radius: 20px;
-    padding: 13px;
-    font-size: 13.5px;
+    border-radius: 99px;
+    padding: 14px;
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 14px;
     font-weight: 700;
     cursor: pointer;
+    box-shadow: 0 10px 22px -12px rgba(78, 110, 232, 0.9);
     transition: background 0.2s, transform 0.1s;
 }
 
@@ -566,6 +742,50 @@ h1, h2, h3, .greeting, .chart-percent, .section-title, .rec-courses-title,
     color: var(--ink-soft);
     margin-bottom: 26px;
     line-height: 1.5;
+}
+
+.secao-cabecalho {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+
+.secao-cabecalho .section-title {
+    margin-bottom: 6px;
+}
+
+.secao-cabecalho .cursos-subtitle {
+    text-align: left;
+    margin-bottom: 0;
+}
+
+.btn-ver-todos {
+    display: inline-flex;
+    align-items: center;
+    padding: 11px 22px;
+    border-radius: 99px;
+    border: 1.5px solid var(--blue);
+    color: var(--blue);
+    background: var(--surface);
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 13.5px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.2s, color 0.2s;
+}
+
+.btn-ver-todos:hover {
+    background: var(--blue);
+    color: #fff;
+}
+
+/* na prévia da home os cards ficam mais baixos; a lista completa fica em cursos.html */
+#preview-unidades .card-unidade-cursos {
+    max-height: 190px;
 }
 
 /* ---- RECOMMENDED COURSES LIST ---- */
@@ -601,14 +821,29 @@ h1, h2, h3, .greeting, .chart-percent, .section-title, .rec-courses-title,
     margin-right: 8px;
 }
 
-.area-label-tec { color: var(--blue-dark); }
-.area-label-tec::before { background: var(--blue); }
+.area-label-tec {
+    color: var(--blue-dark);
+}
 
-.area-label-adm { color: var(--gold-dark); }
-.area-label-adm::before { background: var(--gold); }
+.area-label-tec::before {
+    background: var(--blue);
+}
 
-.area-label-mkt { color: var(--green-dark); }
-.area-label-mkt::before { background: var(--green); }
+.area-label-adm {
+    color: var(--gold-dark);
+}
+
+.area-label-adm::before {
+    background: var(--gold);
+}
+
+.area-label-mkt {
+    color: var(--green-dark);
+}
+
+.area-label-mkt::before {
+    background: var(--green);
+}
 
 .course-row {
     display: flex;
@@ -639,9 +874,20 @@ h1, h2, h3, .greeting, .chart-percent, .section-title, .rec-courses-title,
     border-radius: 50%;
 }
 
-.area-group:nth-of-type(1) .course-icon { background: var(--blue-soft); color: var(--blue-dark); }
-.area-group:nth-of-type(2) .course-icon { background: var(--gold-soft); color: var(--gold-dark); }
-.area-group:nth-of-type(3) .course-icon { background: var(--green-soft); color: var(--green-dark); }
+.area-group:nth-of-type(1) .course-icon {
+    background: var(--blue-soft);
+    color: var(--blue-dark);
+}
+
+.area-group:nth-of-type(2) .course-icon {
+    background: var(--gold-soft);
+    color: var(--gold-dark);
+}
+
+.area-group:nth-of-type(3) .course-icon {
+    background: var(--green-soft);
+    color: var(--green-dark);
+}
 
 .course-row-info {
     flex: 1;
@@ -804,11 +1050,25 @@ h1, h2, h3, .greeting, .chart-percent, .section-title, .rec-courses-title,
     line-height: 1;
 }
 
-.menu-item:nth-of-type(1)::before { content: "📅"; }
-.menu-item:nth-of-type(2)::before { content: "🧭"; }
-.menu-item:nth-of-type(3)::before { content: "📌"; }
-.menu-item:nth-of-type(4)::before { content: "🎓"; }
-.menu-item:nth-of-type(5)::before { content: "👤"; }
+.menu-item:nth-of-type(1)::before {
+    content: "📅";
+}
+
+.menu-item:nth-of-type(2)::before {
+    content: "🧭";
+}
+
+.menu-item:nth-of-type(3)::before {
+    content: "📌";
+}
+
+.menu-item:nth-of-type(4)::before {
+    content: "🎓";
+}
+
+.menu-item:nth-of-type(5)::before {
+    content: "👤";
+}
 
 .menu-item:hover {
     background: var(--blue-soft);
@@ -895,7 +1155,7 @@ h1, h2, h3, .greeting, .chart-percent, .section-title, .rec-courses-title,
     width: 60px;
     height: 60px;
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -926,9 +1186,12 @@ h1, h2, h3, .greeting, .chart-percent, .section-title, .rec-courses-title,
 }
 
 @keyframes pulso-estrela {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: scale(1);
     }
+
     50% {
         transform: scale(1.3);
     }
@@ -942,7 +1205,7 @@ h1, h2, h3, .greeting, .chart-percent, .section-title, .rec-courses-title,
     height: 500px;
     background: white;
     border-radius: 12px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
     display: flex;
     flex-direction: column;
     z-index: var(--z-chat);
@@ -992,11 +1255,13 @@ h1, h2, h3, .greeting, .chart-percent, .section-title, .rec-courses-title,
     border-radius: 18px;
     font-size: 14px;
     line-height: 1.4;
+    /* respeita as quebras de linha da resposta (listas uma unidade por linha) */
+    white-space: pre-line;
 }
 
 .msg.bot {
-    background-color: #e9ecef;
-    color: #333;
+    background-color: #ff8d00;
+    color: #ffffff;
     align-self: flex-start;
     border-bottom-left-radius: 4px;
 }
@@ -1014,6 +1279,121 @@ h1, h2, h3, .greeting, .chart-percent, .section-title, .rec-courses-title,
     border-top: 1px solid #eaeaea;
     background: white;
     gap: 8px;
+}
+
+/* ---- Links nas respostas do chat ---- */
+.msg.bot a {
+    color: #fff;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    word-break: break-all;
+}
+
+.chat-links-site {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    max-width: 85%;
+}
+
+.chat-link-site {
+    display: inline-block;
+    padding: 9px 14px;
+    border-radius: 99px;
+    background: var(--blue);
+    color: #fff;
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 12.5px;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 8px 18px -10px rgba(78, 110, 232, 0.9);
+    transition: background 0.2s;
+}
+
+.chat-link-site:hover {
+    background: var(--blue-dark);
+}
+
+/* ---- Permissão de localização no chat ---- */
+.msg.bot.cartao-permissao {
+    background: var(--green-soft);
+    border: 1.5px solid rgba(46, 204, 113, 0.25);
+    box-shadow: var(--shadow-card);
+    /* texto próprio: não herda a cor dos balões do assistente */
+    color: var(--ink);
+    /* o cartão é montado em HTML; com o pre-line dos balões, as quebras de
+       linha do código viravam linhas em branco e esticavam o cartão */
+    white-space: normal;
+}
+
+.cartao-permissao p {
+    margin-bottom: 6px;
+    font-size: 13px;
+}
+
+.cartao-permissao p:first-child {
+    font-size: 14px;
+}
+
+.cartao-permissao-botoes {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.cartao-permissao-botoes button {
+    flex: 1;
+    padding: 9px 12px;
+    border-radius: 99px;
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.cartao-permissao-botoes .btn-permitir {
+    background: var(--blue);
+    border: none;
+    color: #fff;
+}
+
+.cartao-permissao-botoes .btn-agora-nao {
+    background: var(--surface);
+    border: 1.5px solid var(--line);
+    color: var(--ink-soft);
+}
+
+.cartao-permissao-botoes button:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.chat-permissao-localizacao {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 7px 14px;
+    font-size: 11.5px;
+    color: var(--green-dark);
+    background: var(--green-soft);
+    border-top: 1px solid rgba(46, 204, 113, 0.25);
+}
+
+.chat-permissao-localizacao[hidden] {
+    display: none;
+}
+
+.chat-permissao-localizacao button {
+    background: none;
+    border: none;
+    color: var(--green-dark);
+    font-weight: 700;
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 11.5px;
 }
 
 #chat-input {
@@ -1049,6 +1429,27 @@ h1, h2, h3, .greeting, .chart-percent, .section-title, .rec-courses-title,
 @media (max-width: 640px) {
     .main {
         width: 92%;
+    }
+
+    .home-hero {
+        padding: 24px 16px 80px;
+    }
+
+    .home-hero-conteudo {
+        width: 100%;
+    }
+
+    .home-hero h1 {
+        font-size: 22px;
+    }
+
+    .home-hero-sub {
+        font-size: 13px;
+    }
+
+    .btn-ver-todos {
+        width: 100%;
+        justify-content: center;
     }
 
     .greeting {

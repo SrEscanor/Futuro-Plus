@@ -1,6 +1,7 @@
 import { auth } from "./firebase-config.js";
 import { salvarResultadoPendente, salvarResultadoNoPerfil } from "./resultado-teste.js";
 import { descricoesInteligencias } from "./descricoes-inteligencias.js";
+import { renderizarRecomendacoesTeste } from "./recomendacao-cursos.js";
 import { blocosAfinidades } from "./perguntas-afinidades.js";
 
 const containerTeste = document.getElementById("afinidades-container");
@@ -207,6 +208,7 @@ function mostrarResultado({ categoriaPrincipal, categoriaSecundaria, porcentagen
             </div>
             ${descricoesInteligencias[categoriaPrincipal].desc}
         </div>
+        <div id="recomendacoes-teste"></div>
     `;
 
     // Perfil complementar + ranking completo: só pra quem está logado.
@@ -271,6 +273,12 @@ function mostrarResultado({ categoriaPrincipal, categoriaSecundaria, porcentagen
         descricoesInteligencias[categoriaPrincipal].title;
 
     document.getElementById("afinidades-resultado-desc").innerHTML = descricao;
+
+    renderizarRecomendacoesTeste(
+        document.getElementById("recomendacoes-teste"),
+        { porcentagens, ranking },
+        { uid: auth.currentUser?.uid }
+    );
 }
 
 function marcarResultadoComoSalvo() {

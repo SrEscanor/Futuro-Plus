@@ -6,9 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Futuro+ | Admin · Unidades ETEC</title>
     <link rel="icon" type="image/png" href="./icon-192.png">
-  <script type="module" crossorigin src="./assets/adminEtecs-Ufh1NaWk.js"></script>
-  <link rel="modulepreload" crossorigin href="./assets/firebase-config-2TrdlHoc.js">
-  <link rel="stylesheet" crossorigin href="./assets/adminEtecs-cdq3TgSi.css">
+  <script type="module" crossorigin src="./assets/adminEtecs-vofX_i1F.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/firebase-config-2D-PUKlJ.js">
+  <link rel="modulepreload" crossorigin href="./assets/geocodificacao-knItlCKv.js">
+  <link rel="stylesheet" crossorigin href="./assets/adminEtecs-gCGmNfuM.css">
 </head>
 
 <body>
@@ -41,12 +42,18 @@
                 <div class="acoes-toolbar">
                     <button type="button" id="btn-importar-csv" class="btn btn-secundario">⬆ Importar CSV</button>
                     <button type="button" id="btn-extrair-logos" class="btn btn-secundario">🖼 Extrair logos</button>
+                    <button type="button" id="btn-localizar-unidades" class="btn btn-secundario">📍 Localizar unidades</button>
                     <button type="button" id="btn-nova-unidade" class="btn btn-primario">+ Adicionar unidade</button>
                     <input type="file" id="input-csv" accept=".csv,text/csv" style="display:none;">
                 </div>
             </div>
 
             <div id="status-importacao" class="status-importacao"></div>
+
+            <div id="alerta-localizacao" class="alerta-localizacao" hidden>
+                <div id="alerta-localizacao-texto" class="alerta-localizacao-texto"></div>
+                <button type="button" id="btn-filtrar-sem-localizacao" class="btn btn-secundario">Mostrar só essas</button>
+            </div>
 
             <div class="tabela-container">
                 <table>
@@ -57,12 +64,13 @@
                             <th>Município</th>
                             <th>Região</th>
                             <th>Cursos</th>
+                            <th title="Localização no mapa">Mapa</th>
                             <th></th>
                         </tr>
                     </thead>
                     <tbody id="tabela-etecs-corpo">
                         <tr>
-                            <td colspan="6" class="tabela-vazia">Carregando unidades...</td>
+                            <td colspan="7" class="tabela-vazia">Carregando unidades...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -117,6 +125,11 @@
                         <div class="campo">
                             <label for="f-endereco">Endereço</label>
                             <input type="text" id="f-endereco">
+                        </div>
+                        <div class="campo">
+                            <label for="f-coordenadas">Coordenadas no mapa (latitude, longitude)</label>
+                            <input type="text" id="f-coordenadas" placeholder="Ex: -23.5048, -46.6594" inputmode="decimal">
+                            <small class="campo-dica" id="f-coordenadas-ajuda">Deixe em branco para localizar automaticamente pelo endereço ao salvar.</small>
                         </div>
                         <div class="grid-2">
                             <div class="campo">

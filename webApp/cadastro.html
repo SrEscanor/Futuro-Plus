@@ -1,112 +1,202 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="view-transition" content="same-origin">
+    <meta name="theme-color" content="#4e6ee8">
     <title>Futuro+ | Cadastro</title>
     <link rel="icon" type="image/png" href="/icon-192.png">
+    <link rel="stylesheet" href="./assets/css/ondas.css">
     <link rel="stylesheet" href="./assets/css/auth.css">
 </head>
+
 <body>
-    <div class="left-panel">
-        <img src="./assets/images/logo.png" alt="Futuro+ Logo" class="logo-png-img">
-        <div class="tabs">
-            <a href="login.html" class="tab">login</a>
-            <a href="cadastro.html" class="tab active">cadastro</a>
+    <div class="auth-shell">
+
+        <div class="auth-panel">
+            <div class="auth-card">
+
+                <header class="auth-hero">
+                    <div class="hero-logo">
+                        <img src="./assets/images/logo.png" alt="Futuro+">
+                    </div>
+                    <h1>Crie sua conta</h1>
+                    <p class="hero-sub" id="heroSub">Passo 1 de 3 — Informações básicas</p>
+
+                    <ol class="stepper" id="stepper">
+                        <li class="ativa">
+                            <span class="stepper-barra"></span>
+                            <span class="stepper-label">Informações básicas</span>
+                        </li>
+                        <li>
+                            <span class="stepper-barra"></span>
+                            <span class="stepper-label">Dados pessoais</span>
+                        </li>
+                        <li>
+                            <span class="stepper-barra"></span>
+                            <span class="stepper-label">Endereço</span>
+                        </li>
+                    </ol>
+
+                    <div class="hero-ondas" aria-hidden="true">
+                        <svg class="onda onda-laranja" viewBox="0 0 1440 60" preserveAspectRatio="none">
+                            <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
+                        </svg>
+                        <svg class="onda onda-tras" viewBox="0 0 1440 60" preserveAspectRatio="none">
+                            <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
+                        </svg>
+                        <svg class="onda onda-frente" viewBox="0 0 1440 60" preserveAspectRatio="none">
+                            <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
+                        </svg>
+                    </div>
+
+                    <div class="hero-ondas-v" aria-hidden="true">
+                        <svg class="onda-v onda-v-laranja" viewBox="0 0 60 1440" preserveAspectRatio="none">
+                            <path d="M30,0 C8,120 8,240 30,360 C52,480 52,600 30,720 C8,840 8,960 30,1080 C52,1200 52,1320 30,1440 L60,1440 L60,0 Z" />
+                        </svg>
+                        <svg class="onda-v onda-v-tras" viewBox="0 0 60 1440" preserveAspectRatio="none">
+                            <path d="M30,0 C8,120 8,240 30,360 C52,480 52,600 30,720 C8,840 8,960 30,1080 C52,1200 52,1320 30,1440 L60,1440 L60,0 Z" />
+                        </svg>
+                        <svg class="onda-v onda-v-frente" viewBox="0 0 60 1440" preserveAspectRatio="none">
+                            <path d="M30,0 C8,120 8,240 30,360 C52,480 52,600 30,720 C8,840 8,960 30,1080 C52,1200 52,1320 30,1440 L60,1440 L60,0 Z" />
+                        </svg>
+                    </div>
+                </header>
+
+                <div class="auth-conteudo">
+                    <div id="msgErro" class="msg-erro"></div>
+
+                    <form id="formCadastro" novalidate>
+                        <div class="wizard-viewport" id="wizardViewport">
+                            <div class="wizard-track" id="wizardTrack" data-etapa="1">
+
+                                <!-- ETAPA 1 -->
+                                <section class="wizard-etapa" data-etapa="1">
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label class="form-label" for="nome">Nome</label>
+                                            <input type="text" id="nome" placeholder="Seu nome" autocomplete="given-name">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label" for="sobrenome">Sobrenome</label>
+                                            <input type="text" id="sobrenome" placeholder="Seu sobrenome" autocomplete="family-name">
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label" for="email">E-mail</label>
+                                        <input type="email" id="email" placeholder="seu@email.com" autocomplete="email">
+                                    </div>
+
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label class="form-label" for="senha">Senha</label>
+                                            <input type="password" id="senha" placeholder="••••••" autocomplete="new-password">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label" for="confirmaSenha">Confirmar</label>
+                                            <input type="password" id="confirmaSenha" placeholder="••••••" autocomplete="new-password">
+                                        </div>
+                                    </div>
+                                    <small class="campo-ajuda">A senha precisa ter pelo menos 6 caracteres.</small>
+
+                                    <div class="acoes-etapa" style="margin-top: 22px;">
+                                        <button type="button" class="btn-primario-auth" data-avancar="2">Próximo →</button>
+                                    </div>
+                                </section>
+
+                                <!-- ETAPA 2 -->
+                                <section class="wizard-etapa" data-etapa="2" inert>
+                                    <div class="form-group">
+                                        <label class="form-label" for="cpf">CPF</label>
+                                        <input type="text" id="cpf" placeholder="000.000.000-00" maxlength="14" inputmode="numeric">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label" for="dataNascimento">Data de nascimento</label>
+                                        <input type="date" id="dataNascimento">
+                                        <small class="campo-ajuda">É necessário ter 14 anos ou mais para se cadastrar.</small>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label" for="genero">Gênero</label>
+                                        <select id="genero">
+                                            <option value="" disabled selected>Selecione seu gênero</option>
+                                            <option value="Masculino">Masculino</option>
+                                            <option value="Feminino">Feminino</option>
+                                            <option value="Outro">Outro</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="acoes-etapa" style="margin-top: 22px;">
+                                        <button type="button" class="btn-voltar-auth" data-voltar="1">Voltar</button>
+                                        <button type="button" class="btn-primario-auth" data-avancar="3">Próximo →</button>
+                                    </div>
+                                </section>
+
+                                <!-- ETAPA 3 -->
+                                <section class="wizard-etapa" data-etapa="3" inert>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label class="form-label" for="cep">CEP</label>
+                                            <input type="text" id="cep" placeholder="00000-000" maxlength="9" inputmode="numeric" autocomplete="postal-code">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label" for="estado">Estado (UF)</label>
+                                            <input type="text" id="estado" maxlength="2" placeholder="SP">
+                                        </div>
+                                    </div>
+
+                                    <div class="form-row">
+                                        <div class="form-group" style="flex: 2;">
+                                            <label class="form-label" for="rua">Rua / Logradouro</label>
+                                            <input type="text" id="rua" placeholder="Preenchido pelo CEP" autocomplete="street-address">
+                                        </div>
+                                        <div class="form-group" style="flex: 1;">
+                                            <label class="form-label" for="numero">Número</label>
+                                            <input type="text" id="numero" placeholder="123" inputmode="numeric">
+                                        </div>
+                                    </div>
+
+                                    <div class="termos-box">
+                                        <input type="checkbox" id="aceiteTermos">
+                                        <label for="aceiteTermos">
+                                            Concordo que meus dados podem ser usados para melhorar as recomendações do
+                                            serviço e aceito os <a href="#">Termos de Uso</a> e a
+                                            <a href="#">Política de Privacidade</a>.
+                                        </label>
+                                    </div>
+
+                                    <div class="acoes-etapa">
+                                        <button type="button" class="btn-voltar-auth" data-voltar="2">Voltar</button>
+                                        <button type="submit" class="btn-primario-auth">Criar conta</button>
+                                    </div>
+                                </section>
+
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="register-link">
+                        Já tem conta? <a href="login.html">Entrar</a>
+                    </div>
+                </div>
+
+            </div>
         </div>
 
-        <!-- Alerta de erro na tela -->
-        <div id="msgErro" style="color: #e74c3c; font-size: 13px; font-weight: 500; margin-bottom: 15px; display: none;"></div>
-
-        <form id="formCadastro">
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">Nome</label>
-                    <input type="text" id="nome" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Sobrenome</label>
-                    <input type="text" id="sobrenome" required>
-                </div>
+        <aside class="auth-art">
+            <img src="/background-blobs.png" alt="Grafismo de fundo">
+            <div class="auth-art-texto">
+                <h2>Seu futuro começa com a escolha certa.</h2>
+                <p>Descubra seu perfil, explore os cursos das Etecs e encontre a área que combina com você.</p>
             </div>
+        </aside>
 
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">CPF</label>
-                    <input type="text" id="cpf" placeholder="000.000.000-00" maxlength="14" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">E-mail</label>
-                    <input type="email" id="email" required>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Data de nascimento</label>
-                <input type="date" id="dataNascimento" required>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Gênero</label>
-                <select id="genero" required>
-                    <option value="" disabled selected>Selecione seu gênero</option>
-                    <option value="Masculino">Masculino</option>
-                    <option value="Feminino">Feminino</option>
-                    <option value="Outro">Outro</option>
-                </select>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">CEP</label>
-                    <input type="text" id="cep" placeholder="00000-000" maxlength="9" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Estado (UF)</label>
-                    <input type="text" id="estado" maxlength="2">
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group" style="flex: 2;">
-                    <label class="form-label">Rua / Logradouro</label>
-                    <input type="text" id="rua">
-                </div>
-                <div class="form-group" style="flex: 1;">
-                    <label class="form-label">Número</label>
-                    <input type="text" id="numero" placeholder="Ex: 123" required>
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">Senha</label>
-                    <input type="password" id="senha" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Confirmar senha</label>
-                    <input type="password" id="confirmaSenha" required>
-                </div>
-            </div>
-
-            <div class="terms-text">
-                Ao tocar em Cadastrar, você concorda que seus dados poderão ser utilizados para fins de pesquisa futura do nosso serviço. <br><br>
-                Você também declara estar ciente de que receberá e-mails com atualizações dos cursos desejados. Para mais informações, leia nossos <a href="#">Termos e Políticas de Privacidade</a>.
-            </div>
-
-            <button type="submit" class="btn-login">Cadastrar</button>
-        </form>
-
-        <div class="register-link" style="margin-top: 10px;">
-            Já possui uma conta? <a href="login.html">Faça seu login!</a>
-        </div>
-    </div>
-
-    <div class="right-panel">
-        <img src="/background-blobs.png" alt="Grafismo de fundo" class="bg-png-image">
     </div>
 
     <script type="module" src="./assets/js/cadastro.js"></script>
 </body>
+
 </html>

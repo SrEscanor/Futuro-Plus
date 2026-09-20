@@ -2,6 +2,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "./firebase-config.js";
 import { categoriasTeste } from "./categorias-teste.js";
+import { extrairResultadoMaisRecente } from "./resultado-teste.js";
 
 const arco1 = document.getElementById("arco-1");
 const arco2 = document.getElementById("arco-2");
@@ -61,21 +62,6 @@ function mostrarResultado(dadosResultado) {
     link.innerHTML = `<a href="testes.html">Clique aqui</a> e refaça o teste de perfil`;
 }
 
-// Quando existir mais de um teste feito, mostra sempre o mais recente
-// (comparando a data de conclusão de cada um).
-function obterResultadoMaisRecente(resultadosTestes) {
-    if (!resultadosTestes) return null;
-
-    const resultados = Object.values(resultadosTestes);
-    if (resultados.length === 0) return null;
-
-    return resultados.reduce((maisRecente, atual) =>
-        !maisRecente || atual.concluidoEm > maisRecente.concluidoEm
-            ? atual
-            : maisRecente
-    , null);
-}
-
 onAuthStateChanged(auth, async (usuario) => {
     if (!usuario) {
         mostrarSemResultado();
@@ -86,17 +72,7 @@ onAuthStateChanged(auth, async (usuario) => {
         const snap = await getDoc(doc(db, "usuarios", usuario.uid));
         const dados = snap.exists() ? snap.data() : null;
 
-        // "resultadoTesteGardner" era o nome antigo (de antes de suportar
-        // vários testes). Quem fez o teste naquela época ainda tem o
-        // resultado guardado só ali — incluímos ele aqui pra não "sumir".
-        const resultadosTestes = {
-            ...(dados?.resultadosTestes || {}),
-            ...(dados?.resultadoTesteGardner && !dados?.resultadosTestes?.gardner
-                ? { gardner: dados.resultadoTesteGardner }
-                : {})
-        };
-
-        const dadosResultado = obterResultadoMaisRecente(resultadosTestes);
+        const dadosResultado = extrairResultadoMaisRecente(dados);
 
         if (dadosResultado) {
             mostrarResultado(dadosResultado);
