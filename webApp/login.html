@@ -1,48 +1,72 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="view-transition" content="same-origin">
+    <meta name="theme-color" content="#4e6ee8">
     <title>Futuro+ | Login</title>
     <link rel="icon" type="image/png" href="/icon-192.png">
     <link rel="stylesheet" href="./assets/css/auth.css">
 </head>
+
 <body>
-    <div class="left-panel">
-        <img src="./assets/images/logo.png" alt="Futuro+ Logo" class="logo-png-img">
-        <div class="tabs">
-            <a href="login.html" class="tab active">login</a>
-            <a href="cadastro.html" class="tab">cadastro</a>
+    <div class="auth-shell auth-shell--login">
+
+        <div class="auth-panel">
+            <div class="auth-card auth-card--simples">
+
+                <div class="auth-topo">
+                    <img src="./assets/images/logo.png" alt="Futuro+ Logo" class="logo-png-img">
+                    <div class="tabs">
+                        <a href="login.html" class="tab active">login</a>
+                        <a href="cadastro.html" class="tab">cadastro</a>
+                    </div>
+                </div>
+
+                <div class="auth-conteudo">
+                    <h2 class="auth-titulo-simples">Bem-vindo de volta</h2>
+                    <p class="auth-subtitulo-simples">Entre para ver seus resultados e cursos recomendados.</p>
+
+                    <div class="form-group">
+                        <label class="form-label" for="email">E-mail</label>
+                        <input id="email" type="email" placeholder="seu@email.com" autocomplete="email">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="senha">Senha</label>
+                        <input id="senha" type="password" placeholder="••••••" autocomplete="current-password">
+                    </div>
+
+                    <div class="forgot">
+                        <a href="#">esqueci minha senha</a>
+                    </div>
+
+                    <button class="btn-login">Entrar</button>
+
+                    <div class="register-link">
+                        É novo por aqui? <a href="cadastro.html">Crie sua conta!</a>
+                    </div>
+
+                    <div class="continuar-sem-logar">
+                        <a href="index.html">Continuar sem fazer login</a>
+                    </div>
+                </div>
+
+            </div>
         </div>
 
-        <div class="form-group">
-            <input id="email" type="email" placeholder="email">
-        </div>
-        
-        <div class="form-group">
-            <input id="senha" type="password" placeholder="senha">
-        </div>
+        <aside class="auth-art">
+            <img src="/background-blobs.png" alt="Grafismo de fundo">
+            <div class="auth-art-texto">
+                <h2>Seu futuro começa com a escolha certa.</h2>
+                <p>Descubra seu perfil, explore os cursos das Etecs e encontre a área que combina com você.</p>
+            </div>
+        </aside>
 
-        <div class="forgot">
-            <a href="#">esqueci minha senha</a>
-        </div>
-
-        <button class="btn-login">Login</button>
-
-        <div class="register-link">
-            É novo por aqui? <a href="cadastro.html">Crie sua conta!</a>
-        </div>
-
-        <div class="continuar-sem-logar">
-            <a href="index.html">Continuar sem fazer login</a>
-        </div>
-    </div>
-
-    <div class="right-panel">
-        <img src="/background-blobs.png" alt="Grafismo de fundo" class="bg-png-image">
     </div>
 
     <script type="module" src="./assets/js/login.js"></script>
 </body>
+
 </html>

@@ -1,7 +1,8 @@
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { localizarUnidade } from './geocodificacao.js';
 import {
-    collection, doc, getDoc, getDocs, setDoc, deleteDoc, writeBatch
+    collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, writeBatch
 } from 'firebase/firestore';
 
 const ETECS_COLLECTION = 'etecs';
@@ -236,11 +237,103 @@ function csvParaEtecs(texto) {
 // Renderização
 // ========================================================
 
+const DESCRICAO_PRECISAO = {
+    escola: 'Localizada pelo prédio da escola no mapa',
+    numero: 'Localizada pela rua e número',
+    rua: 'Localizada só pela rua',
+    manual: 'Coordenadas informadas manualmente',
+    cidade: 'Só o centro da cidade: confira o endereço ou cole as coordenadas'
+};
+
+// ok | so_cidade | nao_encontrada | nao_localizada
+function situacaoLocalizacao(etec) {
+    const loc = etec.localizacao;
+    if (loc?.lat != null) return loc.precisao === 'cidade' ? 'so_cidade' : 'ok';
+    // a falha só vale para o endereço tentado; se o admin corrigir, tenta de novo
+    if (loc?.naoEncontrada && (loc.endereco || '') === (etec.endereco || '')) return 'nao_encontrada';
+    return 'nao_localizada';
+}
+
+function indicadorLocalizacao(etec) {
+    switch (situacaoLocalizacao(etec)) {
+        case 'ok': return { icone: '📍', titulo: DESCRICAO_PRECISAO[etec.localizacao.precisao] || 'Localizada' };
+        case 'so_cidade': return { icone: '≈', titulo: DESCRICAO_PRECISAO.cidade };
+        case 'nao_encontrada': return { icone: '✕', titulo: 'Não encontrada pelo endereço: cole as coordenadas do Google Maps' };
+        default: return { icone: '—', titulo: 'Ainda não localizada no mapa' };
+    }
+}
+
+// Pendentes para o botão: nunca localizadas, ou cujo endereço mudou desde a
+// última localização automática. Não encontradas não são repetidas (daria o
+// mesmo resultado) e coordenadas manuais nunca são sobrescritas.
+function precisaLocalizar(etec) {
+    const situacao = situacaoLocalizacao(etec);
+    if (situacao === 'nao_localizada') return true;
+    if (situacao === 'nao_encontrada') return false;
+    const loc = etec.localizacao;
+    return loc.precisao !== 'manual' && (loc.endereco || '') !== (etec.endereco || '');
+}
+
+// Substitui o campo inteiro (updateDoc), para não sobrar marca de falha
+// antiga junto de coordenadas novas, ou coordenadas velhas junto de uma falha.
+function gravarLocalizacao(id, unidade, localizacao) {
+    const valor = localizacao || {
+        naoEncontrada: true,
+        endereco: unidade.endereco || '',
+        tentadoEm: new Date().toISOString()
+    };
+    return updateDoc(doc(db, ETECS_COLLECTION, id), { localizacao: valor }).then(() => valor);
+}
+
+let filtroSemLocalizacao = false;
+
+function renderizarAlertaLocalizacao() {
+    const alerta = document.getElementById('alerta-localizacao');
+    const contagem = { so_cidade: 0, nao_encontrada: 0, nao_localizada: 0 };
+    etecsCache.forEach((e) => {
+        const situacao = situacaoLocalizacao(e);
+        if (situacao !== 'ok') contagem[situacao]++;
+    });
+    const total = contagem.so_cidade + contagem.nao_encontrada + contagem.nao_localizada;
+
+    alerta.hidden = total === 0;
+    if (total === 0) {
+        filtroSemLocalizacao = false;
+        return;
+    }
+
+    const itens = [];
+    if (contagem.nao_localizada) {
+        itens.push(`<li><strong>${contagem.nao_localizada}</strong> ainda não localizada(s) (—): clique em <strong>📍 Localizar unidades</strong>.</li>`);
+    }
+    if (contagem.nao_encontrada) {
+        itens.push(`<li><strong>${contagem.nao_encontrada}</strong> não encontrada(s) pelo endereço (✕).</li>`);
+    }
+    if (contagem.so_cidade) {
+        itens.push(`<li><strong>${contagem.so_cidade}</strong> só com o centro da cidade (≈).</li>`);
+    }
+    const dicaManual = contagem.nao_encontrada || contagem.so_cidade
+        ? '<p>Nas marcadas com ✕ ou ≈, clique em ✏️ e cole as coordenadas do Google Maps (botão direito no local → clique nos números).</p>'
+        : '';
+
+    document.getElementById('alerta-localizacao-texto').innerHTML = `
+        <strong>⚠️ ${total} unidade(s) sem localização precisa no mapa</strong>
+        <p>Elas não entram direito nas buscas por Etecs mais próximas, no site e no assistente.</p>
+        <ul>${itens.join('')}</ul>
+        ${dicaManual}`;
+
+    document.getElementById('btn-filtrar-sem-localizacao').textContent =
+        filtroSemLocalizacao ? 'Mostrar todas as unidades' : 'Mostrar só essas';
+}
+
 function renderizarTabela() {
     const filtro = (document.getElementById('busca-unidade').value || '').trim().toLowerCase();
     const corpo = document.getElementById('tabela-etecs-corpo');
 
+    renderizarAlertaLocalizacao();
+
     const linhas = etecsCache
+        .filter((e) => !filtroSemLocalizacao || situacaoLocalizacao(e) !== 'ok')
         .filter((e) => !filtro
             || (e.nome || '').toLowerCase().includes(filtro)
             || (e.municipio || '').toLowerCase().includes(filtro)
@@ -248,12 +341,13 @@ function renderizarTabela() {
         .sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'));
 
     if (!linhas.length) {
-        corpo.innerHTML = `<tr><td colspan="6" class="tabela-vazia">Nenhuma unidade encontrada.</td></tr>`;
+        corpo.innerHTML = `<tr><td colspan="7" class="tabela-vazia">Nenhuma unidade encontrada.</td></tr>`;
         return;
     }
 
     corpo.innerHTML = linhas.map((e) => {
         const logo = e.logotipoUrl ? escapeHtml(e.logotipoUrl) : LOGO_PADRAO;
+        const mapa = indicadorLocalizacao(e);
         return `
         <tr>
             <td>${escapeHtml(e.codigo)}</td>
@@ -266,6 +360,7 @@ function renderizarTabela() {
             <td>${escapeHtml(e.municipio)}</td>
             <td>${escapeHtml(e.regiao)}</td>
             <td>${(e.cursos || []).length}</td>
+            <td class="col-mapa" title="${escapeHtml(mapa.titulo)}">${mapa.icone}</td>
             <td class="col-acoes">
                 <button type="button" class="btn-icone" data-acao="editar" data-id="${escapeHtml(e.id)}" title="Editar">✏️</button>
                 <button type="button" class="btn-icone" data-acao="excluir" data-id="${escapeHtml(e.id)}" title="Excluir">🗑️</button>
@@ -385,6 +480,29 @@ async function salvarEtec(event) {
     };
 
     const id = editandoId || sanitizarId(codigo);
+    const existente = etecsCache.find((e) => e.id === id);
+
+    const textoCoordenadas = document.getElementById('f-coordenadas').value.trim();
+    const coordenadas = lerCoordenadas(textoCoordenadas);
+    if (textoCoordenadas && !coordenadas) {
+        alert('Coordenadas inválidas. Use o formato "latitude, longitude", por exemplo: -23.5048, -46.6594');
+        return;
+    }
+
+    let localizarDepois = false;
+    if (coordenadas) {
+        const mesmas = existente?.localizacao
+            && existente.localizacao.lat === coordenadas.lat
+            && existente.localizacao.lng === coordenadas.lng;
+        if (!mesmas) {
+            dados.localizacao = { ...coordenadas, precisao: 'manual', endereco: dados.endereco };
+        } else {
+            localizarDepois = precisaLocalizar({ ...existente, endereco: dados.endereco });
+        }
+    } else {
+        // campo vazio (nunca localizada, ou o admin apagou para refazer)
+        localizarDepois = true;
+    }
 
     try {
         // merge:true preserva campos que não estão neste formulário (ex:
@@ -392,10 +510,91 @@ async function salvarEtec(event) {
         await setDoc(doc(db, ETECS_COLLECTION, id), dados, { merge: true });
         fecharFormulario();
         await carregarEtecs();
+
+        if (localizarDepois && dados.endereco && dados.municipio) {
+            localizarUmaUnidade(id, dados);
+        }
     } catch (err) {
         console.error('Erro ao salvar unidade:', err);
         alert('Erro ao salvar a unidade: ' + err.message);
     }
+}
+
+// Aceita o formato copiado do Google Maps: "-23.50484, -46.65944"
+function lerCoordenadas(texto) {
+    const partes = (texto || '').split(',').map((p) => Number(p.trim()));
+    if (partes.length !== 2 || partes.some((n) => !Number.isFinite(n))) return null;
+    const [lat, lng] = partes;
+    if (Math.abs(lat) > 90 || Math.abs(lng) > 180) return null;
+    return { lat, lng };
+}
+
+async function localizarUmaUnidade(id, unidade) {
+    const status = document.getElementById('status-importacao');
+    status.style.display = 'block';
+    status.textContent = `Localizando "${unidade.nome}" no mapa...`;
+
+    const localizacao = await localizarUnidade(unidade);
+
+    try {
+        await gravarLocalizacao(id, unidade, localizacao);
+        status.textContent = localizacao
+            ? `"${unidade.nome}" localizada: ${DESCRICAO_PRECISAO[localizacao.precisao].toLowerCase()}.`
+            : `Não foi possível localizar "${unidade.nome}" pelo endereço. Edite a unidade e cole as coordenadas do Google Maps.`;
+        await carregarEtecs();
+    } catch (err) {
+        console.error('Erro ao salvar localização:', err);
+        status.textContent = 'Erro ao salvar a localização: ' + err.message;
+    }
+}
+
+async function localizarUnidadesPendentes() {
+    const pendentes = etecsCache.filter(precisaLocalizar).filter((e) => e.endereco && e.municipio);
+    if (!pendentes.length) {
+        alert('Todas as unidades já estão localizadas no mapa.');
+        return;
+    }
+
+    const minutos = Math.max(1, Math.round((pendentes.length * 2) / 60));
+    const confirmar = confirm(
+        `${pendentes.length} unidade(s) para localizar no mapa.\n` +
+        `O serviço gratuito (OpenStreetMap) aceita 1 consulta por segundo, então isso leva uns ${minutos} min. ` +
+        `Mantenha esta aba aberta até terminar.\n\nComeçar agora?`
+    );
+    if (!confirmar) return;
+
+    const botao = document.getElementById('btn-localizar-unidades');
+    const status = document.getElementById('status-importacao');
+    status.style.display = 'block';
+    botao.disabled = true;
+
+    const soCidade = [];
+    const naoEncontradas = [];
+
+    for (let i = 0; i < pendentes.length; i++) {
+        const etec = pendentes[i];
+        status.textContent = `Localizando ${i + 1}/${pendentes.length}: ${etec.nome}...`;
+
+        const localizacao = await localizarUnidade(etec);
+        if (!localizacao) naoEncontradas.push(etec.nome);
+        else if (localizacao.precisao === 'cidade') soCidade.push(etec.nome);
+
+        try {
+            etec.localizacao = await gravarLocalizacao(etec.id, etec, localizacao);
+            renderizarTabela();
+        } catch (err) {
+            console.error(`Erro ao salvar localização de ${etec.nome}:`, err);
+            if (localizacao) naoEncontradas.push(etec.nome);
+        }
+    }
+
+    botao.disabled = false;
+    const precisas = pendentes.length - soCidade.length - naoEncontradas.length;
+    let resumo = `Concluído: ${precisas} localizadas com precisão`;
+    if (soCidade.length) resumo += ` · ${soCidade.length} só pelo centro da cidade (≈): ${soCidade.join(', ')}`;
+    if (naoEncontradas.length) resumo += ` · ${naoEncontradas.length} não encontradas: ${naoEncontradas.join(', ')}`;
+    if (soCidade.length || naoEncontradas.length) resumo += '. Para essas, edite a unidade e cole as coordenadas do Google Maps.';
+    status.textContent = resumo;
 }
 
 async function excluirEtec(id) {
@@ -529,6 +728,16 @@ function abrirFormulario(etec) {
     document.getElementById('f-discagem').value = etec?.discagemAbreviada || '';
     document.getElementById('f-site').value = etec?.site || '';
     document.getElementById('f-logotipo').value = etec?.logotipoUrl || '';
+    document.getElementById('f-coordenadas').value = etec?.localizacao?.lat != null
+        ? `${etec.localizacao.lat}, ${etec.localizacao.lng}`
+        : '';
+    const ajudaPorSituacao = {
+        ok: `${DESCRICAO_PRECISAO[etec?.localizacao?.precisao] || 'Localizada'}. Apague para localizar de novo pelo endereço.`,
+        so_cidade: 'Só o centro da cidade foi encontrado. No Google Maps, clique com o botão direito na escola, copie os números e cole aqui.',
+        nao_encontrada: 'Não foi encontrada pelo endereço. No Google Maps, clique com o botão direito na escola, copie os números e cole aqui (ou corrija o endereço).',
+        nao_localizada: 'Deixe em branco para localizar automaticamente pelo endereço ao salvar.'
+    };
+    document.getElementById('f-coordenadas-ajuda').textContent = ajudaPorSituacao[etec ? situacaoLocalizacao(etec) : 'nao_localizada'];
 
     document.getElementById('f-dir-nome').value = etec?.direcao?.geral?.nome || '';
     document.getElementById('f-dir-email').value = etec?.direcao?.geral?.email || '';
@@ -639,12 +848,17 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-cancelar-form').addEventListener('click', fecharFormulario);
     document.getElementById('form-etec').addEventListener('submit', salvarEtec);
     document.getElementById('busca-unidade').addEventListener('input', renderizarTabela);
+    document.getElementById('btn-filtrar-sem-localizacao').addEventListener('click', () => {
+        filtroSemLocalizacao = !filtroSemLocalizacao;
+        renderizarTabela();
+    });
 
     document.getElementById('btn-importar-csv').addEventListener('click', () => {
         document.getElementById('input-csv').click();
     });
     document.getElementById('input-csv').addEventListener('change', tratarImportacaoCsv);
     document.getElementById('btn-extrair-logos').addEventListener('click', extrairLogosPendentes);
+    document.getElementById('btn-localizar-unidades').addEventListener('click', localizarUnidadesPendentes);
 
     document.getElementById('tabela-etecs-corpo').addEventListener('click', (e) => {
         const btn = e.target.closest('.btn-icone');

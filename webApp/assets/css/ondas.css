@@ -1,0 +1,74 @@
+/* =========================================================
+   Futuro+ · Ondas do topo azul (cadastro e home)
+   Três camadas nas cores da marca: laranja e verde deslizam em
+   sentidos opostos e com durações diferentes, e a da frente fecha
+   a transição para o fundo da página.
+   A cor da onda da frente vem de --onda-fundo, definida por quem usa
+   o componente (branco no cadastro, cinza-claro na home).
+   ========================================================= */
+
+.hero-ondas {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 76px;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.onda {
+    position: absolute;
+    left: 0;
+    width: 200%;
+    height: 46px;
+    display: block;
+}
+
+.onda-laranja {
+    bottom: 24px;
+    fill: rgba(247, 176, 63, 0.95);
+    animation: ondaDeslizarInverso 22s linear infinite;
+}
+
+.onda-tras {
+    bottom: 12px;
+    fill: rgba(46, 204, 113, 0.88);
+    animation: ondaDeslizar 16s linear infinite;
+}
+
+.onda-frente {
+    bottom: -1px;
+    fill: var(--onda-fundo, #ffffff);
+}
+
+/* O traçado tem período de 720 unidades num viewBox de 1440, então deslocar
+   metade do elemento cai numa fase idêntica e o loop não tem emenda. */
+@keyframes ondaDeslizar {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+}
+
+@keyframes ondaDeslizarInverso {
+    from { transform: translateX(-50%); }
+    to { transform: translateX(0); }
+}
+
+@keyframes ondaDeslizarV {
+    from { transform: translateY(0); }
+    to { transform: translateY(-50%); }
+}
+
+@keyframes ondaDeslizarVInverso {
+    from { transform: translateY(-50%); }
+    to { transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .onda-tras,
+    .onda-laranja,
+    .onda-v-tras,
+    .onda-v-laranja {
+        animation: none;
+    }
+}

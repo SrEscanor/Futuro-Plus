@@ -50,9 +50,11 @@ def chat_bot(req: https_fn.Request) -> https_fn.Response:
         db = firestore.client()
 
         # 2. Importamos o seu chatbot AQUI DENTRO para não travar a inicialização do Firebase!
-        from agents import Runner, InputGuardrailTripwireTriggered, OutputGuardrailTripwireTriggered
+        from agents import Runner, RunConfig, ModelSettings, InputGuardrailTripwireTriggered, OutputGuardrailTripwireTriggered
         from agentes import agente_orquestrador
         from firestore_session import FirestoreSession
+        from contexto_chat import ContextoChat
+        from ferramentas_unidades import e_busca_de_unidades, garantir_botao_da_pagina_de_cursos
 
         dados = req.get_json()
         if not dados:
@@ -70,8 +72,22 @@ def chat_bot(req: https_fn.Request) -> https_fn.Response:
         # depender de arquivo local, que se perde a cada cold start da função.
         session = FirestoreSession(session_id=id_usuario, db=db)
 
+        # O contexto leva o uid até as ferramentas (ex.: ler a localização do
+        # perfil) e traz de volta pedidos para a tela (ex.: botões de permissão).
+        contexto = ContextoChat(id_usuario=id_usuario)
+
+        # Em perguntas sobre localizar Etecs, obriga a consultar o cadastro
+        # atual em vez de repetir uma resposta antiga do histórico. O SDK
+        # desliga essa obrigação sozinho depois da primeira chamada da
+        # ferramenta, então não há risco de ficar chamando em loop.
+        configuracao = None
+        if e_busca_de_unidades(mensagem):
+            configuracao = RunConfig(model_settings=ModelSettings(tool_choice="buscar_etecs_com_curso"))
+
         try:
-            resultado = Runner.run_sync(agente_orquestrador, mensagem, session=session)
+            resultado = Runner.run_sync(
+                agente_orquestrador, mensagem, session=session, context=contexto, run_config=configuracao
+            )
         except InputGuardrailTripwireTriggered:
             return https_fn.Response(
                 json.dumps({"resposta": "Desculpe, não posso ajudar com esse tipo de mensagem. Posso te ajudar com dúvidas sobre o vestibular da ETEC ou FATEC?"}),
@@ -87,9 +103,33 @@ def chat_bot(req: https_fn.Request) -> https_fn.Response:
 
         # Extrai a resposta final do agente
         resposta_texto = getattr(resultado, "final_output", None) or str(resultado)
+        garantir_botao_da_pagina_de_cursos(contexto, mensagem, resposta_texto)
+
+        # Registra só o caminho da execução (agente final, handoffs e ferramentas
+        # chamadas), sem o conteúdo da conversa, para diagnosticar roteamento
+        # pelos logs da função.
+        try:
+            etapas = [
+                f"{type(item).__name__}:{item.raw_item.name}"
+                for item in resultado.new_items
+                if type(item).__name__ in ("ToolCallItem", "HandoffCallItem") and getattr(item.raw_item, "name", None)
+            ]
+            print(json.dumps({
+                "diagnostico_chat": True,
+                "agente_final": resultado.last_agent.name,
+                "etapas": etapas,
+                "acoes": contexto.acoes_para_interface,
+                "links": [link["url"] for link in contexto.links_para_interface],
+            }))
+        except Exception as erro_diagnostico:
+            print(f"Não foi possível resumir a execução: {erro_diagnostico}")
 
         return https_fn.Response(
-            json.dumps({"resposta": resposta_texto}),
+            json.dumps({
+                "resposta": resposta_texto,
+                "acoes": contexto.acoes_para_interface,
+                "links": contexto.links_para_interface,
+            }),
             status=200,
             headers={"Content-Type": "application/json"}
         )

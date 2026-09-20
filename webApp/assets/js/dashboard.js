@@ -1,6 +1,6 @@
 import { auth, db } from './firebase-config.js';
 import { signOut, onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -36,6 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (dados.admin === true && menuAdmin) {
                         menuAdmin.style.display = "";
                     }
+
+                    atualizarBarraPermissaoLocalizacao(dados.permissoes?.localizacaoChatbot?.concedida === true);
                 } else {
                     console.warn("Nenhum documento encontrado na coleção 'usuarios' para este UID.");
                 }
@@ -106,18 +108,64 @@ document.addEventListener('DOMContentLoaded', () => {
 
       function limparMarkdown(texto) {
         return texto
+            // [texto](https://link) -> https://link (o chat mostra texto puro)
+            .replace(/\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)/g, '$2')
             .replace(/^#{1,6}\s+/gm, '')
             .replace(/\*\*(.*?)\*\*/g, '$1')
             .replace(/\*(.*?)\*/g, '$1')
             .replace(/`([^`]+)`/g, '$1');
     }
 
+    // Monta o texto com nós de texto e <a> criados pelo DOM (nunca innerHTML),
+    // então nada que venha na resposta consegue virar HTML na página.
+    function preencherComLinks(elemento, texto) {
+        const partes = texto.split(/(https?:\/\/[^\s<>"')\]]+)/g);
+        partes.forEach((parte, indice) => {
+            if (indice % 2 === 0) {
+                if (parte) elemento.appendChild(document.createTextNode(parte));
+                return;
+            }
+            // pontuação colada no fim ("...site.com.") fica fora do link
+            const [, url, pontuacao] = parte.match(/^(.*?)([.,;:!?]*)$/);
+            const link = document.createElement('a');
+            link.href = url;
+            link.textContent = url;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            elemento.appendChild(link);
+            if (pontuacao) elemento.appendChild(document.createTextNode(pontuacao));
+        });
+    }
+
     function addMessage(text, sender) {
         if (!text.trim() || !chatMessages) return;
         const msgDiv = document.createElement('div');
         msgDiv.classList.add('msg', sender);
-        msgDiv.textContent = sender === 'bot' ? limparMarkdown(text) : text;
+        if (sender === 'bot') {
+            preencherComLinks(msgDiv, limparMarkdown(text));
+        } else {
+            msgDiv.textContent = text;
+        }
         chatMessages.appendChild(msgDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Botões para páginas do próprio site, enviados pelo backend. Só aceita
+    // caminhos internos como "cursos.html?curso=...".
+    function mostrarLinksDoSite(links) {
+        if (!chatMessages || !Array.isArray(links) || !links.length) return;
+        const grupo = document.createElement('div');
+        grupo.className = 'chat-links-site';
+        links.forEach(({ texto, url }) => {
+            if (typeof url !== 'string' || !/^[a-z0-9-]+\.html(\?[^\s<>"']*)?$/i.test(url)) return;
+            const botao = document.createElement('a');
+            botao.className = 'chat-link-site';
+            botao.href = url;
+            botao.textContent = `${texto} →`;
+            grupo.appendChild(botao);
+        });
+        if (!grupo.children.length) return;
+        chatMessages.appendChild(grupo);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
@@ -139,12 +187,8 @@ document.addEventListener('DOMContentLoaded', () => {
         ? "http://127.0.0.1:5001/futuroplus-bce54/southamerica-east1/chat_bot"
         : "https://southamerica-east1-futuroplus-bce54.cloudfunctions.net/chat_bot";
 
-    const handleSend = async () => {
-        const text = chatInput.value.trim();
-        if (!text) return;
-
-        addMessage(text, 'user');
-        chatInput.value = '';
+    async function enviarParaAssistente(texto) {
+        addMessage(texto, 'user');
 
         const user = auth.currentUser;
         if (!user) {
@@ -163,17 +207,98 @@ document.addEventListener('DOMContentLoaded', () => {
                     "Content-Type": "application/json",
                     "Authorization": "Bearer " + token
                 },
-                body: JSON.stringify({ mensagem: text })
+                body: JSON.stringify({ mensagem: texto })
             });
             const dados = await resp.json();
             removerDigitando();
             addMessage(dados.resposta || dados.erro || "Erro ao obter resposta.", "bot");
+            mostrarLinksDoSite(dados.links);
+
+            if (Array.isArray(dados.acoes) && dados.acoes.includes("pedir_permissao_localizacao")) {
+                mostrarPedidoPermissaoLocalizacao();
+            }
         } catch (err) {
             console.error("Erro ao chamar o chatbot:", err);
             removerDigitando();
             addMessage("Não consegui me conectar agora. Tente novamente.", "bot");
         }
+    }
+
+    const handleSend = () => {
+        const text = chatInput.value.trim();
+        if (!text) return;
+        chatInput.value = '';
+        enviarParaAssistente(text);
     };
+
+    // --- PERMISSÃO DE LOCALIZAÇÃO PARA O ASSISTENTE ---
+    // A permissão só é gravada pelo clique da própria pessoa nos botões: o
+    // assistente nunca "decide" sozinho que recebeu autorização pelo texto.
+    async function gravarPermissaoLocalizacao(concedida) {
+        const user = auth.currentUser;
+        if (!user) return false;
+        try {
+            await setDoc(doc(db, "usuarios", user.uid), {
+                permissoes: {
+                    localizacaoChatbot: { concedida, atualizadoEm: new Date().toISOString() }
+                }
+            }, { merge: true });
+            atualizarBarraPermissaoLocalizacao(concedida);
+            return true;
+        } catch (erro) {
+            console.error("Erro ao salvar a permissão de localização:", erro);
+            addMessage("Não consegui salvar sua escolha agora. Tente novamente.", "bot");
+            return false;
+        }
+    }
+
+    function mostrarPedidoPermissaoLocalizacao() {
+        if (!chatMessages || document.getElementById("cartao-permissao-localizacao")) return;
+
+        const cartao = document.createElement("div");
+        cartao.id = "cartao-permissao-localizacao";
+        cartao.className = "msg bot cartao-permissao";
+        cartao.innerHTML = `
+            <p><strong>📍 Usar a localização do seu perfil?</strong></p>
+            <p>O assistente usa só a distância até as Etecs. Seu endereço não aparece na conversa, e você pode desativar quando quiser.</p>
+            <div class="cartao-permissao-botoes">
+                <button type="button" class="btn-permitir">Permitir</button>
+                <button type="button" class="btn-agora-nao">Agora não</button>
+            </div>
+        `;
+
+        cartao.querySelector(".btn-permitir").addEventListener("click", async () => {
+            cartao.querySelectorAll("button").forEach((b) => { b.disabled = true; });
+            if (await gravarPermissaoLocalizacao(true)) {
+                cartao.remove();
+                enviarParaAssistente("Pode usar a localização do meu perfil.");
+            } else {
+                cartao.querySelectorAll("button").forEach((b) => { b.disabled = false; });
+            }
+        });
+
+        cartao.querySelector(".btn-agora-nao").addEventListener("click", () => {
+            cartao.remove();
+            addMessage("Tudo bem! Se preferir, me diga a sua cidade que eu procuro as Etecs de lá.", "bot");
+        });
+
+        chatMessages.appendChild(cartao);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function atualizarBarraPermissaoLocalizacao(concedida) {
+        const barra = document.getElementById("chat-permissao-localizacao");
+        if (barra) barra.hidden = !concedida;
+    }
+
+    const botaoDesativarLocalizacao = document.getElementById("desativar-localizacao-chat");
+    if (botaoDesativarLocalizacao) {
+        botaoDesativarLocalizacao.addEventListener("click", async () => {
+            if (await gravarPermissaoLocalizacao(false)) {
+                addMessage("Pronto, não vou mais usar a localização do seu perfil. Se quiser, é só me dizer uma cidade.", "bot");
+            }
+        });
+    }
 
     // Só adiciona os eventos de enviar se os elementos existirem
     if (sendChatBtn) sendChatBtn.addEventListener('click', handleSend);

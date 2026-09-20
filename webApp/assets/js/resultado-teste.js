@@ -34,6 +34,24 @@ export async function salvarResultadoNoPerfil(uid, chaveTeste, dadosResultado) {
     );
 }
 
+// Quando existir mais de um teste feito, vale sempre o mais recente
+// (comparando a data de conclusão de cada um).
+export function extrairResultadoMaisRecente(dadosUsuario) {
+    // "resultadoTesteGardner" era o nome antigo (de antes de suportar
+    // vários testes). Quem fez o teste naquela época ainda tem o
+    // resultado guardado só ali — incluímos ele pra não "sumir".
+    const resultadosTestes = {
+        ...(dadosUsuario?.resultadosTestes || {}),
+        ...(dadosUsuario?.resultadoTesteGardner && !dadosUsuario?.resultadosTestes?.gardner
+            ? { gardner: dadosUsuario.resultadoTesteGardner }
+            : {})
+    };
+
+    return Object.values(resultadosTestes).reduce((maisRecente, atual) =>
+        !maisRecente || atual.concluidoEm > maisRecente.concluidoEm ? atual : maisRecente
+    , null);
+}
+
 // Chamado logo após login/cadastro: se existir um resultado pendente
 // (feito antes de logar), vincula ele ao perfil que acabou de autenticar.
 export async function integrarResultadoPendenteComPerfil(uid) {

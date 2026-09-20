@@ -1,6 +1,7 @@
 import { auth } from "./firebase-config.js";
 import { salvarResultadoPendente, salvarResultadoNoPerfil } from "./resultado-teste.js";
 import { descricoesInteligencias as resultData } from "./descricoes-inteligencias.js";
+import { renderizarRecomendacoesTeste } from "./recomendacao-cursos.js";
 
 const questions = [
     {
@@ -357,6 +358,8 @@ function showResult() {
             ${resultData[primaryCategory].desc}
 
         </div>
+
+        <div id="recomendacoes-teste"></div>
     `;
 
 
@@ -507,6 +510,12 @@ function showResult() {
 
     document.getElementById("result-desc").innerHTML =
         combinedDesc;
+
+    renderizarRecomendacoesTeste(
+        document.getElementById("recomendacoes-teste"),
+        dadosResultado,
+        { uid: usuarioLogado?.uid }
+    );
 }
 
 

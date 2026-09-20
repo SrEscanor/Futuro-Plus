@@ -1,63 +1,24 @@
-import { db } from './firebase-config.js';
-import { collection, getDocs } from 'firebase/firestore';
+import { auth, db } from './firebase-config.js';
+import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
+import { renderizarCardUnidade, normalizar } from './card-unidade.js';
+import {
+    carregarRegioesSP,
+    resolverLocalizacaoUsuario,
+    criarAvaliadorProximidade,
+    PROXIMIDADE
+} from './recomendacao-cursos.js';
+import { formatarDistancia } from './geocodificacao.js';
 
-const LOGO_PADRAO = '/etec-logo-padrao.png';
-const LOGO_FALLBACK = '/logo.png';
+function seloProximidade({ nivel, km }) {
+    if (km != null) return `📍 ${formatarDistancia(km)}`;
+    if (nivel === PROXIMIDADE.CIDADE) return '📍 Na sua cidade';
+    if (nivel === PROXIMIDADE.REGIAO) return '📍 Perto de você';
+    return '';
+}
 
 let unidadesCache = [];
-
-function escapeHtml(str) {
-    return String(str ?? '').replace(/[&<>"']/g, (c) => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-    }[c]));
-}
-
-function normalizar(str) {
-    return (str || '')
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[̀-ͯ]/g, '');
-}
-
-function agruparCursosPorCategoria(cursos) {
-    const mapa = new Map();
-    (cursos || []).forEach((c) => {
-        if (!c || !c.nome) return;
-        const categoria = c.categoria || 'Outros cursos';
-        if (!mapa.has(categoria)) mapa.set(categoria, []);
-        mapa.get(categoria).push(c.nome);
-    });
-    return mapa;
-}
-
-function renderizarCard(unidade) {
-    const logo = unidade.logotipoUrl ? escapeHtml(unidade.logotipoUrl) : LOGO_PADRAO;
-    const local = [unidade.municipio, unidade.regiao].filter(Boolean).join(' · ');
-    const grupos = agruparCursosPorCategoria(unidade.cursos);
-
-    const blocosCategorias = [...grupos.entries()].map(([categoria, nomes]) => `
-        <div class="grupo-categoria">
-            <div class="categoria-label">${escapeHtml(categoria)}</div>
-            <div class="tags-cursos">
-                ${nomes.map((nome) => `<span class="tag-curso">${escapeHtml(nome)}</span>`).join('')}
-            </div>
-        </div>
-    `).join('');
-
-    return `
-    <article class="card-unidade">
-        <div class="card-unidade-topo">
-            <img class="logo-unidade" src="${logo}" alt="" onerror="this.onerror=null;this.src='${LOGO_FALLBACK}';">
-            <div>
-                <h3 class="nome-unidade">${escapeHtml(unidade.nome)}</h3>
-                <div class="local-unidade">${escapeHtml(local)}</div>
-            </div>
-        </div>
-        <div class="card-unidade-cursos">
-            ${blocosCategorias || '<p class="sem-cursos">Nenhum curso cadastrado ainda.</p>'}
-        </div>
-    </article>`;
-}
+let avaliarProximidade = null;
+let localizacao = null;
 
 function renderizarUnidades() {
     const campoBusca = document.getElementById('busca-cursos');
@@ -65,7 +26,7 @@ function renderizarUnidades() {
     const contagem = document.getElementById('contagem-resultados');
     const termo = normalizar(campoBusca.value);
 
-    const filtradas = unidadesCache.filter((u) => {
+    let filtradas = unidadesCache.filter((u) => {
         if (!termo) return true;
         const alvo = normalizar([
             u.nome, u.municipio, u.regiao,
@@ -74,14 +35,43 @@ function renderizarUnidades() {
         return alvo.includes(termo);
     });
 
-    contagem.textContent = `${filtradas.length} unidade${filtradas.length === 1 ? '' : 's'} encontrada${filtradas.length === 1 ? '' : 's'}`;
+    let proximidades = null;
+    if (avaliarProximidade) {
+        proximidades = new Map(filtradas.map((u) => [u.id, avaliarProximidade(u)]));
+        filtradas = [...filtradas].sort((a, b) =>
+            proximidades.get(a.id).ordem - proximidades.get(b.id).ordem
+            || (a.nome || '').localeCompare(b.nome || '', 'pt-BR'));
+    }
+
+    const plural = filtradas.length === 1 ? '' : 's';
+    contagem.textContent = `${filtradas.length} unidade${plural} encontrada${plural}`
+        + (localizacao ? ` · mais perto de ${localizacao.cidade} primeiro` : '');
 
     if (!filtradas.length) {
         container.innerHTML = '<p class="sem-resultados">Nenhuma unidade encontrada para essa busca.</p>';
         return;
     }
 
-    container.innerHTML = filtradas.map(renderizarCard).join('');
+    container.innerHTML = filtradas.map((u) => renderizarCardUnidade(u, {
+        destaque: proximidades ? seloProximidade(proximidades.get(u.id)) : '',
+        termoCurso: termo
+    })).join('');
+}
+
+// A lista aparece logo em ordem alfabética; se a pessoa estiver logada e
+// der para saber a cidade dela, reordena do mais perto para o mais longe.
+async function ordenarPelaLocalizacao() {
+    await auth.authStateReady();
+    const usuario = auth.currentUser;
+    if (!usuario) return;
+
+    const snap = await getDoc(doc(db, 'usuarios', usuario.uid));
+    localizacao = await resolverLocalizacaoUsuario(usuario.uid, snap.exists() ? snap.data() : null);
+    if (!localizacao) return;
+
+    const regioes = await carregarRegioesSP().catch(() => null);
+    avaliarProximidade = criarAvaliadorProximidade(localizacao, regioes);
+    renderizarUnidades();
 }
 
 async function carregarUnidades() {
@@ -92,6 +82,7 @@ async function carregarUnidades() {
             .map((d) => ({ id: d.id, ...d.data() }))
             .sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'));
         renderizarUnidades();
+        ordenarPelaLocalizacao().catch((erro) => console.error('Erro ao ordenar por proximidade:', erro));
     } catch (err) {
         console.error('Erro ao carregar unidades ETEC:', err);
         container.innerHTML = '<p class="sem-resultados">Não foi possível carregar os cursos agora. Tente novamente mais tarde.</p>';
@@ -99,6 +90,11 @@ async function carregarUnidades() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Links das recomendações chegam como cursos.html?curso=Nome do Curso
+    const cursoNaUrl = new URLSearchParams(window.location.search).get('curso');
+    const campoBusca = document.getElementById('busca-cursos');
+    if (cursoNaUrl) campoBusca.value = cursoNaUrl;
+
     carregarUnidades();
-    document.getElementById('busca-cursos').addEventListener('input', renderizarUnidades);
+    campoBusca.addEventListener('input', renderizarUnidades);
 });
