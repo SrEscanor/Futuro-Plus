@@ -7,25 +7,36 @@
     <title>Futuro+ | Testes</title>
     <link rel="icon" type="image/png" href="/icon-192.png">
     <link rel="stylesheet" href="assets/css/dashboard.css">
+    <link rel="stylesheet" href="assets/css/cursos-etec.css">
 </head>
 
 <body>
 
-    <div class="menu-panel">
-        <div class="menu-header">menu</div>
-
-        <a href="index.html" class="menu-item">Recomendação semanal</a>
-        <a href="testes.html" class="menu-item" style="font-weight: 700; color: #4e6ee8;">Testes</a>
-        <a href="mural.html" class="menu-item">Mural</a>
-        <a href="cursos.html" class="menu-item">Cursos</a>
-        <a href="perfil.html" class="menu-item">Perfil</a>
-
-        <div class="menu-logo-area">
-            <img src="assets/images/logo.png" alt="Futuro+ Logo" class="logo-png-img">
+    <aside class="menu-panel" aria-label="Menu principal">
+        <div class="menu-topo">
+            <img src="assets/images/logo.png" alt="Futuro+" class="menu-logo">
+            <span class="menu-subtitulo">Escolha seu caminho</span>
         </div>
-    </div>
 
-    <nav class="topnav">
+        <nav class="menu-navegacao">
+            <span class="menu-secao">Navegar</span>
+            <a href="index.html" class="menu-item" data-icone="🏠">Início</a>
+            <a href="testes.html" class="menu-item ativo" data-icone="🧭" aria-current="page">Testes</a>
+            <a href="cursos.html" class="menu-item" data-icone="🎓">Cursos</a>
+            <a href="mural.html" class="menu-item" data-icone="📌">Mural</a>
+            <a href="perfil.html" class="menu-item" data-icone="👤">Perfil</a>
+
+            <span class="menu-secao menu-admin-area" id="menu-secao-admin" hidden>Administração</span>
+            <a href="admin-etecs.html" id="menu-admin" class="menu-item menu-admin-area" data-icone="🏫" hidden>Unidades</a>
+            <a href="admin-cursos.html" id="menu-admin-cursos" class="menu-item menu-admin-area" data-icone="📚" hidden>Catálogo de cursos</a>
+        </nav>
+
+        <div class="menu-rodape">
+            <button id="logout-btn" class="btn-sair">Sair da conta</button>
+        </div>
+    </aside>
+
+<nav class="topnav">
         <div class="nav-left">
             <button type="button" class="hamburger" aria-label="Menu principal">
                 <span></span><span></span><span></span>
@@ -72,12 +83,25 @@
         <div class="testes-row">
             <div class="teste-card">
                 <p>
-                    <strong>Teste de Múltiplas Inteligências</strong>
+                    <strong>Teste Vocacional (completo)</strong>
+                    O mais completo: cerca de 40 perguntas, em uns 10 minutos. Começa pela sua situação escolar,
+                    passa pelas áreas que combinam com você e termina mostrando cursos de verdade, com o que se
+                    aprende em cada um, para você dizer quais quer. Precisa de login.
+                </p>
+                <button class="btn-teste" style="background: #21a85c; color: #fff;"
+                    onclick="location.href='teste-vocacional.html'">Fazer Teste Vocacional</button>
+            </div>
+        </div>
+
+        <div class="testes-row">
+            <div class="teste-card">
+                <p>
+                    <strong>Teste rápido de perfil</strong>
                     Baseado na teoria de Howard Gardner, descubra quais são as suas inteligências predominantes (lógica,
                     linguística, espacial, interpessoal, etc.) e veja qual área profissional foi feita para o seu
                     talento natural.
                 </p>
-                <button class="btn-teste" onclick="location.href='quiz-gardner.html'">Iniciar Teste de Perfil</button>
+                <button class="btn-teste" onclick="location.href='quiz-gardner.html'">Fazer teste rápido</button>
             </div>
 
             <div class="teste-card">
@@ -90,9 +114,13 @@
                     onclick="location.href='teste-afinidades.html'">Fazer Teste de Afinidades</button>
             </div>
         </div>
+
+        <section id="resultados-testes" class="resultados-testes" hidden></section>
+
     </div>
 
     <script type="module" src="assets/js/dashboard.js"></script>
+    <script type="module" src="assets/js/testes-resultados.js"></script>
 </body>
 
 </html>

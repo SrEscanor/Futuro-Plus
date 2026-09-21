@@ -67,7 +67,7 @@ onAuthStateChanged(auth, async (usuario) => {
         } else {
             lista = cursosMaisOferecidos(oferta, { localizacao, regioes, limite: 8 });
             titulo.textContent = "Cursos mais oferecidos nas Etecs";
-            subtitulo.innerHTML = `<a href="testes.html">Faça o teste de perfil</a> e receba recomendações feitas para você.`;
+            subtitulo.innerHTML = `<a href="testes.html">Faça um teste</a> e receba recomendações feitas para você.`;
         }
 
         trilho.innerHTML = lista.length

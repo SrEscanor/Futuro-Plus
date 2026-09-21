@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Futuro+ | Perfil</title>
+    <link rel="icon" type="image/png" href="/icon-192.png">
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+    <link rel="stylesheet" href="assets/css/perfil.css">
+</head>
+
+<body>
+
+    <aside class="menu-panel" aria-label="Menu principal">
+        <div class="menu-topo">
+            <img src="assets/images/logo.png" alt="Futuro+" class="menu-logo">
+            <span class="menu-subtitulo">Escolha seu caminho</span>
+        </div>
+
+        <nav class="menu-navegacao">
+            <span class="menu-secao">Navegar</span>
+            <a href="index.html" class="menu-item" data-icone="🏠">Início</a>
+            <a href="testes.html" class="menu-item" data-icone="🧭">Testes</a>
+            <a href="cursos.html" class="menu-item" data-icone="🎓">Cursos</a>
+            <a href="mural.html" class="menu-item" data-icone="📌">Mural</a>
+            <a href="perfil.html" class="menu-item ativo" data-icone="👤" aria-current="page">Perfil</a>
+
+            <span class="menu-secao menu-admin-area" id="menu-secao-admin" hidden>Administração</span>
+            <a href="admin-etecs.html" id="menu-admin" class="menu-item menu-admin-area" data-icone="🏫" hidden>Unidades</a>
+            <a href="admin-cursos.html" id="menu-admin-cursos" class="menu-item menu-admin-area" data-icone="📚" hidden>Catálogo de cursos</a>
+        </nav>
+
+        <div class="menu-rodape">
+            <button id="logout-btn" class="btn-sair">Sair da conta</button>
+        </div>
+    </aside>
+
+<nav class="topnav">
+        <div class="nav-left">
+            <button type="button" class="hamburger" aria-label="Menu principal">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="search-bar">
+                <input type="text" placeholder="Buscar..." aria-label="Buscar">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+            </div>
+        </div>
+        <div class="nav-center">
+            <img src="assets/images/logo.png" alt="Futuro+" class="logo-topo">
+        </div>
+        <div class="nav-right">
+            <div class="bell-icon">
+                <a href="notificacoes.html" aria-label="Notificações">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                        <path d="M13.73 21a2 2 0 01-3.46 0" />
+                    </svg>
+                </a>
+            </div>
+            <div class="avatar">
+                <svg viewBox="0 0 34 34" width="34" height="34">
+                    <circle cx="17" cy="17" r="17" fill="#555" />
+                    <circle cx="17" cy="13" r="6" fill="#888" />
+                    <ellipse cx="17" cy="28" rx="10" ry="7" fill="#888" />
+                </svg>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main">
+
+        <div id="perfil-precisa-login" class="perfil-cartao" hidden>
+            <h1>Seu perfil</h1>
+            <p class="perfil-texto">Entre na sua conta para ver e completar seu perfil.</p>
+            <div class="perfil-acoes">
+                <a class="btn-perfil" href="login.html">Entrar</a>
+                <a class="btn-perfil btn-perfil--secundario" href="cadastro.html">Criar conta</a>
+            </div>
+        </div>
+
+        <!-- ============ MODO VISUALIZAÇÃO (é o que outras pessoas veriam) ============ -->
+        <div id="perfil-visualizacao" hidden>
+
+            <!-- Aviso de perfil completo, antes de tudo -->
+            <section class="perfil-aviso" id="perfil-aviso">
+                <div class="perfil-aviso-icone" id="perfil-aviso-icone">📋</div>
+                <div class="perfil-aviso-texto">
+                    <div class="perfil-aviso-topo">
+                        <strong id="perfil-aviso-titulo">Complete seu perfil</strong>
+                        <span class="perfil-progresso-valor" id="perfil-progresso-valor">0%</span>
+                    </div>
+                    <div class="perfil-progresso-barra"><div id="perfil-progresso-fill"></div></div>
+                    <p id="perfil-progresso-falta"></p>
+                </div>
+            </section>
+
+            <section class="perfil-cartao perfil-topo">
+                <div class="perfil-topo-cabecalho">
+                    <h1>Perfil</h1>
+                    <button type="button" id="btn-editar-perfil" class="btn-perfil btn-perfil--pequeno">Editar</button>
+                </div>
+
+                <div class="perfil-identidade">
+                    <div class="perfil-avatar" id="perfil-iniciais">··</div>
+                    <div class="perfil-identidade-texto">
+                        <h2 id="perfil-saudacao">Olá</h2>
+                        <p class="perfil-nome-completo" id="perfil-nome-completo"></p>
+                        <p class="perfil-formacao-linha" id="perfil-formacao-linha"></p>
+                        <p class="perfil-local" id="perfil-local"></p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="perfil-cartao">
+                <h2>Sobre mim</h2>
+
+                <div class="perfil-bloco">
+                    <h3>Áreas de interesse <span class="perfil-so-voce" data-campo="modalidades" hidden>só você vê</span></h3>
+                    <div class="perfil-tags-leitura" id="ver-modalidades"></div>
+                </div>
+
+                <div class="perfil-bloco">
+                    <h3>Curso que quero seguir <span class="perfil-so-voce" data-campo="cursoDesejado" hidden>só você vê</span></h3>
+                    <div class="perfil-tags-leitura" id="ver-curso"></div>
+                </div>
+
+                <div class="perfil-bloco">
+                    <h3>Estilo de aprendizado <span class="perfil-so-voce" data-campo="estilos" hidden>só você vê</span></h3>
+                    <div class="perfil-tags-leitura" id="ver-estilos"></div>
+                </div>
+
+                <div class="perfil-bloco">
+                    <h3>Objetivo <span class="perfil-so-voce" data-campo="objetivo" hidden>só você vê</span></h3>
+                    <p class="perfil-objetivo-texto" id="ver-objetivo"></p>
+                </div>
+            </section>
+
+            <!-- Testes em destaque, com o gráfico do teste rápido -->
+            <section class="perfil-cartao perfil-testes" id="perfil-cartao-testes">
+                <div class="perfil-topo-cabecalho">
+                    <h2>Meus testes <span class="perfil-so-voce" data-campo="testes" hidden>só você vê</span></h2>
+                </div>
+
+                <div class="perfil-testes-grade">
+                    <div class="perfil-teste-quadro" id="perfil-teste-rapido" hidden>
+                        <div class="perfil-donut">
+                            <svg viewBox="0 0 40 40" style="transform:rotate(-90deg); width:100%; height:100%;">
+                                <circle cx="20" cy="20" r="15.915" fill="none" stroke="#e8e8e8" stroke-width="4" />
+                                <circle id="perfil-arco-1" cx="20" cy="20" r="15.915" fill="none" stroke="#4e6ee8"
+                                    stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="0" />
+                                <circle id="perfil-arco-2" cx="20" cy="20" r="15.915" fill="none" stroke="#f5a623"
+                                    stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="0" />
+                                <circle id="perfil-arco-3" cx="20" cy="20" r="15.915" fill="none" stroke="#2ecc71"
+                                    stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="0" />
+                            </svg>
+                        </div>
+                        <div>
+                            <span class="perfil-teste-rotulo">Teste rápido de perfil</span>
+                            <strong id="perfil-teste-inteligencia"></strong>
+                            <span class="perfil-teste-podio" id="perfil-teste-podio"></span>
+                        </div>
+                    </div>
+
+                    <div class="perfil-teste-quadro perfil-teste-quadro--vocacional" id="perfil-teste-vocacional" hidden>
+                        <span class="perfil-teste-rotulo">Teste vocacional</span>
+                        <strong id="perfil-teste-areas"></strong>
+                        <div class="perfil-tags-leitura" id="perfil-teste-cursos"></div>
+                    </div>
+                </div>
+
+                <p class="perfil-texto" id="perfil-testes-rodape"></p>
+            </section>
+
+        </div>
+
+        <!-- ============ MODO EDIÇÃO ============ -->
+        <form id="perfil-edicao" class="perfil-cartao" hidden>
+            <div class="perfil-topo-cabecalho">
+                <h1>Editar perfil</h1>
+                <button type="button" id="btn-cancelar-perfil"
+                    class="btn-perfil btn-perfil--secundario btn-perfil--pequeno">Cancelar</button>
+            </div>
+
+            <p class="perfil-texto">O que você marcar como visível pode aparecer no seu perfil para outras pessoas —
+                hoje só você enxerga, mas isso já prepara o terreno para as Etecs e outros alunos.</p>
+
+            <div class="perfil-campo">
+                <label for="perfil-escolaridade">Em que ponto dos estudos você está?</label>
+                <select id="perfil-escolaridade">
+                    <option value="">Escolher...</option>
+                    <option value="fundamental">Ensino fundamental</option>
+                    <option value="medio_cursando">Cursando o ensino médio</option>
+                    <option value="medio_concluido">Ensino médio completo</option>
+                    <option value="tecnico_cursando">Cursando um curso técnico</option>
+                    <option value="tecnico_concluido">Curso técnico completo</option>
+                    <option value="superior_cursando">Cursando o ensino superior</option>
+                    <option value="superior_concluido">Ensino superior completo</option>
+                </select>
+            </div>
+
+            <div class="perfil-campo">
+                <label for="perfil-formacao">Formação que você já tem ou está cursando</label>
+                <input type="text" id="perfil-formacao" list="lista-cursos-catalogo"
+                    placeholder="Ex: Técnico em Enfermagem">
+                <datalist id="lista-cursos-catalogo"></datalist>
+                <label class="perfil-checkbox" for="perfil-sem-formacao">
+                    <input type="checkbox" id="perfil-sem-formacao">
+                    Ainda não tenho nenhuma
+                </label>
+                <label class="perfil-checkbox perfil-visibilidade" for="ver-pub-formacao">
+                    <input type="checkbox" id="ver-pub-formacao" data-visibilidade="formacao" checked>
+                    Mostrar no meu perfil
+                </label>
+            </div>
+
+            <div class="perfil-campo">
+                <label for="perfil-curso-desejado">Curso que você quer fazer</label>
+                <input type="text" id="perfil-curso-desejado" list="lista-cursos-catalogo"
+                    placeholder="Ex: Desenvolvimento de Sistemas">
+                <small class="perfil-dica">É a sua escolha, independente do que os testes sugerirem.</small>
+                <label class="perfil-checkbox perfil-visibilidade" for="ver-pub-curso">
+                    <input type="checkbox" id="ver-pub-curso" data-visibilidade="cursoDesejado" checked>
+                    Mostrar no meu perfil
+                </label>
+            </div>
+
+            <div class="perfil-campo">
+                <label>Áreas de interesse (tipo de curso)</label>
+                <div class="perfil-tags" id="perfil-modalidades"></div>
+                <label class="perfil-checkbox perfil-visibilidade" for="ver-pub-modalidades">
+                    <input type="checkbox" id="ver-pub-modalidades" data-visibilidade="modalidades" checked>
+                    Mostrar no meu perfil
+                </label>
+            </div>
+
+            <div class="perfil-campo">
+                <label>Estilo de aprendizado <span class="perfil-limite">escolha até 3</span></label>
+                <div class="perfil-tags" id="perfil-estilos"></div>
+                <label class="perfil-checkbox perfil-visibilidade" for="ver-pub-estilos">
+                    <input type="checkbox" id="ver-pub-estilos" data-visibilidade="estilos" checked>
+                    Mostrar no meu perfil
+                </label>
+            </div>
+
+            <div class="perfil-campo">
+                <label for="perfil-objetivo">Seu objetivo</label>
+                <textarea id="perfil-objetivo" rows="2" maxlength="140"
+                    placeholder="Ex: Entrar numa Etec perto de casa e trabalhar com tecnologia."></textarea>
+                <small class="perfil-dica"><span id="perfil-objetivo-contador">0</span>/140 — cabe em duas linhas.</small>
+                <label class="perfil-checkbox perfil-visibilidade" for="ver-pub-objetivo">
+                    <input type="checkbox" id="ver-pub-objetivo" data-visibilidade="objetivo" checked>
+                    Mostrar no meu perfil
+                </label>
+            </div>
+
+            <div class="perfil-campo">
+                <label>Meus testes</label>
+                <p class="perfil-dica">O resultado dos testes pode aparecer no seu perfil — ou ficar só para você.</p>
+                <label class="perfil-checkbox perfil-visibilidade" for="ver-pub-testes">
+                    <input type="checkbox" id="ver-pub-testes" data-visibilidade="testes" checked>
+                    Mostrar meus testes no perfil
+                </label>
+            </div>
+
+            <div class="perfil-acoes">
+                <button type="submit" class="btn-perfil">Salvar alterações</button>
+                <span class="perfil-status" id="perfil-status"></span>
+            </div>
+        </form>
+
+    </div>
+
+    <script type="module" src="assets/js/dashboard.js"></script>
+    <script type="module" src="assets/js/perfil.js"></script>
+</body>
+
+</html>
