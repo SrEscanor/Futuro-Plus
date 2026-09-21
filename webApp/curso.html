@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Futuro+ | Cursos</title>
+    <title>Futuro+ | Curso</title>
     <link rel="icon" type="image/png" href="/icon-192.png">
     <link rel="stylesheet" href="assets/css/dashboard.css">
     <link rel="stylesheet" href="assets/css/cursos-etec.css">
@@ -65,42 +65,15 @@
     </nav>
 
     <div class="main">
-        <div class="cursos-hero">
-            <div class="greeting">
-                Cursos <span style="color: #4e6ee8;">ETEC</span> 🎓
-            </div>
-            <div class="cursos-subtitle">
-                Explore os cursos técnicos oferecidos pelas unidades ETEC de São Paulo. Em breve, os cursos da FATEC
-                entram aqui também.
-            </div>
-        </div>
+        <a class="voltar-cursos" href="cursos.html">&larr; Todos os cursos</a>
 
-        <div class="filtros-cursos">
-            <div class="busca-cursos-area">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <circle cx="11" cy="11" r="8" />
-                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </svg>
-                <input type="text" id="busca-cursos" placeholder="Buscar por curso, unidade, cidade ou região...">
-            </div>
-
-            <!-- os filtros são montados a partir do que existe no cadastro -->
-            <div class="grupos-chips">
-                <div class="grupo-chips" id="chips-proximidade"></div>
-                <div class="grupo-chips" id="chips-instituicao"></div>
-                <div class="grupo-chips" id="chips-modalidade"></div>
-            </div>
-
-            <div class="contagem-resultados" id="contagem-resultados"></div>
-        </div>
-
-        <div class="grid-unidades" id="grid-unidades">
-            <p class="carregando-cursos">Carregando unidades...</p>
-        </div>
+        <article id="curso-detalhe" class="curso-detalhe">
+            <p class="carregando-cursos">Carregando curso...</p>
+        </article>
     </div>
 
     <script type="module" src="assets/js/dashboard.js"></script>
-    <script type="module" src="assets/js/cursos-etec.js"></script>
+    <script type="module" src="assets/js/curso-detalhe.js"></script>
 </body>
 
 </html>

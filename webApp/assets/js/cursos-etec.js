@@ -1,6 +1,12 @@
 import { auth, db } from './firebase-config.js';
 import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
-import { renderizarCardUnidade, normalizar } from './card-unidade.js';
+import {
+    renderizarCardUnidade,
+    normalizar,
+    modalidadeDaCategoria,
+    rotuloDaModalidade,
+    ordemDaModalidade
+} from './card-unidade.js';
 import {
     carregarRegioesSP,
     resolverLocalizacaoUsuario,
@@ -9,52 +15,153 @@ import {
 } from './recomendacao-cursos.js';
 import { formatarDistancia } from './geocodificacao.js';
 
-function seloProximidade({ nivel, km }) {
-    if (km != null) return `📍 ${formatarDistancia(km)}`;
-    if (nivel === PROXIMIDADE.CIDADE) return '📍 Na sua cidade';
-    if (nivel === PROXIMIDADE.REGIAO) return '📍 Perto de você';
+// Até esta distância a unidade entra no filtro "Perto de você" mesmo estando
+// em outra cidade (ex.: quem mora na divisa).
+const RAIO_PERTO_KM = 30;
+
+function textoDistancia({ nivel, km }) {
+    if (km != null) {
+        // formatarDistancia já devolve "a 4,8 km" / "a menos de 1 km"
+        const distancia = formatarDistancia(km);
+        return `${distancia.charAt(0).toUpperCase()}${distancia.slice(1)} de você`;
+    }
+    if (nivel === PROXIMIDADE.CIDADE) return 'Na sua cidade';
+    if (nivel === PROXIMIDADE.REGIAO) return 'Na sua região';
     return '';
+}
+
+function estaPerto(proximidade) {
+    if (!proximidade) return false;
+    return proximidade.nivel <= PROXIMIDADE.REGIAO
+        || (proximidade.km != null && proximidade.km <= RAIO_PERTO_KM);
 }
 
 let unidadesCache = [];
 let avaliarProximidade = null;
 let localizacao = null;
 
+const filtros = { instituicao: '', modalidade: '', perto: false };
+
+// ------------------------------------------------------------------
+// Filtros (chips)
+// ------------------------------------------------------------------
+function criarChip({ rotulo, ativo, destaque = false, aoClicar }) {
+    const botao = document.createElement('button');
+    botao.type = 'button';
+    botao.className = 'chip-filtro'
+        + (ativo ? ' chip-filtro--ativo' : '')
+        + (destaque ? ' chip-filtro--destaque' : '');
+    botao.setAttribute('aria-pressed', String(ativo));
+    botao.textContent = rotulo;
+    botao.addEventListener('click', aoClicar);
+    return botao;
+}
+
+function instituicoesDisponiveis() {
+    return [...new Set(unidadesCache.map((u) => (u.tipo || '').trim()).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+}
+
+function modalidadesDisponiveis() {
+    const chaves = new Set();
+    unidadesCache.forEach((u) => (u.cursos || []).forEach((c) => {
+        if (c?.nome) chaves.add(modalidadeDaCategoria(c.categoria).chave);
+    }));
+    return [...chaves].sort((a, b) => ordemDaModalidade(a) - ordemDaModalidade(b));
+}
+
+function montarFiltros() {
+    const grupoProximidade = document.getElementById('chips-proximidade');
+    const grupoInstituicao = document.getElementById('chips-instituicao');
+    const grupoModalidade = document.getElementById('chips-modalidade');
+
+    // Só faz sentido oferecer o filtro de perto quando dá para medir distância.
+    grupoProximidade.innerHTML = '';
+    if (avaliarProximidade) {
+        grupoProximidade.appendChild(criarChip({
+            rotulo: '📍 Perto de você',
+            ativo: filtros.perto,
+            destaque: true,
+            aoClicar: () => { filtros.perto = !filtros.perto; montarFiltros(); renderizarUnidades(); }
+        }));
+    }
+
+    // Com um tipo só (hoje, todas Etec) o filtro não separa nada.
+    const instituicoes = instituicoesDisponiveis();
+    grupoInstituicao.innerHTML = '';
+    if (instituicoes.length > 1) {
+        [{ valor: '', rotulo: 'Todas' }, ...instituicoes.map((t) => ({ valor: t, rotulo: t }))]
+            .forEach(({ valor, rotulo }) => grupoInstituicao.appendChild(criarChip({
+                rotulo,
+                ativo: filtros.instituicao === valor,
+                aoClicar: () => { filtros.instituicao = valor; montarFiltros(); renderizarUnidades(); }
+            })));
+    }
+
+    const modalidades = modalidadesDisponiveis();
+    grupoModalidade.innerHTML = '';
+    [{ valor: '', rotulo: 'Todos os tipos' }, ...modalidades.map((c) => ({ valor: c, rotulo: rotuloDaModalidade(c) }))]
+        .forEach(({ valor, rotulo }) => grupoModalidade.appendChild(criarChip({
+            rotulo,
+            ativo: filtros.modalidade === valor,
+            aoClicar: () => { filtros.modalidade = valor; montarFiltros(); renderizarUnidades(); }
+        })));
+}
+
+// ------------------------------------------------------------------
+// Lista
+// ------------------------------------------------------------------
 function renderizarUnidades() {
     const campoBusca = document.getElementById('busca-cursos');
     const container = document.getElementById('grid-unidades');
     const contagem = document.getElementById('contagem-resultados');
     const termo = normalizar(campoBusca.value);
+    const modalidades = filtros.modalidade ? new Set([filtros.modalidade]) : null;
+
+    const proximidades = avaliarProximidade
+        ? new Map(unidadesCache.map((u) => [u.id, avaliarProximidade(u)]))
+        : null;
 
     let filtradas = unidadesCache.filter((u) => {
+        if (filtros.instituicao && (u.tipo || '').trim() !== filtros.instituicao) return false;
+        if (filtros.perto && !estaPerto(proximidades?.get(u.id))) return false;
+
+        const cursos = modalidades
+            ? (u.cursos || []).filter((c) => c?.nome && modalidades.has(modalidadeDaCategoria(c.categoria).chave))
+            : (u.cursos || []);
+        if (modalidades && !cursos.length) return false;
+
         if (!termo) return true;
         const alvo = normalizar([
-            u.nome, u.municipio, u.regiao,
-            ...(u.cursos || []).map((c) => c.nome)
+            u.nome, u.municipio, u.regiao, u.tipo,
+            ...cursos.map((c) => c.nome)
         ].filter(Boolean).join(' '));
         return alvo.includes(termo);
     });
 
-    let proximidades = null;
-    if (avaliarProximidade) {
-        proximidades = new Map(filtradas.map((u) => [u.id, avaliarProximidade(u)]));
+    if (proximidades) {
         filtradas = [...filtradas].sort((a, b) =>
             proximidades.get(a.id).ordem - proximidades.get(b.id).ordem
             || (a.nome || '').localeCompare(b.nome || '', 'pt-BR'));
     }
 
     const plural = filtradas.length === 1 ? '' : 's';
-    contagem.textContent = `${filtradas.length} unidade${plural} encontrada${plural}`
-        + (localizacao ? ` · mais perto de ${localizacao.cidade} primeiro` : '');
+    const complemento = filtros.perto
+        ? ` · perto de ${localizacao.cidade}`
+        : (localizacao ? ` · mais perto de ${localizacao.cidade} primeiro` : '');
+    contagem.textContent = `${filtradas.length} unidade${plural} encontrada${plural}${complemento}`;
 
     if (!filtradas.length) {
-        container.innerHTML = '<p class="sem-resultados">Nenhuma unidade encontrada para essa busca.</p>';
+        container.innerHTML = `<p class="sem-resultados">${filtros.perto
+            ? 'Nenhuma unidade perto de você com esses filtros. Tente desligar o filtro "Perto de você".'
+            : 'Nenhuma unidade encontrada para essa busca.'}</p>`;
         return;
     }
 
     container.innerHTML = filtradas.map((u) => renderizarCardUnidade(u, {
-        destaque: proximidades ? seloProximidade(proximidades.get(u.id)) : '',
-        termoCurso: termo
+        destaque: proximidades ? textoDistancia(proximidades.get(u.id)) : '',
+        termoCurso: termo,
+        modalidades
     })).join('');
 }
 
@@ -71,6 +178,7 @@ async function ordenarPelaLocalizacao() {
 
     const regioes = await carregarRegioesSP().catch(() => null);
     avaliarProximidade = criarAvaliadorProximidade(localizacao, regioes);
+    montarFiltros();
     renderizarUnidades();
 }
 
@@ -81,6 +189,7 @@ async function carregarUnidades() {
         unidadesCache = snap.docs
             .map((d) => ({ id: d.id, ...d.data() }))
             .sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'));
+        montarFiltros();
         renderizarUnidades();
         ordenarPelaLocalizacao().catch((erro) => console.error('Erro ao ordenar por proximidade:', erro));
     } catch (err) {

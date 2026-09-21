@@ -6,13 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Futuro+ | Cursos</title>
     <link rel="icon" type="image/png" href="./icon-192.png">
-  <script type="module" crossorigin src="./assets/cursos-DZQjKSv5.js"></script>
-  <link rel="modulepreload" crossorigin href="./assets/firebase-config-2D-PUKlJ.js">
-  <link rel="modulepreload" crossorigin href="./assets/dashboard-DLx8pr18.js">
-  <link rel="modulepreload" crossorigin href="./assets/geocodificacao-knItlCKv.js">
-  <link rel="modulepreload" crossorigin href="./assets/recomendacao-cursos-ycqVaBf8.js">
+  <script type="module" crossorigin src="./assets/cursos-BcJEQqIe.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/firebase-config-vU8gAbDc.js">
+  <link rel="modulepreload" crossorigin href="./assets/dashboard-CgmsALoS.js">
+  <link rel="modulepreload" crossorigin href="./assets/geocodificacao-cQRB5Sqc.js">
+  <link rel="modulepreload" crossorigin href="./assets/recomendacao-cursos-DMDBt6wJ.js">
   <link rel="stylesheet" crossorigin href="./assets/dashboard-CnPFZXkM.css">
-  <link rel="stylesheet" crossorigin href="./assets/cursos-etec-xHu-ciBe.css">
+  <link rel="stylesheet" crossorigin href="./assets/cursos-etec-DlJ-jXP7.css">
 </head>
 
 <body>
@@ -88,6 +88,14 @@
                 </svg>
                 <input type="text" id="busca-cursos" placeholder="Buscar por curso, unidade, cidade ou região...">
             </div>
+
+            <!-- os filtros são montados a partir do que existe no cadastro -->
+            <div class="grupos-chips">
+                <div class="grupo-chips" id="chips-proximidade"></div>
+                <div class="grupo-chips" id="chips-instituicao"></div>
+                <div class="grupo-chips" id="chips-modalidade"></div>
+            </div>
+
             <div class="contagem-resultados" id="contagem-resultados"></div>
         </div>
 

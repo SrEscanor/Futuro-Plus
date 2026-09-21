@@ -264,6 +264,20 @@ tbody tr:hover {
     flex-shrink: 0;
 }
 
+.tag-tipo {
+    display: inline-block;
+    margin-right: 4px;
+    padding: 1px 6px;
+    border-radius: 6px;
+    background: var(--blue-soft);
+    color: var(--blue-dark);
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    vertical-align: middle;
+}
+
 .col-acoes {
     text-align: right;
     white-space: nowrap;
@@ -405,6 +419,38 @@ tbody tr:hover {
     display: block;
     margin-top: 5px;
     font-size: 11.5px;
+    color: var(--ink-soft);
+}
+
+/* o rótulo do checkbox fica na mesma linha da caixinha */
+.campo-checkbox label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13.5px;
+    color: var(--ink);
+}
+
+.campo-checkbox input {
+    width: auto;
+    accent-color: var(--blue);
+}
+
+/* ---- Painel de cursos ---- */
+.pendencia {
+    margin-top: 3px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--gold-dark);
+}
+
+.pendencia--info {
+    color: var(--blue-dark);
+}
+
+.col-prerequisito {
+    max-width: 260px;
+    font-size: 12px;
     color: var(--ink-soft);
 }
 
@@ -568,4 +614,151 @@ tbody tr:hover {
         flex-direction: column;
         align-items: flex-start;
     }
+}
+
+.dica-toolbar {
+    margin: -6px 0 14px;
+    font-size: 12px;
+    color: var(--ink-soft);
+}
+
+.opcao-importacao {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    cursor: pointer;
+}
+
+.opcao-importacao input {
+    accent-color: var(--blue);
+}
+
+/* ---- Revisão dos campos editados à mão ---- */
+.pendencia--manual {
+    color: var(--ink-soft);
+    font-weight: 600;
+}
+
+.conflito {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    margin-bottom: 10px;
+}
+
+.conflito-topo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13.5px;
+    cursor: pointer;
+}
+
+.conflito-topo input {
+    accent-color: var(--blue);
+}
+
+.conflito-valores {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.conflito-valor {
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+}
+
+.conflito-valor--oficial {
+    background: var(--blue-soft);
+    color: var(--blue-dark);
+}
+
+.conflito-rotulo {
+    display: block;
+    font-size: 10.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 3px;
+}
+
+@media (max-width: 640px) {
+    .conflito-valores {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ---- Definir tipo em lote ---- */
+.modal--estreito {
+    max-width: 480px;
+}
+
+.opcao-radio {
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+    font-size: 13.5px;
+    font-weight: 500 !important;
+    color: var(--ink) !important;
+    margin-bottom: 6px;
+    cursor: pointer;
+}
+
+.opcao-radio input {
+    width: auto;
+    accent-color: var(--blue);
+}
+
+.aviso-erro {
+    color: var(--red);
+    font-weight: 600;
+}
+
+/* ---- Marcação de unidades na tabela ---- */
+.col-selecao {
+    width: 40px;
+    text-align: center;
+}
+
+.col-selecao input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--blue);
+    cursor: pointer;
+}
+
+.barra-selecao {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    background: var(--blue-soft);
+    color: var(--blue-dark);
+    font-size: 13px;
+}
+
+.barra-selecao[hidden] {
+    display: none;
+}
+
+.barra-selecao-acoes {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.opcao-radio[hidden] {
+    display: none !important;
 }

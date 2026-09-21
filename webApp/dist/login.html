@@ -7,9 +7,9 @@
     <meta name="theme-color" content="#4e6ee8">
     <title>Futuro+ | Login</title>
     <link rel="icon" type="image/png" href="./icon-192.png">
-  <script type="module" crossorigin src="./assets/login-C-2f1QSe.js"></script>
-  <link rel="modulepreload" crossorigin href="./assets/firebase-config-2D-PUKlJ.js">
-  <link rel="modulepreload" crossorigin href="./assets/resultado-teste-DqdeFl1o.js">
+  <script type="module" crossorigin src="./assets/login-DznGRIh2.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/firebase-config-vU8gAbDc.js">
+  <link rel="modulepreload" crossorigin href="./assets/resultado-teste-Cxaa3itB.js">
   <link rel="stylesheet" crossorigin href="./assets/auth-BMKgS-WR.css">
 </head>
 
@@ -31,21 +31,25 @@
                     <h2 class="auth-titulo-simples">Bem-vindo de volta</h2>
                     <p class="auth-subtitulo-simples">Entre para ver seus resultados e cursos recomendados.</p>
 
-                    <div class="form-group">
-                        <label class="form-label" for="email">E-mail</label>
-                        <input id="email" type="email" placeholder="seu@email.com" autocomplete="email">
-                    </div>
+                    <!-- dentro de um <form> o Enter em qualquer campo já entra,
+                         sem precisar clicar no botão -->
+                    <form id="formLogin" novalidate>
+                        <div class="form-group">
+                            <label class="form-label" for="email">E-mail</label>
+                            <input id="email" type="email" placeholder="seu@email.com" autocomplete="email">
+                        </div>
 
-                    <div class="form-group">
-                        <label class="form-label" for="senha">Senha</label>
-                        <input id="senha" type="password" placeholder="••••••" autocomplete="current-password">
-                    </div>
+                        <div class="form-group">
+                            <label class="form-label" for="senha">Senha</label>
+                            <input id="senha" type="password" placeholder="••••••" autocomplete="current-password">
+                        </div>
 
-                    <div class="forgot">
-                        <a href="#">esqueci minha senha</a>
-                    </div>
+                        <div class="forgot">
+                            <a href="#">esqueci minha senha</a>
+                        </div>
 
-                    <button class="btn-login">Entrar</button>
+                        <button type="submit" class="btn-login">Entrar</button>
+                    </form>
 
                     <div class="register-link">
                         É novo por aqui? <a href="cadastro.html">Crie sua conta!</a>

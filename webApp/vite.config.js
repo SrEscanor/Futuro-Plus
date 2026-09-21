@@ -13,7 +13,12 @@ export default defineConfig({
         testes: resolve(__dirname, 'testes.html'),
         cadastro: resolve(__dirname, 'cadastro.html'),
         adminEtecs: resolve(__dirname, 'admin-etecs.html'),
-        cursos: resolve(__dirname, 'cursos.html')
+        cursos: resolve(__dirname, 'cursos.html'),
+        curso: resolve(__dirname, 'curso.html'),
+        adminCursos: resolve(__dirname, 'admin-cursos.html'),
+        // sem o redirecionamento "tudo para o index", um endereço errado
+        // precisa desta página para não cair no 404 genérico do Firebase
+        naoEncontrado: resolve(__dirname, '404.html')
       }
     }
   },

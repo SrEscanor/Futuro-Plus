@@ -1,6 +1,7 @@
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { localizarUnidade } from './geocodificacao.js';
+import { parseCsvLine } from './csv.js';
 import {
     collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, writeBatch
 } from 'firebase/firestore';
@@ -19,6 +20,11 @@ const LOGO_FALLBACK = '/logo.png';
 const EXTRAIR_LOGO_URL = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
     ? 'http://127.0.0.1:5001/futuroplus-bce54/southamerica-east1/extrair_logo_etec'
     : 'https://southamerica-east1-futuroplus-bce54.cloudfunctions.net/extrair_logo_etec';
+
+// Tipo de instituição: hoje só há Etec, mas o campo é texto livre (com
+// sugestões) para caber Fatec e, depois, faculdades particulares.
+const TIPO_PADRAO = 'Etec';
+const TIPOS_SUGERIDOS = ['Etec', 'Fatec'];
 
 let etecsCache = [];
 let editandoId = null;
@@ -156,31 +162,6 @@ function sanitizarId(texto) {
 // Parser de CSV (";" delimitado, com campos entre aspas)
 // ========================================================
 
-function parseCsvLine(line) {
-    const result = [];
-    let cur = '';
-    let inQuotes = false;
-    for (let i = 0; i < line.length; i++) {
-        const c = line[i];
-        if (inQuotes) {
-            if (c === '"') {
-                if (line[i + 1] === '"') { cur += '"'; i++; }
-                else inQuotes = false;
-            } else {
-                cur += c;
-            }
-        } else if (c === '"') {
-            inQuotes = true;
-        } else if (c === ';') {
-            result.push(cur);
-            cur = '';
-        } else {
-            cur += c;
-        }
-    }
-    result.push(cur);
-    return result;
-}
 
 function parseLinhaEtec(linha) {
     const campos = parseCsvLine(linha);
@@ -200,6 +181,8 @@ function parseLinhaEtec(linha) {
     return {
         codigo: limpar(codigo),
         nome: limpar(nome),
+        // o CSV é a exportação oficial das Etecs
+        tipo: TIPO_PADRAO,
         historico: limpar(historico),
         cnpj: limpar(cnpj),
         regiao: limpar(regiao),
@@ -326,22 +309,47 @@ function renderizarAlertaLocalizacao() {
         filtroSemLocalizacao ? 'Mostrar todas as unidades' : 'Mostrar só essas';
 }
 
-function renderizarTabela() {
+// As unidades que estão na tela agora (busca + filtro de localização).
+// Usada pela tabela e pela ação de definir tipo em lote.
+function unidadesVisiveis() {
     const filtro = (document.getElementById('busca-unidade').value || '').trim().toLowerCase();
-    const corpo = document.getElementById('tabela-etecs-corpo');
 
-    renderizarAlertaLocalizacao();
-
-    const linhas = etecsCache
+    return etecsCache
         .filter((e) => !filtroSemLocalizacao || situacaoLocalizacao(e) !== 'ok')
         .filter((e) => !filtro
             || (e.nome || '').toLowerCase().includes(filtro)
             || (e.municipio || '').toLowerCase().includes(filtro)
             || (e.codigo || '').toLowerCase().includes(filtro))
         .sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'));
+}
+
+// Marcar linhas serve para agir em um grupo que a busca não isola sozinha
+// (ex.: escolher 12 unidades espalhadas e definir o tipo só nelas).
+// Guardamos os ids, então a marcação sobrevive a filtrar e buscar de novo.
+const selecionadas = new Set();
+
+function atualizarBarraSelecao() {
+    const barra = document.getElementById('barra-selecao');
+    barra.hidden = selecionadas.size === 0;
+    document.getElementById('qtd-selecionadas').textContent = selecionadas.size;
+
+    const visiveis = unidadesVisiveis();
+    const marcadaTodas = visiveis.length > 0 && visiveis.every((e) => selecionadas.has(e.id));
+    const checkTodas = document.getElementById('check-todas');
+    checkTodas.checked = marcadaTodas;
+    checkTodas.indeterminate = !marcadaTodas && visiveis.some((e) => selecionadas.has(e.id));
+}
+
+function renderizarTabela() {
+    const corpo = document.getElementById('tabela-etecs-corpo');
+
+    renderizarAlertaLocalizacao();
+
+    const linhas = unidadesVisiveis();
 
     if (!linhas.length) {
-        corpo.innerHTML = `<tr><td colspan="7" class="tabela-vazia">Nenhuma unidade encontrada.</td></tr>`;
+        corpo.innerHTML = `<tr><td colspan="8" class="tabela-vazia">Nenhuma unidade encontrada.</td></tr>`;
+        atualizarBarraSelecao();
         return;
     }
 
@@ -350,11 +358,18 @@ function renderizarTabela() {
         const mapa = indicadorLocalizacao(e);
         return `
         <tr>
+            <td class="col-selecao">
+                <input type="checkbox" class="check-unidade" data-id="${escapeHtml(e.id)}"
+                    aria-label="Selecionar ${escapeHtml(e.nome)}" ${selecionadas.has(e.id) ? 'checked' : ''}>
+            </td>
             <td>${escapeHtml(e.codigo)}</td>
             <td>
                 <div class="cel-unidade">
                     <img src="${logo}" alt="" onerror="this.onerror=null;this.src='${LOGO_FALLBACK}';">
-                    <span>${escapeHtml(e.nome)}</span>
+                    <span>
+                        ${e.tipo ? `<span class="tag-tipo">${escapeHtml(e.tipo)}</span>` : ''}
+                        ${escapeHtml(e.nome)}
+                    </span>
                 </div>
             </td>
             <td>${escapeHtml(e.municipio)}</td>
@@ -367,6 +382,8 @@ function renderizarTabela() {
             </td>
         </tr>`;
     }).join('');
+
+    atualizarBarraSelecao();
 }
 
 function renderizarListaRedes() {
@@ -449,6 +466,7 @@ async function salvarEtec(event) {
     const dados = {
         codigo,
         nome,
+        tipo: document.getElementById('f-tipo').value.trim() || TIPO_PADRAO,
         historico: document.getElementById('f-historico').value.trim(),
         cnpj: document.getElementById('f-cnpj').value.trim(),
         regiao: document.getElementById('f-regiao').value.trim(),
@@ -597,6 +615,105 @@ async function localizarUnidadesPendentes() {
     status.textContent = resumo;
 }
 
+// As sugestões do campo são os tipos padrão mais os que já existem no
+// cadastro, então um tipo novo só precisa ser digitado uma vez.
+function atualizarSugestoesDeTipo() {
+    const tipos = [...new Set([
+        ...TIPOS_SUGERIDOS,
+        ...etecsCache.map((e) => (e.tipo || '').trim()).filter(Boolean)
+    ])].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+    document.getElementById('lista-tipos-instituicao').innerHTML =
+        tipos.map((t) => `<option value="${escapeHtml(t)}"></option>`).join('');
+}
+
+// Define o tipo de várias unidades de uma vez: serve tanto para o caso
+// original (as 229 Etecs importadas antes deste campo existir) quanto para
+// um lote novo — busque "Fatec", confira na tela e aplique nas que apareceram.
+function unidadesSemTipo() {
+    return etecsCache.filter((e) => !(e.tipo || '').trim());
+}
+
+function abrirModalTipo() {
+    atualizarSugestoesDeTipo();
+
+    document.getElementById('qtd-sem-tipo').textContent = unidadesSemTipo().length;
+    document.getElementById('qtd-visiveis').textContent = unidadesVisiveis().length;
+    document.getElementById('qtd-marcadas').textContent = selecionadas.size;
+    document.getElementById('f-tipo-lote').value = TIPO_PADRAO;
+
+    // com unidades marcadas, essa é a opção mais provável
+    const opcaoMarcadas = document.querySelector('.opcao-marcadas');
+    opcaoMarcadas.hidden = selecionadas.size === 0;
+    document.querySelector(`input[name="alvo-tipo"][value="${selecionadas.size ? 'marcadas' : 'sem-tipo'}"]`).checked = true;
+    document.getElementById('aviso-tipo').textContent = '';
+    document.getElementById('modal-tipo').classList.add('aberto');
+    document.getElementById('f-tipo-lote').focus({ preventScroll: true });
+}
+
+function fecharModalTipo() {
+    document.getElementById('modal-tipo').classList.remove('aberto');
+}
+
+async function aplicarTipoEmLote() {
+    const tipo = document.getElementById('f-tipo-lote').value.trim();
+    const aviso = document.getElementById('aviso-tipo');
+
+    if (!tipo) {
+        aviso.textContent = 'Escolha uma opção ou digite um tipo.';
+        return;
+    }
+
+    const alvo = document.querySelector('input[name="alvo-tipo"]:checked').value;
+    const porAlvo = {
+        'sem-tipo': () => unidadesSemTipo(),
+        visiveis: () => unidadesVisiveis(),
+        marcadas: () => etecsCache.filter((e) => selecionadas.has(e.id))
+    };
+    const unidades = porAlvo[alvo]().filter((e) => (e.tipo || '').trim() !== tipo);
+
+    if (!unidades.length) {
+        aviso.textContent = 'Nenhuma unidade para alterar com essa escolha.';
+        return;
+    }
+
+    // Trocar o tipo de uma unidade que já tinha outro é o caso em que dá para
+    // estragar dados sem querer, então esse é confirmado à parte.
+    const jaTinhamTipo = unidades.filter((e) => (e.tipo || '').trim()).length;
+    if (jaTinhamTipo && !confirm(
+        `${jaTinhamTipo} unidade(s) já têm outro tipo e serão alteradas para "${tipo}". Continuar?`)) {
+        return;
+    }
+
+    const botao = document.getElementById('btn-aplicar-tipo');
+    const status = document.getElementById('status-importacao');
+    status.style.display = 'block';
+    status.textContent = `Definindo o tipo de ${unidades.length} unidade(s)...`;
+    botao.disabled = true;
+
+    try {
+        const TAMANHO_LOTE = 400;
+        for (let i = 0; i < unidades.length; i += TAMANHO_LOTE) {
+            const batch = writeBatch(db);
+            unidades.slice(i, i + TAMANHO_LOTE).forEach((etec) => {
+                batch.set(doc(db, ETECS_COLLECTION, etec.id), { tipo }, { merge: true });
+            });
+            await batch.commit();
+        }
+        fecharModalTipo();
+        if (alvo === 'marcadas') selecionadas.clear();
+        await carregarEtecs();
+        // o tipo digitado agora existe no cadastro, então passa a ser sugerido
+        atualizarSugestoesDeTipo();
+        status.textContent = `Pronto: ${unidades.length} unidade(s) marcada(s) como ${tipo}.`;
+    } catch (err) {
+        console.error('Erro ao definir o tipo das unidades:', err);
+        status.textContent = 'Erro ao definir o tipo: ' + err.message;
+    } finally {
+        botao.disabled = false;
+    }
+}
+
 async function excluirEtec(id) {
     const etec = etecsCache.find((e) => e.id === id);
     if (!confirm(`Excluir a unidade "${etec ? etec.nome : id}"? Essa ação não pode ser desfeita.`)) return;
@@ -718,6 +835,8 @@ function abrirFormulario(etec) {
     document.getElementById('f-codigo').value = etec?.codigo || '';
     document.getElementById('f-codigo').disabled = !!etec;
     document.getElementById('f-nome').value = etec?.nome || '';
+    document.getElementById('f-tipo').value = etec?.tipo || TIPO_PADRAO;
+    atualizarSugestoesDeTipo();
     document.getElementById('f-historico').value = etec?.historico || '';
     document.getElementById('f-cnpj').value = etec?.cnpj || '';
     document.getElementById('f-regiao').value = etec?.regiao || '';
@@ -859,6 +978,36 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('input-csv').addEventListener('change', tratarImportacaoCsv);
     document.getElementById('btn-extrair-logos').addEventListener('click', extrairLogosPendentes);
     document.getElementById('btn-localizar-unidades').addEventListener('click', localizarUnidadesPendentes);
+    document.getElementById('btn-definir-tipo').addEventListener('click', abrirModalTipo);
+
+    document.getElementById('tabela-etecs-corpo').addEventListener('change', (e) => {
+        const caixa = e.target.closest('.check-unidade');
+        if (!caixa) return;
+        if (caixa.checked) selecionadas.add(caixa.dataset.id);
+        else selecionadas.delete(caixa.dataset.id);
+        atualizarBarraSelecao();
+    });
+
+    document.getElementById('check-todas').addEventListener('change', (e) => {
+        unidadesVisiveis().forEach((unidade) => {
+            if (e.target.checked) selecionadas.add(unidade.id);
+            else selecionadas.delete(unidade.id);
+        });
+        renderizarTabela();
+    });
+
+    document.getElementById('btn-limpar-selecao').addEventListener('click', () => {
+        selecionadas.clear();
+        renderizarTabela();
+    });
+
+    document.getElementById('btn-tipo-selecionadas').addEventListener('click', abrirModalTipo);
+    document.getElementById('btn-fechar-tipo').addEventListener('click', fecharModalTipo);
+    document.getElementById('btn-cancelar-tipo').addEventListener('click', fecharModalTipo);
+    document.getElementById('btn-aplicar-tipo').addEventListener('click', aplicarTipoEmLote);
+    document.getElementById('modal-tipo').addEventListener('click', (e) => {
+        if (e.target.id === 'modal-tipo') fecharModalTipo();
+    });
 
     document.getElementById('tabela-etecs-corpo').addEventListener('click', (e) => {
         const btn = e.target.closest('.btn-icone');
