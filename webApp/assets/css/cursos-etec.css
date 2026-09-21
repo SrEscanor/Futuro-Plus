@@ -13,17 +13,74 @@
 
 .filtros-cursos {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
     gap: 12px;
     margin-bottom: 18px;
 }
 
 .busca-cursos-area {
-    flex: 1;
-    min-width: 240px;
     position: relative;
+}
+
+/* ---- Filtros em chips ---- */
+.grupos-chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 20px;
+}
+
+.grupo-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* grupos que não têm o que filtrar (ex.: só Etecs cadastradas) somem */
+.grupo-chips:empty {
+    display: none;
+}
+
+.chip-filtro {
+    padding: 8px 14px;
+    border-radius: 99px;
+    border: 1.5px solid var(--line);
+    background: var(--surface);
+    color: var(--ink-soft);
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.chip-filtro:hover {
+    border-color: var(--blue);
+    color: var(--blue-dark);
+}
+
+.chip-filtro--ativo {
+    background: var(--blue);
+    border-color: var(--blue);
+    color: #fff;
+}
+
+/* o filtro de proximidade é o destaque da tela */
+.chip-filtro--destaque {
+    border-color: rgba(46, 204, 113, 0.5);
+    background: var(--green-soft);
+    color: var(--green-dark);
+}
+
+.chip-filtro--destaque:hover {
+    border-color: var(--green-dark);
+    color: var(--green-dark);
+}
+
+.chip-filtro--destaque.chip-filtro--ativo {
+    background: var(--green-dark);
+    border-color: var(--green-dark);
+    color: #fff;
 }
 
 .busca-cursos-area input {
@@ -133,6 +190,8 @@
 }
 
 .tag-curso {
+    display: inline-block;
+    text-decoration: none;
     font-size: 12.5px;
     padding: 5px 11px;
     border-radius: 20px;
@@ -147,15 +206,40 @@
     color: #fff;
 }
 
-.selo-proximidade {
-    display: inline-block;
-    margin-top: 5px;
-    font-size: 11px;
+.tag-curso:hover {
+    background: var(--blue);
+    color: #fff;
+}
+
+/* Faixa de distância: é a informação que mais interessa a quem procura
+   onde estudar, então ocupa a largura do card e tem peso de título. */
+.faixa-distancia {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 12px 0 2px;
+    padding: 11px 14px;
+    border-radius: 14px;
+    background: var(--green-soft);
+    border: 1.5px solid rgba(46, 204, 113, 0.35);
+    color: var(--green-dark);
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 15px;
     font-weight: 700;
-    color: var(--green-dark, #21a85c);
-    background: var(--green-soft, #e8faf0);
-    border-radius: 99px;
-    padding: 2px 9px;
+    letter-spacing: -0.01em;
+}
+
+.tipo-instituicao {
+    display: inline-block;
+    margin-right: 6px;
+    padding: 1px 7px;
+    border-radius: 6px;
+    background: var(--blue-soft);
+    color: var(--blue-dark);
+    font-size: 10.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
 
 .sem-cursos, .sem-resultados {
@@ -181,11 +265,199 @@
     .grid-unidades {
         grid-template-columns: 1fr;
     }
-    .filtros-cursos {
-        flex-direction: column;
-        align-items: stretch;
+    .faixa-distancia {
+        font-size: 14px;
     }
-    .contagem-resultados {
-        text-align: right;
+}
+
+/* =========================================================
+   Página de um curso (curso.html)
+   ========================================================= */
+
+.voltar-cursos {
+    display: inline-block;
+    margin-bottom: 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--blue-dark);
+    text-decoration: none;
+}
+
+.curso-detalhe {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    padding: 26px;
+    max-width: 780px;
+    margin-bottom: 40px;
+}
+
+.curso-cabecalho h1 {
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    color: var(--ink);
+}
+
+.curso-modalidades {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.tag-modalidade {
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 99px;
+    background: var(--blue-soft);
+    color: var(--blue-dark);
+}
+
+/* ficha com duração, carga horária e eixo */
+.curso-ficha {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 18px 0;
+}
+
+.curso-ficha-item {
+    flex: 1;
+    min-width: 150px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+}
+
+.curso-ficha-rotulo {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-soft);
+    margin-bottom: 3px;
+}
+
+.curso-ficha-item strong {
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 15px;
+    color: var(--ink);
+}
+
+/* avisos que mudam quem pode se inscrever */
+.curso-aviso {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 13px 16px;
+    border-radius: 14px;
+    margin-bottom: 12px;
+    font-size: 13.5px;
+    line-height: 1.5;
+}
+
+.curso-aviso strong {
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 14px;
+}
+
+.curso-aviso--requisito {
+    background: var(--gold-soft);
+    border: 1.5px solid rgba(245, 166, 35, 0.35);
+    color: #7a5200;
+}
+
+.curso-aviso--aptidao {
+    background: var(--blue-soft);
+    border: 1.5px solid rgba(78, 110, 232, 0.3);
+    color: var(--blue-dark);
+}
+
+.curso-bloco {
+    margin-top: 22px;
+}
+
+.curso-bloco h2 {
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 7px;
+}
+
+.curso-bloco p {
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--ink-soft);
+}
+
+.curso-unidades {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.curso-unidades li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 10px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+}
+
+.curso-unidade-nome {
+    font-weight: 700;
+    font-size: 13.5px;
+    color: var(--ink);
+}
+
+.curso-unidade-cidade {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+}
+
+.curso-unidade-km {
+    margin-left: auto;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--green-dark);
+}
+
+.curso-fonte {
+    margin-top: 24px;
+    font-size: 11.5px;
+    color: var(--ink-soft);
+}
+
+@media (max-width: 640px) {
+    .curso-detalhe {
+        padding: 20px 18px;
     }
+
+    .curso-cabecalho h1 {
+        font-size: 22px;
+    }
+
+    .curso-unidade-km {
+        margin-left: 0;
+    }
+}
+
+.curso-ver-todas {
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--blue-dark);
+    text-decoration: none;
 }

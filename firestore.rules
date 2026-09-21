@@ -33,6 +33,13 @@ service cloud.firestore {
       allow write: if ehAdmin();
     }
 
+    // Catálogo de cursos (descrição, duração, pré-requisitos): mesma regra das
+    // unidades — todo mundo lê, só administrador escreve.
+    match /cursos/{cursoId} {
+      allow read: if true;
+      allow write: if ehAdmin();
+    }
+
     // O histórico do chatbot só é lido/escrito pelo backend (Admin SDK),
     // que ignora estas regras. Bloqueado para qualquer acesso direto do app.
     match /chat_sessions/{sessionId} {

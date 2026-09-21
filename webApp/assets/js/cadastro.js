@@ -216,11 +216,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Enter em qualquer campo avança a etapa em vez de enviar o formulário.
+  // Enter em qualquer campo avança a etapa; na última etapa, cria a conta.
+  // Tratamos a tecla no lugar do envio automático do navegador, que não
+  // acontece quando o foco está num select.
   formCadastro.addEventListener('keydown', (e) => {
-    if (e.key !== 'Enter' || etapaAtual === 3) return;
-    if (e.target.tagName !== 'INPUT') return;
+    if (e.key !== 'Enter') return;
+    if (!['INPUT', 'SELECT'].includes(e.target.tagName)) return;
+
     e.preventDefault();
+
+    if (etapaAtual === 3) {
+      formCadastro.requestSubmit();
+      return;
+    }
+
     if (validarEtapa(etapaAtual)) irParaEtapa(etapaAtual + 1);
   });
 
@@ -290,6 +299,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // ---------------------------------------------------------------
   formCadastro.addEventListener('submit', async (e) => {
     e.preventDefault();
+
+    // Enter apertado de novo enquanto a conta ainda está sendo criada
+    if (formCadastro.querySelector('button[type="submit"]').disabled) return;
 
     // Revalida tudo: se algo ficou inválido numa etapa anterior, volta pra ela.
     for (const etapa of [1, 2, 3]) {

@@ -15,6 +15,7 @@
         <div class="titulo-area">
             <h1>Painel Admin · Unidades ETEC</h1>
             <a href="index.html" class="voltar">&larr; Voltar ao Futuro+</a>
+            <a href="admin-cursos.html" class="voltar">Cursos &rarr;</a>
         </div>
         <div class="usuario-area">
             <span id="admin-email"></span>
@@ -40,6 +41,7 @@
                     <button type="button" id="btn-importar-csv" class="btn btn-secundario">⬆ Importar CSV</button>
                     <button type="button" id="btn-extrair-logos" class="btn btn-secundario">🖼 Extrair logos</button>
                     <button type="button" id="btn-localizar-unidades" class="btn btn-secundario">📍 Localizar unidades</button>
+                    <button type="button" id="btn-definir-tipo" class="btn btn-secundario">🏷 Definir tipo</button>
                     <button type="button" id="btn-nova-unidade" class="btn btn-primario">+ Adicionar unidade</button>
                     <input type="file" id="input-csv" accept=".csv,text/csv" style="display:none;">
                 </div>
@@ -52,10 +54,21 @@
                 <button type="button" id="btn-filtrar-sem-localizacao" class="btn btn-secundario">Mostrar só essas</button>
             </div>
 
+            <div id="barra-selecao" class="barra-selecao" hidden>
+                <span><strong id="qtd-selecionadas">0</strong> unidade(s) marcada(s)</span>
+                <div class="barra-selecao-acoes">
+                    <button type="button" id="btn-tipo-selecionadas" class="btn btn-primario">🏷 Definir tipo das marcadas</button>
+                    <button type="button" id="btn-limpar-selecao" class="btn btn-secundario">Limpar marcação</button>
+                </div>
+            </div>
+
             <div class="tabela-container">
                 <table>
                     <thead>
                         <tr>
+                            <th class="col-selecao">
+                                <input type="checkbox" id="check-todas" aria-label="Marcar todas as unidades da lista">
+                            </th>
                             <th>Código</th>
                             <th>Unidade</th>
                             <th>Município</th>
@@ -67,13 +80,55 @@
                     </thead>
                     <tbody id="tabela-etecs-corpo">
                         <tr>
-                            <td colspan="7" class="tabela-vazia">Carregando unidades...</td>
+                            <td colspan="8" class="tabela-vazia">Carregando unidades...</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </main>
+
+    <!-- ---------- MODAL: TIPO EM LOTE ---------- -->
+    <div id="modal-tipo" class="modal-overlay">
+        <div class="modal modal--estreito">
+            <div class="modal-cabecalho">
+                <h2>Definir tipo de instituição</h2>
+                <button type="button" id="btn-fechar-tipo" class="btn-fechar-modal" aria-label="Fechar">&times;</button>
+            </div>
+
+            <div class="modal-corpo">
+                <div class="campo">
+                    <label for="f-tipo-lote">Tipo</label>
+                    <input type="text" id="f-tipo-lote" list="lista-tipos-instituicao" placeholder="Etec">
+                    <small class="campo-dica">Escolha Etec, Fatec ou digite outro. O que você digitar passa a aparecer
+                        como sugestão nas próximas vezes.</small>
+                </div>
+
+                <div class="campo">
+                    <label>Aplicar em</label>
+                    <label class="opcao-radio">
+                        <input type="radio" name="alvo-tipo" value="sem-tipo" checked>
+                        Só as unidades sem tipo (<span id="qtd-sem-tipo">0</span>)
+                    </label>
+                    <label class="opcao-radio opcao-marcadas" hidden>
+                        <input type="radio" name="alvo-tipo" value="marcadas">
+                        As <span id="qtd-marcadas">0</span> unidades marcadas na lista
+                    </label>
+                    <label class="opcao-radio">
+                        <input type="radio" name="alvo-tipo" value="visiveis">
+                        As <span id="qtd-visiveis">0</span> unidades que aparecem na busca agora
+                    </label>
+                </div>
+
+                <p id="aviso-tipo" class="campo-dica aviso-erro"></p>
+            </div>
+
+            <div class="modal-rodape">
+                <button type="button" id="btn-cancelar-tipo" class="btn btn-secundario">Cancelar</button>
+                <button type="button" id="btn-aplicar-tipo" class="btn btn-primario">Aplicar</button>
+            </div>
+        </div>
+    </div>
 
     <!-- ---------- MODAL: FORMULÁRIO DE UNIDADE ---------- -->
     <div id="modal-form" class="modal-overlay">
@@ -101,23 +156,29 @@
                         </div>
                         <div class="grid-2">
                             <div class="campo">
-                                <label for="f-cnpj">CNPJ</label>
-                                <input type="text" id="f-cnpj">
+                                <label for="f-tipo">Tipo de instituição</label>
+                                <input type="text" id="f-tipo" list="lista-tipos-instituicao" placeholder="Etec">
+                                <datalist id="lista-tipos-instituicao"></datalist>
+                                <small class="campo-dica">Etec, Fatec ou outro nome que você quiser usar — é só digitar.</small>
                             </div>
                             <div class="campo">
-                                <label for="f-regiao">Região Administrativa</label>
-                                <input type="text" id="f-regiao">
+                                <label for="f-cnpj">CNPJ</label>
+                                <input type="text" id="f-cnpj">
                             </div>
                         </div>
                         <div class="grid-2">
                             <div class="campo">
+                                <label for="f-regiao">Região Administrativa</label>
+                                <input type="text" id="f-regiao">
+                            </div>
+                            <div class="campo">
                                 <label for="f-municipio">Município</label>
                                 <input type="text" id="f-municipio">
                             </div>
-                            <div class="campo">
-                                <label for="f-aniversario">Aniversário da cidade</label>
-                                <input type="text" id="f-aniversario" placeholder="Ex: 25/01">
-                            </div>
+                        </div>
+                        <div class="campo">
+                            <label for="f-aniversario">Aniversário da cidade</label>
+                            <input type="text" id="f-aniversario" placeholder="Ex: 25/01">
                         </div>
                         <div class="campo">
                             <label for="f-endereco">Endereço</label>

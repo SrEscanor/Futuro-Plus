@@ -1,0 +1,1 @@
+function u(l){const f=[];let e="",r=!1;for(let s=0;s<l.length;s++){const t=l[s];r?t==='"'?l[s+1]==='"'?(e+='"',s++):r=!1:e+=t:t==='"'?r=!0:t===";"?(f.push(e),e=""):e+=t}return f.push(e),f}export{u as p};

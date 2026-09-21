@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Futuro+ | Admin · Cursos</title>
+    <link rel="icon" type="image/png" href="./icon-192.png">
+  <script type="module" crossorigin src="./assets/adminCursos-9qB4P35_.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/firebase-config-vU8gAbDc.js">
+  <link rel="modulepreload" crossorigin href="./assets/csv-BS0VGLkl.js">
+  <link rel="stylesheet" crossorigin href="./assets/csv-DWYFFzDc.css">
+</head>
+
+<body>
+
+    <header class="topo-admin">
+        <div class="titulo-area">
+            <h1>Painel Admin · Cursos</h1>
+            <a href="admin-etecs.html" class="voltar">&larr; Unidades</a>
+        </div>
+        <div class="usuario-area">
+            <span id="admin-email"></span>
+            <button id="logout-btn" class="btn-sair-admin">Sair</button>
+        </div>
+    </header>
+
+    <div id="acesso-negado" class="acesso-negado">
+        <h2>Acesso restrito</h2>
+        <p>Esta área é exclusiva para administradores do Futuro+. Se você acredita que deveria ter acesso, fale com
+            quem administra o projeto.</p>
+        <a href="index.html" class="btn btn-secundario">Voltar ao início</a>
+    </div>
+
+    <main id="admin-app" style="display:none;">
+        <div class="container-admin">
+
+            <div class="toolbar">
+                <div class="busca-area">
+                    <input type="text" id="busca-curso" placeholder="Buscar curso, eixo ou modalidade...">
+                </div>
+                <div class="acoes-toolbar">
+                    <button type="button" id="btn-importar-catalogo" class="btn btn-secundario">⬇ Importar catálogo
+                        oficial</button>
+                    <button type="button" id="btn-importar-csv" class="btn btn-secundario">⬆ Enviar CSV do CPS</button>
+                    <button type="button" id="btn-filtrar-editados" class="btn btn-secundario">✏️ Editados à mão</button>
+                    <input type="file" id="input-csv-cursos" accept=".csv,text/csv" style="display:none;">
+                </div>
+                <label class="opcao-importacao" for="chk-sobrescrever">
+                    <input type="checkbox" id="chk-sobrescrever" checked>
+                    Deixar o catálogo corrigir o que já está preenchido
+                </label>
+            </div>
+
+            <div id="status-importacao" class="status-importacao" style="display:none;"></div>
+
+            <p class="dica-toolbar">O catálogo oficial já vem embutido no site. Para atualizá-lo depois, baixe o CSV
+                em cps.sp.gov.br/cursos-etec (botão "Download CSV (Excel)") e envie aqui. Com a opção acima marcada, o
+                catálogo corrige os campos que ele publica; o que ele deixa em branco (a duração de várias
+                especializações, por exemplo) continua como você preencheu. Desmarque para só preencher campos
+                vazios.</p>
+
+            <div id="alerta-incompletos" class="alerta-localizacao" style="display:none;">
+                <div id="alerta-incompletos-texto"></div>
+                <button type="button" id="btn-filtrar-incompletos" class="btn btn-secundario">Mostrar só esses</button>
+            </div>
+
+            <div class="tabela-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Curso</th>
+                            <th>Eixo</th>
+                            <th>Duração</th>
+                            <th>Carga horária</th>
+                            <th>Pré-requisito</th>
+                            <th>Unidades</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-cursos-corpo">
+                        <tr>
+                            <td colspan="7" class="tabela-vazia">Carregando cursos...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="modal-form" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-cabecalho">
+                <h2 id="form-titulo">Editar curso</h2>
+                <button type="button" id="btn-fechar-form" class="btn-fechar-modal" aria-label="Fechar">&times;</button>
+            </div>
+
+            <form id="form-curso">
+                <div class="modal-corpo">
+
+                    <div class="secao-form">
+                        <h3>Informações do curso</h3>
+                        <div class="grid-2">
+                            <div class="campo">
+                                <label for="f-duracao">Duração</label>
+                                <input type="text" id="f-duracao" placeholder="Ex: 1 semestre">
+                                <small class="campo-dica">Como o catálogo oficial escreve: "1 semestre", "3
+                                    semestres".</small>
+                            </div>
+                            <div class="campo">
+                                <label for="f-carga">Carga horária (horas)</label>
+                                <input type="number" id="f-carga" min="0" step="10" placeholder="Ex: 400">
+                            </div>
+                        </div>
+
+                        <div class="campo">
+                            <label for="f-eixos">Eixos tecnológicos</label>
+                            <input type="text" id="f-eixos" placeholder="Separe por vírgula">
+                            <small class="campo-dica">Um curso pode ficar em até dois eixos, quando serve aos dois
+                                perfis.</small>
+                        </div>
+
+                        <div class="campo">
+                            <label for="f-prerequisitos">Pré-requisito</label>
+                            <textarea id="f-prerequisitos" rows="3"
+                                placeholder="Ex: Ter concluído o curso técnico em Enfermagem."></textarea>
+                            <small class="campo-dica">Só as especializações costumam exigir formação anterior.</small>
+                        </div>
+
+                        <div class="campo campo-checkbox">
+                            <label for="f-aptidao">
+                                <input type="checkbox" id="f-aptidao">
+                                Tem prova de aptidão (prova prática além da escrita)
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="secao-form">
+                        <h3>Textos da página do curso</h3>
+                        <div class="campo">
+                            <label for="f-descricao">O que você aprende</label>
+                            <textarea id="f-descricao" rows="5"></textarea>
+                        </div>
+                        <div class="campo">
+                            <label for="f-atuacao">O que o profissional faz</label>
+                            <textarea id="f-atuacao" rows="4"></textarea>
+                        </div>
+                        <div class="campo">
+                            <label for="f-onde-trabalhar">Onde se trabalha</label>
+                            <textarea id="f-onde-trabalhar" rows="2"></textarea>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="modal-rodape">
+                    <button type="button" id="btn-cancelar-form" class="btn btn-secundario">Cancelar</button>
+                    <button type="submit" class="btn btn-primario">Salvar curso</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ---------- MODAL: REVISÃO ANTES DE SUBSTITUIR ---------- -->
+    <div id="modal-revisao" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-cabecalho">
+                <h2>Revisar antes de substituir</h2>
+                <button type="button" id="btn-cancelar-revisao" class="btn-fechar-modal"
+                    aria-label="Cancelar">&times;</button>
+            </div>
+
+            <div class="modal-corpo">
+                <p id="revisao-resumo" class="dica-toolbar"></p>
+                <div id="lista-conflitos"></div>
+            </div>
+
+            <div class="modal-rodape">
+                <button type="button" id="btn-manter-meus" class="btn btn-secundario">Manter todos os meus</button>
+                <button type="button" id="btn-aplicar-revisao" class="btn btn-primario">Aplicar</button>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>
