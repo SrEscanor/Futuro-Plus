@@ -32,9 +32,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         console.warn("O campo 'nome' não existe no documento do Firestore.");
                     }
 
-                    const menuAdmin = document.getElementById("menu-admin");
-                    if (dados.admin === true && menuAdmin) {
-                        menuAdmin.style.display = "";
+                    if (dados.admin === true) {
+                        document.querySelectorAll(".menu-admin-area")
+                            .forEach((item) => { item.hidden = false; });
                     }
 
                     atualizarBarraPermissaoLocalizacao(dados.permissoes?.localizacaoChatbot?.concedida === true);
@@ -67,7 +67,21 @@ document.addEventListener('DOMContentLoaded', () => {
     if (hamburger && overlay) {
         hamburger.addEventListener('click', toggleMenu);
         overlay.addEventListener('click', toggleMenu);
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && menuPanel?.classList.contains('aberto')) toggleMenu();
+        });
     }
+
+    // No desktop o menu já fica aberto por CSS; se a tela crescer com ele
+    // "aberto" pelo celular, o overlay escuro ficaria sobrando.
+    const telaGrande = window.matchMedia('(min-width: 1024px)');
+    const ajustarMenu = () => {
+        if (!telaGrande.matches) return;
+        menuPanel?.classList.remove('aberto');
+        overlay?.classList.remove('ativo');
+    };
+    telaGrande.addEventListener('change', ajustarMenu);
+    ajustarMenu();
 
     const logoutBtn = document.getElementById("logout-btn");
     if (logoutBtn) {

@@ -15,6 +15,8 @@ export default defineConfig({
         adminEtecs: resolve(__dirname, 'admin-etecs.html'),
         cursos: resolve(__dirname, 'cursos.html'),
         curso: resolve(__dirname, 'curso.html'),
+        perfil: resolve(__dirname, 'perfil.html'),
+        vocacional: resolve(__dirname, 'teste-vocacional.html'),
         adminCursos: resolve(__dirname, 'admin-cursos.html'),
         // sem o redirecionamento "tudo para o index", um endereço errado
         // precisa desta página para não cair no 404 genérico do Firebase

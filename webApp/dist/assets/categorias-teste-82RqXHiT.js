@@ -1,0 +1,1 @@
+const a={logica:"Lógico-Matemática",interpessoal:"Interpessoal",espacial:"Espacial",corporal:"Corporal-Cinestésica",linguistica:"Linguística",intrapessoal:"Intrapessoal",musical:"Musical",naturalista:"Naturalista"};export{a as c};

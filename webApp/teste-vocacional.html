@@ -4,10 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Futuro+ | Testes</title>
+    <title>Futuro+ | Teste Vocacional</title>
     <link rel="icon" type="image/png" href="/icon-192.png">
     <link rel="stylesheet" href="assets/css/dashboard.css">
     <link rel="stylesheet" href="assets/css/cursos-etec.css">
+    <link rel="stylesheet" href="assets/css/teste-vocacional.css">
 </head>
 
 <body>
@@ -42,7 +43,7 @@
                 <span></span><span></span><span></span>
             </button>
             <div class="search-bar">
-                <input type="text" placeholder="Buscar testes..." aria-label="Buscar testes">
+                <input type="text" placeholder="Buscar cursos..." aria-label="Buscar cursos">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <circle cx="11" cy="11" r="8" />
                     <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -72,55 +73,50 @@
     </nav>
 
     <div class="main">
-        <div class="greeting">
-            Central de <span style="color: #4e6ee8;">Testes</span> 🧠
-        </div>
 
-        <div class="cursos-subtitle" style="text-align: left; margin-bottom: 30px;">
-            Descubra suas vocações, mapeie suas habilidades e encontre a área profissional que mais combina com você.
-        </div>
-
-        <div class="testes-row">
-            <div class="teste-card">
-                <p>
-                    <strong>Teste Vocacional (completo)</strong>
-                    O mais completo: cerca de 40 perguntas, em uns 10 minutos. Começa pela sua situação escolar,
-                    passa pelas áreas que combinam com você e termina mostrando cursos de verdade, com o que se
-                    aprende em cada um, para você dizer quais quer. Precisa de login.
-                </p>
-                <button class="btn-teste" style="background: #21a85c; color: #fff;"
-                    onclick="location.href='teste-vocacional.html'">Fazer Teste Vocacional</button>
+        <div id="voc-precisa-login" class="voc-cartao" hidden>
+            <h1>Teste Vocacional</h1>
+            <p class="voc-intro">Este teste é mais longo e o resultado fica guardado no seu perfil, para você
+                consultar depois. Por isso ele pede login.</p>
+            <div class="voc-acoes-resultado">
+                <a class="btn-voc" href="login.html">Entrar</a>
+                <a class="btn-voc btn-voc--secundario" href="cadastro.html">Criar conta</a>
             </div>
         </div>
 
-        <div class="testes-row">
-            <div class="teste-card">
-                <p>
-                    <strong>Teste rápido de perfil</strong>
-                    Baseado na teoria de Howard Gardner, descubra quais são as suas inteligências predominantes (lógica,
-                    linguística, espacial, interpessoal, etc.) e veja qual área profissional foi feita para o seu
-                    talento natural.
-                </p>
-                <button class="btn-teste" onclick="location.href='quiz-gardner.html'">Fazer teste rápido</button>
+        <section id="voc-teste" class="voc-cartao">
+            <header class="voc-cabecalho">
+                <h1>Teste Vocacional</h1>
+                <p class="voc-aviso-duracao">São cerca de 40 perguntas, em 4 blocos — uns 10 minutos. As últimas
+                    mostram cursos de verdade, com o que se aprende em cada um.</p>
+            </header>
+
+            <div class="voc-progresso">
+                <div class="voc-progresso-barra"><div id="voc-progresso-fill"></div></div>
+                <span id="voc-progresso-texto"></span>
             </div>
 
-            <div class="teste-card">
-                <p>
-                    <strong>Teste de Afinidades</strong>
-                    Avalie de 0 a 10 o quanto cada característica combina com você. Um jeito mais detalhado de
-                    descobrir sua inteligência dominante, também baseado na teoria de Howard Gardner.
-                </p>
-                <button class="btn-teste" style="background: #f5a623; color: #fff;"
-                    onclick="location.href='teste-afinidades.html'">Fazer Teste de Afinidades</button>
+            <h2 id="voc-titulo-bloco"></h2>
+            <div id="voc-conteudo"></div>
+
+            <p id="voc-aviso" class="voc-erro" hidden></p>
+
+            <div class="voc-navegacao">
+                <button type="button" id="voc-voltar" class="btn-voc btn-voc--secundario">Voltar</button>
+                <button type="button" id="voc-avancar" class="btn-voc">Continuar</button>
             </div>
-        </div>
 
-        <section id="resultados-testes" class="resultados-testes" hidden></section>
+            <p class="voc-creditos">Como este teste foi feito: as perguntas e a forma de pontuar foram construídas
+                pela equipe do Futuro+ com apoio da inteligência artificial Claude, da Anthropic, e revisadas uma a
+                uma pelos desenvolvedores do app. Os cursos, as descrições e os pré-requisitos vêm do catálogo
+                oficial do Centro Paula Souza.</p>
+        </section>
 
+        <section id="voc-resultado" class="voc-cartao" hidden></section>
     </div>
 
     <script type="module" src="assets/js/dashboard.js"></script>
-    <script type="module" src="assets/js/testes-resultados.js"></script>
+    <script type="module" src="assets/js/teste-vocacional.js"></script>
 </body>
 
 </html>

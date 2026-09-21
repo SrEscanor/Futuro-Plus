@@ -1,0 +1,405 @@
+/* =========================================================
+   Futuro+ · Teste Vocacional
+   Usa as variáveis de :root definidas em dashboard.css
+   ========================================================= */
+
+.voc-cartao {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    padding: 26px;
+    max-width: 720px;
+    margin: 0 auto 40px;
+}
+
+.voc-cabecalho h1,
+.voc-cartao h1 {
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 25px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+}
+
+.voc-aviso-duracao {
+    margin-top: 8px;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+}
+
+/* ---- Progresso ---- */
+.voc-progresso {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0 6px;
+}
+
+.voc-progresso-barra {
+    flex: 1;
+    height: 8px;
+    border-radius: 99px;
+    background: var(--line);
+    overflow: hidden;
+}
+
+#voc-progresso-fill {
+    height: 100%;
+    width: 0;
+    border-radius: 99px;
+    background: var(--gold);
+    transition: width 0.3s ease;
+}
+
+#voc-progresso-texto {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    white-space: nowrap;
+}
+
+.voc-cartao h2 {
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 18px;
+    margin: 14px 0 4px;
+    color: var(--ink);
+}
+
+.voc-intro {
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    margin-bottom: 16px;
+}
+
+/* ---- Perguntas ---- */
+.voc-pergunta {
+    border: none;
+    padding: 14px 0;
+    border-top: 1px solid var(--line);
+}
+
+.voc-pergunta legend {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.45;
+    margin-bottom: 10px;
+    padding: 0;
+}
+
+.voc-opcao {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 14px;
+    border: 1.5px solid var(--line);
+    border-radius: 14px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: var(--ink);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.voc-opcao:hover {
+    border-color: var(--blue);
+}
+
+.voc-opcao--ativa {
+    border-color: var(--blue);
+    background: var(--blue-soft);
+    font-weight: 600;
+}
+
+.voc-opcao input {
+    accent-color: var(--blue);
+}
+
+/* ---- Escala de 1 a 5 ---- */
+.voc-escala {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+}
+
+.voc-nota {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 4px;
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.voc-nota:hover {
+    border-color: var(--blue);
+}
+
+.voc-nota input {
+    display: none;
+}
+
+.voc-nota-numero {
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ink-soft);
+}
+
+.voc-nota-texto {
+    font-size: 10.5px;
+    line-height: 1.25;
+    color: var(--ink-soft);
+}
+
+.voc-nota--ativa {
+    border-color: var(--blue);
+    background: var(--blue);
+}
+
+.voc-nota--ativa .voc-nota-numero,
+.voc-nota--ativa .voc-nota-texto {
+    color: #fff;
+}
+
+/* ---- Cartas de curso ---- */
+.voc-carta {
+    border: 1.5px solid var(--line);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+}
+
+.voc-carta--respondida {
+    border-color: rgba(46, 204, 113, 0.45);
+    background: var(--green-soft);
+}
+
+.voc-carta-eixo {
+    display: inline-block;
+    font-size: 10.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--blue-dark);
+    background: var(--blue-soft);
+    border-radius: 6px;
+    padding: 2px 7px;
+    margin-bottom: 6px;
+}
+
+.voc-carta h3 {
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 17px;
+    color: var(--ink);
+    margin-bottom: 8px;
+}
+
+.voc-carta-descricao,
+.voc-carta-onde {
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+}
+
+.voc-carta-ficha {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.voc-carta-ficha span {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    background: var(--bg);
+    border-radius: 99px;
+    padding: 3px 10px;
+}
+
+.voc-carta-botoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.voc-resposta {
+    flex: 1;
+    min-width: 110px;
+    text-align: center;
+    padding: 10px 12px;
+    border: 1.5px solid var(--line);
+    border-radius: 99px;
+    background: var(--surface);
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    cursor: pointer;
+}
+
+.voc-resposta input {
+    display: none;
+}
+
+.voc-resposta--quero.voc-resposta--ativa {
+    background: var(--green-dark);
+    border-color: var(--green-dark);
+    color: #fff;
+}
+
+.voc-resposta--talvez.voc-resposta--ativa {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: #fff;
+}
+
+.voc-resposta--nao.voc-resposta--ativa {
+    background: var(--ink-soft);
+    border-color: var(--ink-soft);
+    color: #fff;
+}
+
+/* ---- Navegação e avisos ---- */
+.voc-navegacao {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 22px;
+}
+
+.btn-voc {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 99px;
+    background: var(--blue);
+    color: #fff;
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.btn-voc:hover {
+    background: var(--blue-dark);
+}
+
+.btn-voc--secundario {
+    background: var(--surface);
+    border: 1.5px solid var(--line);
+    color: var(--ink-soft);
+}
+
+.btn-voc--secundario:hover {
+    background: var(--bg);
+}
+
+.voc-erro {
+    margin-top: 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--red);
+}
+
+.voc-erro[hidden] {
+    display: none;
+}
+
+.voc-creditos {
+    margin-top: 22px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+    font-size: 11.5px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+}
+
+/* ---- Resultado ---- */
+.voc-lista-resultado {
+    list-style: none;
+    counter-reset: recomendacao;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 16px 0;
+}
+
+.voc-lista-resultado a {
+    display: block;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1.5px solid var(--line);
+    text-decoration: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.voc-lista-resultado a:hover {
+    border-color: var(--blue);
+    box-shadow: var(--shadow-card);
+}
+
+.voc-resultado-nome {
+    display: block;
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.voc-resultado-motivo {
+    display: block;
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-top: 3px;
+}
+
+.voc-resultado-link {
+    display: block;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--blue-dark);
+    margin-top: 6px;
+}
+
+.voc-descartados,
+.voc-observacao {
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    margin-bottom: 12px;
+}
+
+.voc-acoes-resultado {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 18px 0 8px;
+}
+
+@media (max-width: 640px) {
+    .voc-cartao {
+        padding: 20px 18px;
+    }
+
+    .voc-escala {
+        grid-template-columns: repeat(5, 1fr);
+        gap: 4px;
+    }
+
+    .voc-nota-texto {
+        display: none;
+    }
+
+    .voc-nota {
+        padding: 12px 2px;
+    }
+}

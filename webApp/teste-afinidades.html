@@ -11,20 +11,31 @@
 </head>
 
 <body>
-    <div class="menu-panel">
-        <div class="menu-header">menu</div>
-        <a href="index.html" class="menu-item">Recomendação semanal</a>
-        <a href="testes.html" class="menu-item">Testes</a>
-        <a href="mural.html" class="menu-item">Mural</a>
-        <a href="cursos.html" class="menu-item">Cursos</a>
-        <a href="login.html" class="menu-item">Perfil / Login</a>
-        <button id="logout-btn" class="btn-sair">Sair da Conta</button>
-        <div class="menu-logo-area">
-            <img src="assets/images/logo.png" alt="Futuro+ Logo" class="logo-png-img">
+    <aside class="menu-panel" aria-label="Menu principal">
+        <div class="menu-topo">
+            <img src="assets/images/logo.png" alt="Futuro+" class="menu-logo">
+            <span class="menu-subtitulo">Escolha seu caminho</span>
         </div>
-    </div>
 
-    <nav class="topnav">
+        <nav class="menu-navegacao">
+            <span class="menu-secao">Navegar</span>
+            <a href="index.html" class="menu-item" data-icone="🏠">Início</a>
+            <a href="testes.html" class="menu-item ativo" data-icone="🧭" aria-current="page">Testes</a>
+            <a href="cursos.html" class="menu-item" data-icone="🎓">Cursos</a>
+            <a href="mural.html" class="menu-item" data-icone="📌">Mural</a>
+            <a href="perfil.html" class="menu-item" data-icone="👤">Perfil</a>
+
+            <span class="menu-secao menu-admin-area" id="menu-secao-admin" hidden>Administração</span>
+            <a href="admin-etecs.html" id="menu-admin" class="menu-item menu-admin-area" data-icone="🏫" hidden>Unidades</a>
+            <a href="admin-cursos.html" id="menu-admin-cursos" class="menu-item menu-admin-area" data-icone="📚" hidden>Catálogo de cursos</a>
+        </nav>
+
+        <div class="menu-rodape">
+            <button id="logout-btn" class="btn-sair">Sair da conta</button>
+        </div>
+    </aside>
+
+<nav class="topnav">
         <div class="nav-left">
             <button type="button" class="hamburger" aria-label="Menu principal">
                 <span></span><span></span><span></span>

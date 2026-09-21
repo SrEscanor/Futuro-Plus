@@ -2,7 +2,7 @@
    Futuro+ · Dashboard (Definitivo e Corrigido)
    ========================================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap');
 
 :root {
     --ink: #1b1f3b;
@@ -22,6 +22,10 @@
     --green: #2ecc71;
     --green-dark: #21a85c;
     --green-soft: #e8faf0;
+    /* verde tirado da própria logo; o "forte" é o mesmo tom escurecido até
+       o texto branco ficar legível em cima (contraste 4,6:1) */
+    --green-logo: #22a06b;
+    --green-logo-forte: #1d865a;
 
     --red: #dc2626;
     --red-soft: #fee2e2;
@@ -249,6 +253,7 @@ h3,
 }
 
 .greeting {
+    font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
     font-size: 22px;
     font-weight: 700;
     letter-spacing: -0.01em;
@@ -282,7 +287,7 @@ h3,
 }
 
 .home-hero h1 {
-    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
     font-size: 28px;
     font-weight: 800;
     letter-spacing: -0.02em;
@@ -290,6 +295,7 @@ h3,
 }
 
 .home-hero-sub {
+    font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
     margin-top: 8px;
     font-size: 14px;
     line-height: 1.55;
@@ -514,12 +520,90 @@ a.btn-saiba {
 }
 
 .chart-card {
-    flex: 1 1 400px;
+    flex: 1 1 320px;
+    display: flex;
+    flex-direction: column;
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-card);
+    /* sombra mais presente: estes dois cards são o centro da tela inicial */
+    box-shadow: 0 3px 8px rgba(27, 31, 59, 0.08), 0 22px 40px -14px rgba(70, 130, 210, 0.85);
     padding: 20px;
+    transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.chart-card:hover {
+    box-shadow: 0 6px 14px rgba(27, 31, 59, 0.1), 0 30px 52px -16px rgba(70, 130, 210, 1);
+    transform: translateY(-2px);
+}
+
+.chart-wrap[hidden],
+.chart-vazio[hidden],
+.voc-resumo[hidden] {
+    display: none;
+}
+
+/* o estado vazio ocupa o card todo, para os dois ficarem da mesma altura */
+.chart-vazio,
+.voc-resumo {
+    flex: 1;
+    justify-content: center;
+}
+
+/* ---- Resumo do teste vocacional ---- */
+.voc-resumo {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.voc-resumo-areas {
+    font-size: 13px;
+    color: var(--ink-soft);
+}
+
+.voc-resumo-areas strong {
+    color: var(--ink);
+}
+
+.voc-resumo-cursos {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.voc-resumo-cursos li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    border-radius: 12px;
+    background: var(--bg);
+}
+
+.voc-resumo-cursos a {
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--ink);
+    text-decoration: none;
+}
+
+.voc-resumo-cursos a:hover {
+    color: var(--blue-dark);
+}
+
+.voc-selo {
+    margin-left: auto;
+    font-size: 10.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--green-dark);
+    background: var(--green-soft);
+    border-radius: 99px;
+    padding: 2px 8px;
 }
 
 .chart-label {
@@ -605,7 +689,8 @@ a.btn-saiba {
 }
 
 .mural-cta {
-    flex: 1 1 300px;
+    margin-bottom: 26px;
+    box-shadow: 0 3px 8px rgba(27, 31, 59, 0.07), 0 20px 36px -14px rgba(34, 160, 107, 0.85);
     background: var(--green-soft);
     border: 1px solid rgba(46, 204, 113, 0.25);
     border-radius: var(--radius-lg);
@@ -626,22 +711,22 @@ a.btn-saiba {
 }
 
 .btn-mural {
-    background: #fff;
+    background: var(--green-logo-forte);
+    color: #fff;
     border: none;
     border-radius: 99px;
-    padding: 12px 22px;
+    padding: 13px 30px;
     font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
-    font-size: 13px;
+    font-size: 14.5px;
     font-weight: 700;
-    color: var(--green-dark);
     cursor: pointer;
-    width: 100%;
-    box-shadow: 0 2px 6px rgba(33, 168, 92, 0.15);
-    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 10px 22px -10px rgba(29, 134, 90, 0.9);
+    transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
 }
 
 .btn-mural:hover {
-    box-shadow: 0 4px 12px rgba(33, 168, 92, 0.22);
+    background: #17724c;
+    box-shadow: 0 14px 26px -10px rgba(29, 134, 90, 1);
     transform: translateY(-1px);
 }
 
@@ -994,20 +1079,24 @@ a.btn-saiba {
    MENU LATERAL (drawer mobile)
    ========================================================= */
 
+/* ---- MENU LATERAL ----
+   No celular ele desliza por cima do conteúdo; a partir de 1024px fica
+   fixo e aberto, e o conteúdo é deslocado (padding-left no body). */
 .menu-panel {
     position: fixed;
     top: 0;
     left: 0;
-    width: 82%;
-    max-width: 320px;
+    width: 84%;
+    max-width: 290px;
     height: 100vh;
     background: var(--surface);
     z-index: var(--z-menu);
 
     display: flex;
     flex-direction: column;
-    border-right: 1px solid var(--line);
-    box-shadow: 4px 0 24px rgba(23, 27, 58, 0.15);
+    /* mesma sombra azulada da barra de cima, para o menu parecer parte dela */
+    border-right: 1px solid rgba(78, 110, 232, 0.18);
+    box-shadow: 2px 0 10px rgba(70, 130, 210, 0.45), 8px 0 24px -6px rgba(70, 130, 210, 0.35);
 
     transform: translateX(-100%);
     visibility: hidden;
@@ -1019,82 +1108,104 @@ a.btn-saiba {
     visibility: visible;
 }
 
-.menu-header {
-    padding: 26px 28px 18px;
-    font-family: 'Sora', sans-serif;
-    font-size: 13px;
+.menu-topo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 22px 22px 18px;
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(160deg, var(--blue-soft), var(--surface));
+}
+
+.menu-logo {
+    height: 34px;
+    width: auto;
+    align-self: flex-start;
+}
+
+.menu-subtitulo {
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--ink-soft);
+}
+
+.menu-navegacao {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 14px 12px;
+    overflow-y: auto;
+}
+
+.menu-secao {
+    padding: 12px 10px 6px;
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 10.5px;
     font-weight: 700;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.09em;
     text-transform: uppercase;
     color: var(--ink-soft);
-    border-bottom: 1px solid var(--line);
+    opacity: 0.75;
 }
 
 .menu-item {
-    position: relative;
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 15px 28px;
-    font-size: 15px;
+    padding: 11px 12px;
+    border-radius: 12px;
+    font-size: 14.5px;
     font-weight: 500;
     color: var(--ink-soft);
-    cursor: pointer;
     text-decoration: none;
-    border-left: 3px solid transparent;
-    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
 }
 
+/* o ícone vem do HTML de cada item, e não da posição na lista */
 .menu-item::before {
-    font-size: 16px;
+    content: attr(data-icone);
+    font-size: 15px;
     line-height: 1;
-}
-
-.menu-item:nth-of-type(1)::before {
-    content: "📅";
-}
-
-.menu-item:nth-of-type(2)::before {
-    content: "🧭";
-}
-
-.menu-item:nth-of-type(3)::before {
-    content: "📌";
-}
-
-.menu-item:nth-of-type(4)::before {
-    content: "🎓";
-}
-
-.menu-item:nth-of-type(5)::before {
-    content: "👤";
+    width: 22px;
+    text-align: center;
 }
 
 .menu-item:hover {
     background: var(--blue-soft);
     color: var(--blue-dark);
-    border-left-color: var(--blue-soft);
 }
 
-/* Item ativo: continua marcado via style inline no HTML de cada página
-   (font-weight/color), aqui só reforçamos com a barrinha lateral azul. */
-.menu-item[style*="font-weight: 700"],
-.menu-item[style*="font-weight:700"] {
-    border-left-color: var(--blue);
-    background: var(--blue-soft);
+.menu-item.ativo {
+    background: var(--blue);
+    color: #fff;
+    font-weight: 700;
+    box-shadow: 0 8px 18px -12px rgba(78, 110, 232, 0.9);
+}
+
+.menu-item[hidden],
+.menu-secao[hidden] {
+    display: none;
+}
+
+.menu-rodape {
+    margin-top: auto;
+    padding: 16px;
+    border-top: 1px solid var(--line);
 }
 
 .btn-sair {
     display: block;
-    width: calc(100% - 56px);
-    margin: 20px 28px 0;
-    padding: 12px 16px;
+    width: 100%;
+    padding: 11px 16px;
     background-color: var(--red-soft);
     color: var(--red);
     border: none;
     border-radius: var(--radius-sm);
-    font-size: 14px;
-    font-weight: 600;
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 13.5px;
+    font-weight: 700;
     text-align: center;
     cursor: pointer;
     transition: background-color 0.2s ease, transform 0.1s ease;
@@ -1106,23 +1217,6 @@ a.btn-saiba {
 
 .btn-sair:active {
     transform: scale(0.98);
-}
-
-.menu-logo-area {
-    margin-top: auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    border-top: 1px solid var(--line);
-    background: var(--bg);
-}
-
-.menu-logo-area .logo-png-img {
-    height: 44px !important;
-    min-height: 44px !important;
-    margin: 0 !important;
-    opacity: 0.85;
 }
 
 .menu-overlay {
@@ -1141,6 +1235,25 @@ a.btn-saiba {
 .menu-overlay.ativo {
     opacity: 1;
     visibility: visible;
+}
+
+/* Telas grandes: menu sempre visível, sem hambúrguer e sem sombra por cima */
+@media (min-width: 1024px) {
+    body {
+        padding-left: 264px;
+    }
+
+    .menu-panel {
+        width: 264px;
+        max-width: none;
+        transform: none;
+        visibility: visible;
+    }
+
+    .menu-overlay,
+    .hamburger {
+        display: none !important;
+    }
 }
 
 /* ---- CHAT WIDGET ---- */
@@ -1481,4 +1594,150 @@ a.btn-saiba {
         right: 20px;
         left: 20px;
     }
+}
+/* =========================================================
+   "Seus resultados" na página de testes
+   ========================================================= */
+.resultados-testes {
+    margin-bottom: 26px;
+}
+
+.resultados-testes[hidden] {
+    display: none;
+}
+
+.resultados-testes-titulo {
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 17px;
+    color: var(--ink);
+    margin-bottom: 12px;
+}
+
+.resultados-testes-grade {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 16px;
+}
+
+.resultado-teste-bloco {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 3px 8px rgba(27, 31, 59, 0.07), 0 20px 36px -16px rgba(70, 130, 210, 0.8);
+    padding: 20px;
+}
+
+.resultado-teste-bloco header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.resultado-teste-bloco h3 {
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 16px;
+    color: var(--ink);
+}
+
+.resultado-teste-data {
+    font-size: 11.5px;
+    color: var(--ink-soft);
+}
+
+.resultado-teste-linha {
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+}
+
+.resultado-teste-linha strong {
+    color: var(--ink);
+}
+
+.resultado-teste-desc {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    margin-bottom: 10px;
+}
+
+.resultado-teste-cursos {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 10px 0 14px;
+}
+
+.resultado-teste-cursos li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    border-radius: 12px;
+    background: var(--bg);
+}
+
+.resultado-teste-cursos a {
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--ink);
+    text-decoration: none;
+}
+
+.resultado-teste-cursos a:hover {
+    color: var(--blue-dark);
+}
+
+.resultado-teste-eixo {
+    font-size: 11px;
+    color: var(--ink-soft);
+}
+
+.resultado-teste-acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.btn-resultado-teste {
+    padding: 10px 18px;
+    border-radius: 99px;
+    background: var(--blue);
+    color: #fff;
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.btn-resultado-teste:hover {
+    background: var(--blue-dark);
+}
+
+.btn-resultado-teste--secundario {
+    background: var(--surface);
+    border: 1.5px solid var(--line);
+    color: var(--ink-soft);
+}
+
+.btn-resultado-teste--secundario:hover {
+    background: var(--bg);
+    color: var(--ink);
+}
+
+.resultado-teste-creditos {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--line);
+    font-size: 11.5px;
+    line-height: 1.6;
+    color: var(--ink-soft);
 }

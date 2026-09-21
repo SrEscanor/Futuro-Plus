@@ -461,3 +461,114 @@
     color: var(--blue-dark);
     text-decoration: none;
 }
+
+/* =========================================================
+   Bloco "Do seu teste" no topo da página de cursos
+   ========================================================= */
+
+.meus-resultados {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 3px 8px rgba(27, 31, 59, 0.07), 0 20px 36px -18px rgba(70, 130, 210, 0.8);
+    padding: 18px 20px;
+    margin-bottom: 18px;
+}
+
+.meus-resultados[hidden] {
+    display: none;
+}
+
+.meus-resultados-cabecalho h2 {
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 16px;
+    color: var(--ink);
+    margin-bottom: 4px;
+}
+
+.meus-resultados-cabecalho p {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+}
+
+.meus-resultados-cursos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0 8px;
+}
+
+.chip-resultado {
+    padding: 8px 14px;
+    border-radius: 99px;
+    border: 1.5px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.chip-resultado:hover {
+    border-color: var(--blue);
+    color: var(--blue-dark);
+}
+
+/* os cursos que a pessoa marcou como "quero" no teste ficam em evidência */
+.chip-resultado--quero {
+    border-color: rgba(46, 204, 113, 0.5);
+    background: var(--green-soft);
+    color: var(--green-dark);
+}
+
+.chip-resultado--limpar {
+    color: var(--ink-soft);
+    font-weight: 600;
+}
+
+.meus-resultados-dica {
+    font-size: 12px;
+    color: var(--ink-soft);
+}
+
+.meus-resultados-vazio {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.meus-resultados-vazio strong {
+    display: block;
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 15px;
+    color: var(--ink);
+    margin-bottom: 3px;
+}
+
+.meus-resultados-vazio p {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    max-width: 520px;
+}
+
+.btn-meus-resultados {
+    padding: 11px 22px;
+    border-radius: 99px;
+    background: var(--blue);
+    color: #fff;
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 13.5px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.btn-meus-resultados:hover {
+    background: var(--blue-dark);
+}
