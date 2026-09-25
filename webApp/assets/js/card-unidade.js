@@ -1,8 +1,19 @@
 // Card de unidade ETEC, usado tanto na página de cursos quanto na
 // prévia da home.
 
-export const LOGO_PADRAO = '/etec-logo-padrao.png';
+// Logo mostrada quando a unidade ainda não tem a própria (nem extraída do
+// pacote oficial, nem cadastrada à mão): a marca-texto oficial do tipo dela.
+// Para tipos além de Etec/Fatec, cai no logo do Futuro+ mesmo.
+export const LOGO_ETEC_PADRAO = '/etec-logo.png';
+export const LOGO_FATEC_PADRAO = '/fatec-logo.png';
 export const LOGO_FALLBACK = '/logo.png';
+
+export function logoPadraoPorTipo(tipo) {
+    const t = (tipo || '').trim().toLowerCase();
+    if (t === 'fatec') return LOGO_FATEC_PADRAO;
+    if (t === 'etec') return LOGO_ETEC_PADRAO;
+    return LOGO_FALLBACK;
+}
 
 export function escapeHtml(str) {
     return String(str ?? '').replace(/[&<>"']/g, (c) => ({
@@ -51,8 +62,16 @@ export function ordemDaModalidade(chave) {
 // modalidades: conjunto de chaves a exibir (null mostra todas).
 // Identificador do curso na coleção "cursos" (e no endereço de curso.html).
 // Tem que casar com o slug usado na importação do catálogo oficial.
-export function paginaDoCurso(nome) {
-    return normalizar(nome).replace(/\s+/g, '-');
+// Cursos superiores (Fatec, e no futuro outras faculdades parceiras) e
+// técnicos (Etec) às vezes têm o mesmo nome ("Logística", "Marketing"...)
+// mas são grades bem diferentes — por isso o slug de nível superior ganha o
+// prefixo "superior-", igual à importação do CSV faz. Etec é o único tipo
+// técnico hoje, então qualquer outro tipo (Fatec, ou um novo tipo digitado
+// no cadastro de unidades) já cai como superior sem precisar mexer aqui.
+export function paginaDoCurso(nome, tipo) {
+    const base = normalizar(nome).replace(/\s+/g, '-');
+    const t = (tipo || '').trim().toLowerCase();
+    return t && t !== 'etec' ? `superior-${base}` : base;
 }
 
 function agruparCursosPorCategoria(cursos, modalidades) {
@@ -71,7 +90,8 @@ function agruparCursosPorCategoria(cursos, modalidades) {
 // termoCurso: termo já normalizado; os cursos que o contêm ficam realçados.
 // modalidades: conjunto de chaves de modalidade a exibir (null mostra todas).
 export function renderizarCardUnidade(unidade, { destaque = '', termoCurso = '', modalidades = null } = {}) {
-    const logo = unidade.logotipoUrl ? escapeHtml(unidade.logotipoUrl) : LOGO_PADRAO;
+    const tipo = (unidade.tipo || '').trim();
+    const logo = unidade.logotipoUrl ? escapeHtml(unidade.logotipoUrl) : logoPadraoPorTipo(tipo);
     const local = [unidade.municipio, unidade.regiao].filter(Boolean).join(' · ');
     const grupos = agruparCursosPorCategoria(unidade.cursos, modalidades);
 
@@ -82,14 +102,12 @@ export function renderizarCardUnidade(unidade, { destaque = '', termoCurso = '',
                 ${nomes.map((nome) => {
                     const realcado = termoCurso && normalizar(nome).includes(termoCurso);
                     // leva para a página do curso, com a descrição oficial
-                    const endereco = `curso.html?c=${encodeURIComponent(paginaDoCurso(nome))}`;
+                    const endereco = `curso.html?c=${encodeURIComponent(paginaDoCurso(nome, tipo))}`;
                     return `<a class="tag-curso${realcado ? ' tag-curso--destaque' : ''}" href="${endereco}">${escapeHtml(nome)}</a>`;
                 }).join('')}
             </div>
         </div>
     `).join('');
-
-    const tipo = (unidade.tipo || '').trim();
 
     return `
     <article class="card-unidade">

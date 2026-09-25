@@ -2,7 +2,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "./firebase-config.js";
 import { categoriasTeste } from "./categorias-teste.js";
-import { escapeHtml } from "./card-unidade.js";
+import { escapeHtml, logoPadraoPorTipo, LOGO_FALLBACK } from "./card-unidade.js";
 import { extrairResultadoMaisRecente } from "./resultado-teste.js";
 import {
     carregarOfertaCursos,
@@ -21,10 +21,16 @@ const trilho = document.getElementById("recomendados-scroll");
 
 function cardCurso(recomendacao, localizacao) {
     const motivo = textoMotivo(recomendacao);
+    // a logo mostrada é da unidade mais perto (a mesma destacada no texto de
+    // oferta abaixo) — um curso pode ser oferecido por Etecs e Fatecs juntas,
+    // então não dá pra escolher uma logo fixa pro card inteiro.
+    const maisPerto = recomendacao.unidades[0];
+    const logo = maisPerto?.logotipoUrl || logoPadraoPorTipo(maisPerto?.tipo);
     return `
         <div class="course-card-mini">
             <div class="inst-logo">
-                <img class="inst-logo-img" src="/etec-logo.png" alt="Etec - Escola Técnica Estadual">
+                <img class="inst-logo-img" src="${escapeHtml(logo)}" alt="${escapeHtml(maisPerto?.tipo || 'Futuro+')}"
+                    onerror="this.onerror=null;this.src='${LOGO_FALLBACK}';">
             </div>
             <div class="course-title">${escapeHtml(recomendacao.nome)}</div>
             ${motivo ? `<div class="course-motivo">${escapeHtml(motivo)}</div>` : ""}
@@ -63,10 +69,10 @@ onAuthStateChanged(auth, async (usuario) => {
         if (lista.length) {
             titulo.textContent = "Recomendados para você";
             subtitulo.textContent = `Com base no seu perfil ${descreverPerfil(resultado)}`
-                + (localizacao ? `, priorizando Etecs perto de ${localizacao.cidade}.` : ".");
+                + (localizacao ? `, priorizando unidades perto de ${localizacao.cidade}.` : ".");
         } else {
             lista = cursosMaisOferecidos(oferta, { localizacao, regioes, limite: 8 });
-            titulo.textContent = "Cursos mais oferecidos nas Etecs";
+            titulo.textContent = "Cursos mais oferecidos nas unidades";
             subtitulo.innerHTML = `<a href="testes.html">Faça um teste</a> e receba recomendações feitas para você.`;
         }
 

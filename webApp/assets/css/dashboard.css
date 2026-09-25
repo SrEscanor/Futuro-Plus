@@ -1172,9 +1172,13 @@ a.btn-saiba {
     text-align: center;
 }
 
-.menu-item:hover {
-    background: var(--blue-soft);
-    color: var(--blue-dark);
+/* Só em aparelho com mouse: no celular o :hover fica grudado no item
+   tocado e parece que ele foi selecionado. */
+@media (hover: hover) and (pointer: fine) {
+    .menu-item:hover {
+        background: var(--blue-soft);
+        color: var(--blue-dark);
+    }
 }
 
 .menu-item.ativo {
@@ -1615,7 +1619,7 @@ a.btn-saiba {
 
 .resultados-testes-grade {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
     gap: 16px;
 }
 
@@ -1731,6 +1735,15 @@ a.btn-saiba {
 .btn-resultado-teste--secundario:hover {
     background: var(--bg);
     color: var(--ink);
+}
+
+.btn-resultado-teste--verde {
+    background: var(--green-logo-forte);
+    color: #fff;
+}
+
+.btn-resultado-teste--verde:hover {
+    background: #17724c;
 }
 
 .resultado-teste-creditos {

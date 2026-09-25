@@ -26,11 +26,18 @@ service cloud.firestore {
       allow delete: if request.auth != null && request.auth.uid == uid;
     }
 
-    // Unidades ETEC/FATEC cadastradas pelo CMS: leitura pública (usadas pelo
-    // app e futuramente pelo chatbot), escrita restrita a administradores.
-    match /etecs/{unidadeId} {
+    // Unidades (Etec, Fatec ou outra instituição) cadastradas pelo CMS:
+    // leitura pública (usadas pelo app e futuramente pelo chatbot), escrita
+    // restrita a administradores.
+    match /instituicoes/{unidadeId} {
       allow read: if true;
       allow write: if ehAdmin();
+    }
+
+    // Certificados do mural: cada aluno mexe só nos próprios. Documento
+    // pessoal, então nem outros alunos nem o app leem sem ser o dono.
+    match /usuarios/{uid}/certificados/{certificadoId} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
     }
 
     // Catálogo de cursos (descrição, duração, pré-requisitos): mesma regra das

@@ -1,0 +1,33 @@
+rules_version = '2';
+
+// Certificados do mural: documento pessoal, com nome completo. Cada aluno
+// escreve e lê só na própria pasta. Não existe listagem pública.
+//
+// As logos das Etecs (etecs-logos/) são enviadas pela Cloud Function, que usa
+// o Admin SDK e não passa por estas regras; aqui elas ficam só como leitura
+// pública, porque aparecem no site para qualquer visitante.
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    match /certificados/{uid}/{arquivo} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+
+      // Limites que evitam surpresa na conta: só imagem, no máximo 8 MB.
+      allow write: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.size < 8 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+
+      allow delete: if request.auth != null && request.auth.uid == uid;
+    }
+
+    match /etecs-logos/{arquivo} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /{caminho=**} {
+      allow read, write: if false;
+    }
+  }
+}

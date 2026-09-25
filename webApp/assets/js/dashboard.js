@@ -274,7 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
         cartao.className = "msg bot cartao-permissao";
         cartao.innerHTML = `
             <p><strong>📍 Usar a localização do seu perfil?</strong></p>
-            <p>O assistente usa só a distância até as Etecs. Seu endereço não aparece na conversa, e você pode desativar quando quiser.</p>
+            <p>O assistente usa só a distância até as unidades. Seu endereço não aparece na conversa, e você pode desativar quando quiser.</p>
             <div class="cartao-permissao-botoes">
                 <button type="button" class="btn-permitir">Permitir</button>
                 <button type="button" class="btn-agora-nao">Agora não</button>
@@ -293,7 +293,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         cartao.querySelector(".btn-agora-nao").addEventListener("click", () => {
             cartao.remove();
-            addMessage("Tudo bem! Se preferir, me diga a sua cidade que eu procuro as Etecs de lá.", "bot");
+            addMessage("Tudo bem! Se preferir, me diga a sua cidade que eu procuro as unidades de lá.", "bot");
         });
 
         chatMessages.appendChild(cartao);

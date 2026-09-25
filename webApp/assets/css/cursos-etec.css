@@ -54,9 +54,13 @@
     transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 
-.chip-filtro:hover {
-    border-color: var(--blue);
-    color: var(--blue-dark);
+/* Só em aparelho com mouse: no celular o :hover fica grudado no item
+   tocado e parece que ele foi selecionado. */
+@media (hover: hover) and (pointer: fine) {
+    .chip-filtro:hover {
+        border-color: var(--blue);
+        color: var(--blue-dark);
+    }
 }
 
 .chip-filtro--ativo {
@@ -115,12 +119,16 @@
 
 .grid-unidades {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    /* minmax(0, ...) é o que impede a coluna de crescer além da tela: sem o
+       zero, o grid usa o tamanho mínimo do conteúdo do card (um nome de
+       curso comprido, por exemplo) e o card fica cortado no celular. */
+    grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
     gap: 18px;
     padding-bottom: 40px;
 }
 
 .card-unidade {
+    min-width: 0;
     background: var(--surface);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-card);
@@ -154,6 +162,7 @@
 }
 
 .nome-unidade {
+    overflow-wrap: anywhere;
     font-size: 15px;
     color: var(--ink);
     line-height: 1.3;
@@ -206,9 +215,13 @@
     color: #fff;
 }
 
-.tag-curso:hover {
-    background: var(--blue);
-    color: #fff;
+/* Só em aparelho com mouse: no celular o :hover fica grudado no item
+   tocado e parece que ele foi selecionado. */
+@media (hover: hover) and (pointer: fine) {
+    .tag-curso:hover {
+        background: var(--blue);
+        color: #fff;
+    }
 }
 
 /* Faixa de distância: é a informação que mais interessa a quem procura
@@ -263,7 +276,12 @@
 
 @media (max-width: 640px) {
     .grid-unidades {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* no celular o nome do curso pode quebrar em duas linhas */
+    .tag-curso {
+        white-space: normal;
     }
     .faixa-distancia {
         font-size: 14px;

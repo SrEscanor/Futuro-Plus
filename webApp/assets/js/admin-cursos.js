@@ -4,19 +4,23 @@ import { collection, doc, getDoc, getDocs, setDoc, writeBatch } from 'firebase/f
 import { parseCsvLine } from './csv.js';
 
 const CURSOS_COLLECTION = 'cursos';
-const ETECS_COLLECTION = 'etecs';
-
-// Catálogo oficial do Centro Paula Souza, copiado para public/ e importado
-// por este painel. Depois da importação, quem manda é o que está no banco:
-// reimportar só preenche o que ainda estiver vazio, sem desfazer edições.
-const CATALOGO_OFICIAL = '/dados/catalogo-cursos.json';
+const INSTITUICOES_COLLECTION = 'instituicoes';
 
 // Campos que a página pública usa; servem para dizer se um curso está completo.
+// O CSV da Fatec (cursos superiores) não publica carga horária, só duração
+// em anos/semestres — cobrar esse campo neles marcaria todo curso superior
+// como incompleto para sempre.
 const CAMPOS_ESPERADOS = [
     ['descricao', 'descrição'],
     ['duracao', 'duração'],
     ['cargaHoraria', 'carga horária']
 ];
+
+function camposEsperadosPara(curso) {
+    return curso.nivel === 'superior'
+        ? CAMPOS_ESPERADOS.filter(([campo]) => campo !== 'cargaHoraria')
+        : CAMPOS_ESPERADOS;
+}
 
 let cursosCache = [];
 let unidadesPorCurso = new Map();
@@ -40,7 +44,7 @@ function normalizar(texto) {
 }
 
 function faltando(curso) {
-    return CAMPOS_ESPERADOS.filter(([campo]) => !curso[campo]).map(([, rotulo]) => rotulo);
+    return camposEsperadosPara(curso).filter(([campo]) => !curso[campo]).map(([, rotulo]) => rotulo);
 }
 
 // ========================================================
@@ -50,7 +54,7 @@ function faltando(curso) {
 async function carregarCursos() {
     const [cursosSnap, unidadesSnap] = await Promise.all([
         getDocs(collection(db, CURSOS_COLLECTION)),
-        getDocs(collection(db, ETECS_COLLECTION))
+        getDocs(collection(db, INSTITUICOES_COLLECTION))
     ]);
 
     cursosCache = cursosSnap.docs
@@ -88,7 +92,7 @@ function renderizarAlerta() {
     document.getElementById('alerta-incompletos-texto').innerHTML = `
         <strong>⚠️ ${incompletos.length} curso(s) com informação faltando</strong>
         <p>O catálogo oficial não publica tudo: ${semDuracao} curso(s) estão sem duração.
-        Complete aqui o que você confirmar na Etec ou no plano de curso.</p>`;
+        Complete aqui o que você confirmar na unidade ou no plano de curso.</p>`;
 
     document.getElementById('btn-filtrar-incompletos').textContent =
         filtroIncompletos ? 'Mostrar todos' : 'Mostrar só esses';
@@ -120,6 +124,7 @@ function renderizarTabela() {
         return `
         <tr>
             <td>
+                ${c.nivel === 'superior' ? '<span class="badge-categoria">Superior</span>' : ''}
                 <strong>${escapeHtml(c.nome)}</strong>
                 ${pendencias.length ? `<div class="pendencia">falta ${escapeHtml(pendencias.join(', '))}</div>` : ''}
                 ${c.provaAptidao ? '<div class="pendencia pendencia--info">tem prova de aptidão</div>' : ''}
@@ -347,7 +352,11 @@ function chaveDaColuna(titulo) {
         .trim();
 }
 
-function lerCatalogoCsv(texto) {
+// nivel: 'tecnico' (Etec, o padrão) ou 'superior' (Fatec). Vários cursos têm
+// o mesmo nome nos dois catálogos ("Logística", "Marketing", "Gastronomia"…)
+// mas são grades bem diferentes — por isso os superiores ganham um prefixo
+// no slug, para nunca cair em cima da página de um curso técnico já existente.
+function lerCatalogoCsv(texto, nivel = 'tecnico') {
     const linhas = texto.split(/\r?\n/).filter((l) => l.trim());
     if (!linhas.length) throw new Error('arquivo vazio');
 
@@ -386,7 +395,13 @@ function lerCatalogoCsv(texto) {
         });
 
         if (!curso.nome) continue;
-        curso.slug = normalizar(curso.nome).replace(/\s+/g, '-');
+        const base = normalizar(curso.nome).replace(/\s+/g, '-');
+        if (nivel === 'superior') {
+            curso.nivel = 'superior';
+            curso.slug = `superior-${base}`;
+        } else {
+            curso.slug = base;
+        }
         cursos.push(curso);
     }
 
@@ -400,31 +415,12 @@ async function importarCsvDoCatalogo(arquivo) {
     status.textContent = `Lendo ${arquivo.name}...`;
 
     try {
-        const cursos = lerCatalogoCsv(await arquivo.text());
+        const nivel = document.getElementById('select-nivel-csv').value;
+        const cursos = lerCatalogoCsv(await arquivo.text(), nivel);
         await gravarCatalogo(cursos, status, `CSV lido: ${cursos.length} curso(s).`);
     } catch (err) {
         console.error('Erro ao importar o CSV de cursos:', err);
         status.textContent = 'Erro ao ler o CSV: ' + err.message;
-    }
-}
-
-async function importarCatalogo() {
-    const botao = document.getElementById('btn-importar-catalogo');
-    const status = document.getElementById('status-importacao');
-
-    botao.disabled = true;
-    status.style.display = 'block';
-    status.textContent = 'Baixando o catálogo oficial...';
-
-    try {
-        const resposta = await fetch(CATALOGO_OFICIAL);
-        if (!resposta.ok) throw new Error(`não consegui ler o arquivo (${resposta.status})`);
-        await gravarCatalogo(await resposta.json(), status, 'Catálogo importado:');
-    } catch (err) {
-        console.error('Erro ao importar o catálogo oficial:', err);
-        status.textContent = 'Erro ao importar o catálogo: ' + err.message;
-    } finally {
-        botao.disabled = false;
     }
 }
 
@@ -519,8 +515,6 @@ document.addEventListener('DOMContentLoaded', () => {
         await signOut(auth);
         window.location.href = 'login.html';
     });
-
-    document.getElementById('btn-importar-catalogo').addEventListener('click', importarCatalogo);
 
     const inputCsv = document.getElementById('input-csv-cursos');
     document.getElementById('btn-importar-csv').addEventListener('click', () => inputCsv.click());

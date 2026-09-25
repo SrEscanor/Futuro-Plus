@@ -95,11 +95,15 @@
     font-family: 'Inter', sans-serif;
 }
 
-.options-group button:hover {
-    border-color: var(--blue);
-    background: var(--blue-soft);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(78, 110, 232, 0.1);
+/* Só em aparelho com mouse: no celular o :hover fica grudado no item
+   tocado e parece que ele foi selecionado. */
+@media (hover: hover) and (pointer: fine) {
+    .options-group button:hover {
+        border-color: var(--blue);
+        background: var(--blue-soft);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(78, 110, 232, 0.1);
+    }
 }
 
 .options-group button:active {

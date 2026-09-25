@@ -185,9 +185,13 @@
     transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 
-.perfil-tag:hover {
-    border-color: var(--blue);
-    color: var(--blue-dark);
+/* Só em aparelho com mouse: no celular o :hover fica grudado no item
+   tocado e parece que ele foi selecionado. */
+@media (hover: hover) and (pointer: fine) {
+    .perfil-tag:hover {
+        border-color: var(--blue);
+        color: var(--blue-dark);
+    }
 }
 
 .perfil-tag--ativa {
@@ -474,7 +478,7 @@
 /* ---- Testes em destaque ---- */
 .perfil-testes-grade {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
     gap: 12px;
     margin-top: 6px;
 }

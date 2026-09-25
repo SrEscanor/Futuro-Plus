@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
         // Só a prévia: a página de cursos é quem carrega a lista completa.
-        const snap = await getDocs(query(collection(db, 'etecs'), limit(QUANTIDADE_PREVIA)));
+        const snap = await getDocs(query(collection(db, 'instituicoes'), limit(QUANTIDADE_PREVIA)));
         const unidades = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
         if (!unidades.length) {

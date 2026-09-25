@@ -43,7 +43,9 @@ export const PERGUNTAS_SITUACAO = [
         opcoes: [
             { valor: 'integrado', texto: 'Ensino médio e curso técnico juntos, na mesma escola' },
             { valor: 'tecnico', texto: 'Só o curso técnico' },
-            { valor: 'tanto_faz', texto: 'Tanto faz, quero ver as duas opções' }
+            { valor: 'superior', texto: 'Curso superior de tecnologia (Fatec), depois do ensino médio' },
+            { valor: 'ambos', texto: 'Técnico e superior juntos — quero ver as duas opções' },
+            { valor: 'tanto_faz', texto: 'Tanto faz, não tenho preferência' }
         ]
     },
     {
@@ -169,4 +171,9 @@ export const PESO_ESTILO = 0.1;
 
 // Bloco 4 — as cartas de curso. Quantas mostrar e quanto cada resposta vale.
 export const MAXIMO_CARTAS = 12;
+
+// Quantas cartas a mais o botão "Ver mais cursos" carrega por clique, e de
+// quantas em quantas áreas ele abre quando as áreas atuais se esgotam.
+export const LOTE_VER_MAIS = 12;
+export const AREAS_POR_EXPANSAO = 4;
 export const PESO_RESPOSTA_CARTA = { quero: 1.6, talvez: 1, nao: 0 };

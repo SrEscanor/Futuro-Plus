@@ -59,6 +59,8 @@ export function tipoDaModalidade(modalidade) {
     if (texto.includes('articula')) return 'integrado';
     if (texto.includes('ensino médio integrado') || texto.includes('ensino medio integrado')) return 'integrado';
     if (texto.includes('cursos técnicos') || texto.includes('cursos tecnicos')) return 'tecnico';
+    // Fatec: "Curso Superior de Tecnologia Presencial/EaD", "Curso Superior Bacharelado"...
+    if (texto.includes('curso superior')) return 'superior';
     return 'outro';
 }
 
@@ -66,14 +68,26 @@ export function formatosDoCurso(curso) {
     return new Set((curso.modalidades || []).map(tipoDaModalidade));
 }
 
-// Quem está no 9º ano só pode entrar no médio integrado; quem já está no
-// ensino médio (ou terminou) entra no técnico. Especialização fica de fora
-// do teste: ela exige um curso técnico concluído.
+// Quem está no 9º ano só pode entrar no médio integrado — nem técnico
+// avulso nem superior (Fatec) fazem sentido ainda, então a escolha de
+// formato é ignorada nesse caso. Quem já está no médio (cursando ou
+// concluído) pode ver técnico e/ou superior — quem ainda está cursando
+// recebe um aviso na carta e no resultado, porque a Fatec só matricula com
+// o médio já concluído (avisarPrecisaConcluirMedio faz essa conta).
+// Especialização fica de fora do teste: ela exige um curso técnico concluído.
 export function formatosPermitidos({ escolaridade, formato }) {
-    const porEscolaridade = escolaridade === 'fundamental' ? ['integrado'] : ['tecnico'];
-    if (formato === 'integrado' && porEscolaridade.includes('integrado')) return ['integrado'];
-    if (formato === 'tecnico' && porEscolaridade.includes('tecnico')) return ['tecnico'];
-    return porEscolaridade;
+    if (escolaridade === 'fundamental') return ['integrado'];
+    if (formato === 'tecnico') return ['tecnico'];
+    if (formato === 'superior') return ['superior'];
+    if (formato === 'integrado') return ['integrado'];
+    return ['tecnico', 'superior'];
+}
+
+// Curso superior (Fatec) só matricula com o médio já concluído — quem ainda
+// está cursando pode ver a carta, mas precisa saber disso antes de se
+// animar com um curso que ainda não pode começar.
+export function avisarPrecisaConcluirMedio(curso, { escolaridade }) {
+    return curso.nivel === 'superior' && escolaridade === 'medio_cursando';
 }
 
 export function cursoCabeNaSituacao(curso, situacao) {
@@ -87,13 +101,22 @@ export function cursoCabeNaSituacao(curso, situacao) {
 // ------------------------------------------------------------------
 
 // De quantas áreas as cartas podem vir. Mais que isso já entra em área que
-// a pessoa disse não gostar.
-const EIXOS_NAS_CARTAS = 4;
+// a pessoa disse não gostar — mas o botão "Ver mais cursos" pode abrir mais
+// áreas aos poucos para quem quiser continuar explorando.
+export const EIXOS_NAS_CARTAS = 4;
+
+// Cursos técnico e superior às vezes têm o mesmo nome ("Logística",
+// "Marketing"...) mas são grades diferentes — sem isso, a contagem de
+// unidades de um contaria unidades do outro.
+export function chaveOferta(nome, nivel, normalizar) {
+    const base = normalizar ? normalizar(nome) : nome;
+    return nivel === 'superior' ? `${base}::superior` : base;
+}
 
 // catalogo: cursos com eixos/modalidades/descrição.
 // unidadesPorCurso: Map de nome normalizado -> quantidade de unidades.
 // avaliar: função opcional que devolve { km, ordem } de uma unidade.
-export function escolherCartas(catalogo, notas, situacao, { unidadesPorCurso, normalizar, limite = MAXIMO_CARTAS } = {}) {
+export function escolherCartas(catalogo, notas, situacao, { unidadesPorCurso, normalizar, limite = MAXIMO_CARTAS, numAreas = EIXOS_NAS_CARTAS } = {}) {
     const ranking = ranquearEixos(notas);
     const posicao = Object.fromEntries(ranking.map((eixo, i) => [eixo, i]));
 
@@ -103,24 +126,41 @@ export function escolherCartas(catalogo, notas, situacao, { unidadesPorCurso, no
         .map((curso) => {
             // um curso em dois eixos entra pelo eixo em que a pessoa foi melhor
             const eixo = [...curso.eixos].sort((a, b) => (posicao[a] ?? 99) - (posicao[b] ?? 99))[0];
-            const unidades = unidadesPorCurso?.get(normalizar ? normalizar(curso.nome) : curso.nome) || 0;
+            const unidades = unidadesPorCurso?.get(chaveOferta(curso.nome, curso.nivel, normalizar)) || 0;
             return { curso, eixo, nota: notas[eixo] || 0, unidades };
         })
         // só faz sentido sugerir curso que alguma unidade do cadastro oferece
         .filter((item) => item.unidades > 0);
 
     const porEixo = new Map();
-    candidatos
-        .sort((a, b) => b.unidades - a.unidades || a.curso.nome.localeCompare(b.curso.nome, 'pt-BR'))
-        .forEach((item) => {
-            if (!porEixo.has(item.eixo)) porEixo.set(item.eixo, []);
-            porEixo.get(item.eixo).push(item);
-        });
+    candidatos.forEach((item) => {
+        if (!porEixo.has(item.eixo)) porEixo.set(item.eixo, []);
+        porEixo.get(item.eixo).push(item);
+    });
+
+    // Dentro de cada área, intercala técnico e superior por oferta — a rede
+    // Etec é muito maior que a Fatec, então ordenar só por unidades faria o
+    // técnico lotar a área inteira antes de um curso superior aparecer,
+    // mesmo quando os dois cabem na situação da pessoa (ex.: "Desenvolvimento
+    // de Sistemas" técnico e "Análise e Desenvolvimento de Sistemas" Fatec).
+    porEixo.forEach((lista, eixo) => {
+        const ordenarPorOferta = (itens) => itens
+            .sort((a, b) => b.unidades - a.unidades || a.curso.nome.localeCompare(b.curso.nome, 'pt-BR'));
+        const tecnicos = ordenarPorOferta(lista.filter((i) => i.curso.nivel !== 'superior'));
+        const superiores = ordenarPorOferta(lista.filter((i) => i.curso.nivel === 'superior'));
+
+        const intercalado = [];
+        for (let i = 0; i < Math.max(tecnicos.length, superiores.length); i++) {
+            if (tecnicos[i]) intercalado.push(tecnicos[i]);
+            if (superiores[i]) intercalado.push(superiores[i]);
+        }
+        porEixo.set(eixo, intercalado);
+    });
 
     // Reveza entre as áreas mais fortes em vez de encher as cartas com uma
     // só: quem gosta de tecnologia e de indústria precisa ver as duas para
     // poder comparar.
-    const areas = ranking.filter((eixo) => porEixo.has(eixo)).slice(0, EIXOS_NAS_CARTAS);
+    const areas = ranking.filter((eixo) => porEixo.has(eixo)).slice(0, numAreas);
     const cartas = [];
     for (let volta = 0; cartas.length < limite; volta++) {
         const antes = cartas.length;

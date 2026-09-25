@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Futuro+ | Admin · Cursos</title>
-    <link rel="stylesheet" href="assets/css/admin-etecs.css">
+    <link rel="stylesheet" href="assets/css/admin-instituicoes.css">
     <link rel="icon" type="image/png" href="/icon-192.png">
 </head>
 
@@ -14,7 +14,7 @@
     <header class="topo-admin">
         <div class="titulo-area">
             <h1>Painel Admin · Cursos</h1>
-            <a href="admin-etecs.html" class="voltar">&larr; Unidades</a>
+            <a href="admin-instituicoes.html" class="voltar">&larr; Unidades</a>
         </div>
         <div class="usuario-area">
             <span id="admin-email"></span>
@@ -34,11 +34,13 @@
 
             <div class="toolbar">
                 <div class="busca-area">
-                    <input type="text" id="busca-curso" placeholder="Buscar curso, eixo ou modalidade...">
+                    <input type="search" id="busca-curso" placeholder="Buscar curso, eixo ou modalidade...">
                 </div>
                 <div class="acoes-toolbar">
-                    <button type="button" id="btn-importar-catalogo" class="btn btn-secundario">⬇ Importar catálogo
-                        oficial</button>
+                    <select id="select-nivel-csv" class="select-tipo-importacao" title="Nível dos cursos deste CSV">
+                        <option value="tecnico">CSV técnico (Etec)</option>
+                        <option value="superior">CSV superior (Fatec)</option>
+                    </select>
                     <button type="button" id="btn-importar-csv" class="btn btn-secundario">⬆ Enviar CSV do CPS</button>
                     <button type="button" id="btn-filtrar-editados" class="btn btn-secundario">✏️ Editados à mão</button>
                     <input type="file" id="input-csv-cursos" accept=".csv,text/csv" style="display:none;">
@@ -51,11 +53,11 @@
 
             <div id="status-importacao" class="status-importacao" style="display:none;"></div>
 
-            <p class="dica-toolbar">O catálogo oficial já vem embutido no site. Para atualizá-lo depois, baixe o CSV
-                em cps.sp.gov.br/cursos-etec (botão "Download CSV (Excel)") e envie aqui. Com a opção acima marcada, o
-                catálogo corrige os campos que ele publica; o que ele deixa em branco (a duração de várias
-                especializações, por exemplo) continua como você preencheu. Desmarque para só preencher campos
-                vazios.</p>
+            <p class="dica-toolbar">Para atualizar o catálogo, baixe o CSV em cps.sp.gov.br/cursos-etec (cursos
+                técnicos) ou cps.sp.gov.br/cursos-fatec (cursos superiores), ambos com o botão "Download CSV
+                (Excel)", escolha o nível certo ao lado e envie aqui. Com a opção acima marcada, o catálogo corrige
+                os campos que ele publica; o que ele deixa em branco (a duração de várias especializações, por
+                exemplo) continua como você preencheu. Desmarque para só preencher campos vazios.</p>
 
             <div id="alerta-incompletos" class="alerta-localizacao" style="display:none;">
                 <div id="alerta-incompletos-texto"></div>
