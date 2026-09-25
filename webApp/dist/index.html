@@ -9,15 +9,16 @@
     <meta name="theme-color" content="#4e6ee8">
     <link rel="apple-touch-icon" href="./icon-512.png">
     <link rel="icon" type="image/png" href="./icon-192.png">
-  <script type="module" crossorigin src="./assets/main-D7av0dGJ.js"></script>
-  <link rel="modulepreload" crossorigin href="./assets/firebase-config-jeiW0dIw.js">
-  <link rel="modulepreload" crossorigin href="./assets/dashboard-99sClNh6.js">
+  <script type="module" crossorigin src="./assets/main-BUJHmKRo.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/firebase-config-XD2rgtmE.js">
+  <link rel="modulepreload" crossorigin href="./assets/conteudo-legal-padrao-DB74JH29.js">
+  <link rel="modulepreload" crossorigin href="./assets/dashboard-B_wktRtU.js">
   <link rel="modulepreload" crossorigin href="./assets/categorias-teste-82RqXHiT.js">
-  <link rel="modulepreload" crossorigin href="./assets/resultado-teste-BJf2aI9i.js">
+  <link rel="modulepreload" crossorigin href="./assets/resultado-teste-C88MdCWY.js">
   <link rel="modulepreload" crossorigin href="./assets/card-unidade-CA2qFmKO.js">
   <link rel="modulepreload" crossorigin href="./assets/geocodificacao-GFhpmzSl.js">
-  <link rel="modulepreload" crossorigin href="./assets/recomendacao-cursos-h1nXKPja.js">
-  <link rel="stylesheet" crossorigin href="./assets/dashboard-D3VH6eia.css">
+  <link rel="modulepreload" crossorigin href="./assets/recomendacao-cursos-C9NkKMnp.js">
+  <link rel="stylesheet" crossorigin href="./assets/dashboard-C8FBHaBR.css">
   <link rel="stylesheet" crossorigin href="./assets/ondas-Cp6OP_7e.css">
   <link rel="stylesheet" crossorigin href="./assets/cursos-etec-D5b91PcR.css">
 </head>
@@ -41,11 +42,9 @@
             <span class="menu-secao menu-admin-area" id="menu-secao-admin" hidden>Administração</span>
             <a href="admin-instituicoes.html" id="menu-admin" class="menu-item menu-admin-area" data-icone="🏫" hidden>Unidades</a>
             <a href="admin-cursos.html" id="menu-admin-cursos" class="menu-item menu-admin-area" data-icone="📚" hidden>Catálogo de cursos</a>
+            <a href="admin-termos.html" id="menu-admin-termos" class="menu-item menu-admin-area" data-icone="📜" hidden>Termos e Privacidade</a>
         </nav>
 
-        <div class="menu-rodape">
-            <button id="logout-btn" class="btn-sair">Sair da conta</button>
-        </div>
     </aside>
 
 <nav class="topnav">
@@ -73,15 +72,21 @@
                     </svg>
                 </a>
             </div>
-            <a href="login.html" class="avatar-link" aria-label="Ir para o perfil / Login">
-                <div class="avatar">
-                    <svg viewBox="0 0 34 34" width="34" height="34">
-                        <circle cx="17" cy="17" r="17" fill="#555" />
-                        <circle cx="17" cy="13" r="6" fill="#888" />
-                        <ellipse cx="17" cy="28" rx="10" ry="7" fill="#888" />
-                    </svg>
+            <div class="avatar-menu" id="avatar-menu" hidden>
+                <button type="button" class="avatar-link" id="avatar-botao" aria-haspopup="true" aria-expanded="false" aria-label="Menu da conta">
+                    <div class="avatar">
+                        <span id="avatar-iniciais"></span>
+                    </div>
+                </button>
+                <div class="avatar-dropdown" id="avatar-dropdown" hidden>
+                    <a href="perfil.html" class="avatar-dropdown-item">Meu perfil</a>
+                    <button type="button" id="logout-btn" class="avatar-dropdown-item avatar-dropdown-item--sair">Sair da conta</button>
                 </div>
-            </a>
+            </div>
+            <div class="nav-auth" id="nav-auth" hidden>
+                <a href="login.html" class="nav-auth-entrar">Entrar</a>
+                <a href="cadastro.html" class="nav-auth-cadastro">Cadastro</a>
+            </div>
         </div>
     </nav>
 

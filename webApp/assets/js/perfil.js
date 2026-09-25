@@ -1,4 +1,4 @@
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from './firebase-config.js';
 import { escapeHtml } from './card-unidade.js';
@@ -228,6 +228,8 @@ function montarTags(container, opcoes, selecionadas, limite) {
 }
 
 function abrirEdicao() {
+    elemento('perfil-nome').value = cadastro.nome || '';
+    elemento('perfil-sobrenome').value = cadastro.sobrenome || '';
     elemento('perfil-escolaridade').value = perfil.escolaridade || '';
     elemento('perfil-formacao').value = perfil.formacao || '';
     elemento('perfil-sem-formacao').checked = perfil.semFormacao === true;
@@ -260,6 +262,8 @@ function lerEdicao() {
     });
 
     return {
+        nome: elemento('perfil-nome').value.trim(),
+        sobrenome: elemento('perfil-sobrenome').value.trim(),
         escolaridade: elemento('perfil-escolaridade').value,
         formacao: elemento('perfil-formacao').value.trim(),
         semFormacao: elemento('perfil-sem-formacao').checked,
@@ -271,19 +275,60 @@ function lerEdicao() {
     };
 }
 
+const DIAS_PARA_EXCLUIR = 30;
+
+// Não apaga na hora: marca a conta para exclusão daqui a 30 dias e
+// desconecta. Se a pessoa entrar de novo antes do prazo, dashboard.js
+// cancela o pedido sozinho (é o que fica de fato registrado nas contas).
+// Quem não voltar é apagado de vez por uma função agendada no backend, já
+// que ninguém estará logado para disparar isso pelo navegador.
+async function excluirConta() {
+    const digitado = prompt(
+        `Sua conta vai ficar marcada para exclusão e você será desconectado agora.\n` +
+        `Se ninguém entrar de novo em ${DIAS_PARA_EXCLUIR} dias, ela é apagada de vez — perfil, testes e certificados do mural.\n\n` +
+        `Para confirmar, digite EXCLUIR:`
+    );
+    if ((digitado || '').trim().toUpperCase() !== 'EXCLUIR') return;
+
+    const status = elemento('perfil-status');
+    try {
+        const executarEm = new Date(Date.now() + DIAS_PARA_EXCLUIR * 24 * 60 * 60 * 1000).toISOString();
+        await setDoc(
+            doc(db, 'usuarios', usuarioAtual.uid),
+            { exclusao: { solicitadoEm: new Date().toISOString(), executarEm } },
+            { merge: true }
+        );
+        await signOut(auth);
+        alert(`Pronto. Se você não entrar de novo em ${DIAS_PARA_EXCLUIR} dias, sua conta é apagada.`);
+        window.location.href = 'index.html';
+    } catch (erro) {
+        console.error('Erro ao pedir exclusão da conta:', erro);
+        status.textContent = 'Não consegui registrar o pedido agora. Tente de novo.';
+        status.className = 'perfil-status perfil-status--erro';
+    }
+}
+
 async function salvar(evento) {
     evento.preventDefault();
     const status = elemento('perfil-status');
-    const novo = lerEdicao();
+    const { nome, sobrenome, ...novoPerfil } = lerEdicao();
+
+    if (!nome) {
+        status.textContent = 'Informe seu nome.';
+        status.className = 'perfil-status perfil-status--erro';
+        elemento('perfil-nome').focus({ preventScroll: true });
+        return;
+    }
 
     try {
         await setDoc(
             doc(db, 'usuarios', usuarioAtual.uid),
-            { perfil: { ...novo, atualizadoEm: new Date().toISOString() } },
+            { nome, sobrenome, perfil: { ...novoPerfil, atualizadoEm: new Date().toISOString() } },
             { merge: true }
         );
         status.textContent = '';
-        mostrarVisualizacao(novo);
+        cadastro = { ...cadastro, nome, sobrenome };
+        mostrarVisualizacao(novoPerfil);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (erro) {
         console.error('Erro ao salvar o perfil:', erro);
@@ -342,9 +387,20 @@ document.addEventListener('DOMContentLoaded', () => {
     elemento('btn-editar-perfil')?.addEventListener('click', abrirEdicao);
     elemento('btn-cancelar-perfil')?.addEventListener('click', mostrarVisualizacao);
     elemento('perfil-edicao')?.addEventListener('submit', salvar);
+    elemento('btn-excluir-conta')?.addEventListener('click', excluirConta);
 
     elemento('perfil-objetivo')?.addEventListener('input', (e) => {
         elemento('perfil-objetivo-contador').textContent = e.target.value.length;
+    });
+
+    [elemento('perfil-nome'), elemento('perfil-sobrenome')].forEach((input) => {
+        input?.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/[0-9]/g, '');
+        });
+        input?.addEventListener('blur', (e) => {
+            const valor = e.target.value.trim();
+            if (valor) e.target.value = valor.charAt(0).toUpperCase() + valor.slice(1).toLowerCase();
+        });
     });
 
     elemento('perfil-sem-formacao')?.addEventListener('change', (e) => {

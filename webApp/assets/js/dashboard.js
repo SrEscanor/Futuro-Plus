@@ -1,6 +1,7 @@
 import { auth, db } from './firebase-config.js';
 import { signOut, onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, deleteField } from "firebase/firestore";
+import { verificarTermosAtualizados } from './gate-termos.js';
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -13,12 +14,23 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Iniciais do avatar do topo: nome + sobrenome, ou só a primeira letra do
+    // e-mail quando a pessoa ainda não tem nome salvo.
+    function iniciaisDoNome(nome) {
+        const partes = (nome || '?').trim().split(/\s+/).filter(Boolean);
+        return partes.slice(0, 2).map((parte) => parte[0].toUpperCase()).join('') || '?';
+    }
+
     // Monitora a sessão e busca o nome no Firestore (Login Opcional)
     onAuthStateChanged(auth, async (user) => {
         const spanNome = document.getElementById("nomeUsuario");
+        const avatarMenu = document.getElementById("avatar-menu");
+        const avatarIniciais = document.getElementById("avatar-iniciais");
+        const navAuth = document.getElementById("nav-auth");
 
         if (user) {
             console.log("Usuário logado UID:", user.uid);
+            let nomeCompleto = '';
             try {
                 const docRef = doc(db, "usuarios", user.uid);
                 const docSnap = await getDoc(docRef);
@@ -26,9 +38,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (docSnap.exists()) {
                     const dados = docSnap.data();
                     console.log("Dados encontrados no Firestore:", dados);
+
+                    // A pessoa tinha pedido para excluir a conta e voltou a
+                    // entrar antes do prazo: cancela o pedido na hora.
+                    if (dados.exclusao) {
+                        await setDoc(docRef, { exclusao: deleteField() }, { merge: true });
+                        alert("Você tinha pedido para excluir sua conta. Como você entrou de novo, esse pedido foi cancelado e sua conta continua normal.");
+                    }
+
+                    // Bloqueia o site com um aviso se os Termos/Política mudaram
+                    // desde o último aceite (ou se a conta nunca aceitou nenhuma
+                    // versão, caso de contas criadas antes desse controle existir).
+                    verificarTermosAtualizados(dados).catch((erro) => console.error("Erro ao checar termos:", erro));
+
+                    nomeCompleto = [dados.nome, dados.sobrenome].filter(Boolean).join(' ').trim();
                     if (dados.nome && spanNome) {
                         spanNome.textContent = dados.nome;
-                    } else {
+                    } else if (!dados.nome) {
                         console.warn("O campo 'nome' não existe no documento do Firestore.");
                     }
 
@@ -44,13 +70,48 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (error) {
                 console.error("Erro ao buscar dados no Firestore:", error);
             }
+
+            if (avatarIniciais) avatarIniciais.textContent = iniciaisDoNome(nomeCompleto || user.email);
+            if (avatarMenu) avatarMenu.hidden = false;
+            if (navAuth) navAuth.hidden = true;
         } else {
             console.log("Nenhum usuário logado. Modo visitante ativado.");
             if (spanNome) {
                 spanNome.textContent = "ESTUDANTE";
             }
+            if (avatarMenu) avatarMenu.hidden = true;
+            if (navAuth) navAuth.hidden = false;
+            fecharAvatarDropdown();
         }
     });
+
+    // Balão do avatar: abre no clique, fecha clicando fora, com Esc ou ao
+    // escolher uma opção.
+    const avatarBotao = document.getElementById("avatar-botao");
+    const avatarDropdown = document.getElementById("avatar-dropdown");
+
+    function fecharAvatarDropdown() {
+        if (!avatarDropdown || avatarDropdown.hidden) return;
+        avatarDropdown.hidden = true;
+        avatarBotao?.setAttribute("aria-expanded", "false");
+    }
+
+    if (avatarBotao && avatarDropdown) {
+        avatarBotao.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const vaiAbrir = avatarDropdown.hidden;
+            avatarDropdown.hidden = !vaiAbrir;
+            avatarBotao.setAttribute("aria-expanded", String(vaiAbrir));
+        });
+
+        document.addEventListener("click", (e) => {
+            if (!avatarDropdown.hidden && !e.target.closest("#avatar-menu")) fecharAvatarDropdown();
+        });
+
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") fecharAvatarDropdown();
+        });
+    }
 
     const hamburger = document.querySelector('.hamburger');
     const menuPanel = document.querySelector('.menu-panel');

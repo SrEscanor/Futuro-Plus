@@ -1,9 +1,17 @@
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "./firebase-config.js"; // Certifique-se de importar o 'auth' exportado do seu config
 import { integrarResultadoPendenteComPerfil } from "./resultado-teste.js";
+import { entrarComGoogle } from "./auth-google.js";
 
 const formLogin = document.getElementById("formLogin");
 const botaoEntrar = document.querySelector(".btn-login");
+const botaoGoogle = document.getElementById("btnGoogleLogin");
+
+botaoGoogle.addEventListener("click", async () => {
+    if (await entrarComGoogle(botaoGoogle)) {
+        window.location.href = "index.html";
+    }
+});
 
 // O Enter em um campo de formulário já envia sozinho na maioria dos
 // navegadores, mas tratamos a tecla também: preventDefault evita que os dois

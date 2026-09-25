@@ -1,10 +1,102 @@
 import { auth, db } from './firebase-config.js';
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { createUserWithEmailAndPassword, deleteUser } from "firebase/auth";
+import { doc, getDoc, writeBatch } from "firebase/firestore";
 import { integrarResultadoPendenteComPerfil } from "./resultado-teste.js";
 import { localizarRuaDoAluno } from "./geocodificacao.js";
+import { entrarComGoogle } from "./auth-google.js";
 
 document.addEventListener('DOMContentLoaded', () => {
+  const botaoGoogle = document.getElementById('btnGoogleCadastro');
+  botaoGoogle.addEventListener('click', async () => {
+    if (await entrarComGoogle(botaoGoogle)) {
+      window.location.href = 'index.html';
+    }
+  });
+
+  // ---------------------------------------------------------------
+  // Leitura obrigatória dos termos: o aceite só libera depois que a
+  // pessoa abre os dois documentos e rola cada um até o fim.
+  // ---------------------------------------------------------------
+  const modalLegal = document.getElementById('modal-legal');
+  const modalLegalTitulo = document.getElementById('modal-legal-titulo');
+  const modalLegalIframe = document.getElementById('modal-legal-iframe');
+  const modalLegalAviso = document.getElementById('modal-legal-aviso');
+  const modalLegalFechar = document.getElementById('modal-legal-fechar');
+  const aceiteTermos = document.getElementById('aceiteTermos');
+  const labelAceiteTermos = document.getElementById('label-aceite-termos');
+
+  const lidos = { termos: false, privacidade: false };
+  let docAberto = null;
+
+  function atualizarLiberacaoDoAceite() {
+    const tudoLido = lidos.termos && lidos.privacidade;
+    aceiteTermos.disabled = !tudoLido;
+    if (tudoLido) {
+      labelAceiteTermos.innerHTML = 'Li e concordo com os <a href="termos-de-uso.html" target="_blank">Termos de Uso</a> e a <a href="privacidade.html" target="_blank">Política de Privacidade</a>.';
+    }
+  }
+
+  function marcarComoLido(chave) {
+    if (!chave || lidos[chave]) return;
+    lidos[chave] = true;
+    const idBotao = chave === 'termos' ? 'btn-ler-termos' : 'btn-ler-privacidade';
+    const idStatus = chave === 'termos' ? 'status-termos' : 'status-privacidade';
+    document.getElementById(idBotao).classList.add('btn-ler-termo--lido');
+    document.getElementById(idStatus).textContent = '✓';
+    if (docAberto === chave) {
+      modalLegalAviso.textContent = 'Lido! Você já pode fechar.';
+      modalLegalAviso.classList.add('lido');
+    }
+    atualizarLiberacaoDoAceite();
+  }
+
+  // Considera lido quando faltam menos de ~40px pra chegar no fim — evita
+  // depender de rolar o pixel exato, o que varia por navegador/tela.
+  function aoRolarIframe() {
+    const janela = modalLegalIframe.contentWindow;
+    const documentoIframe = modalLegalIframe.contentDocument;
+    if (!janela || !documentoIframe?.documentElement) return;
+    const faltam = documentoIframe.documentElement.scrollHeight - (janela.scrollY + janela.innerHeight);
+    if (faltam < 40) marcarComoLido(docAberto);
+  }
+
+  function abrirModalLegal(chave, caminhoDoc, titulo) {
+    docAberto = chave;
+    modalLegalTitulo.textContent = titulo;
+    modalLegalAviso.classList.remove('lido');
+    modalLegalAviso.textContent = lidos[chave]
+      ? 'Lido! Você já pode fechar.'
+      : 'Role o texto até o fim para marcar como lido.';
+    if (lidos[chave]) modalLegalAviso.classList.add('lido');
+    modalLegalIframe.src = caminhoDoc;
+    modalLegal.showModal();
+  }
+
+  document.getElementById('btn-ler-termos').addEventListener('click', (e) => {
+    abrirModalLegal('termos', e.currentTarget.dataset.doc, e.currentTarget.dataset.titulo);
+  });
+  document.getElementById('btn-ler-privacidade').addEventListener('click', (e) => {
+    abrirModalLegal('privacidade', e.currentTarget.dataset.doc, e.currentTarget.dataset.titulo);
+  });
+
+  modalLegalIframe.addEventListener('load', () => {
+    try {
+      modalLegalIframe.contentWindow.addEventListener('scroll', aoRolarIframe);
+      // Documento curto o bastante pra caber sem rolar já conta como lido.
+      aoRolarIframe();
+    } catch (erro) {
+      // Se o navegador bloquear o acesso ao conteúdo do iframe por algum
+      // motivo, não trava o cadastro: libera como lido ao abrir.
+      console.error('Erro ao observar o scroll do termo:', erro);
+      marcarComoLido(docAberto);
+    }
+  });
+
+  modalLegalFechar.addEventListener('click', () => modalLegal.close());
+  modalLegal.addEventListener('click', (e) => {
+    if (e.target === modalLegal) modalLegal.close();
+  });
+
   const cepInput = document.getElementById('cep');
   const cpfInput = document.getElementById('cpf');
   const nomeInput = document.getElementById('nome');
@@ -108,6 +200,21 @@ document.addEventListener('DOMContentLoaded', () => {
   // ---------------------------------------------------------------
   // Validações
   // ---------------------------------------------------------------
+  function normalizarCpf(cpf) {
+    return cpf.replace(/\D/g, '');
+  }
+
+  // Versão atual do documento publicado em admin-termos.html (1 se ninguém
+  // publicou nada ainda) — grava qual versão a pessoa aceitou no cadastro.
+  async function buscarVersaoAtual(colecaoId) {
+    try {
+      const snap = await getDoc(doc(db, 'configuracoes', colecaoId));
+      return snap.exists() && snap.data().versao ? snap.data().versao : 1;
+    } catch {
+      return 1;
+    }
+  }
+
   function validaCPF(cpf) {
     cpf = cpf.replace(/\D/g, '');
     if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
@@ -247,6 +354,22 @@ document.addEventListener('DOMContentLoaded', () => {
     e.target.value = value;
   });
 
+  // Avisa na hora se o CPF já tem conta, sem esperar o fim do cadastro. A
+  // checagem definitiva (que reserva o CPF de verdade) acontece de novo no
+  // envio, porque entre o blur e o clique em "Criar conta" outra pessoa pode
+  // ter cadastrado o mesmo CPF primeiro.
+  cpfInput.addEventListener('blur', async () => {
+    if (!validaCPF(cpfInput.value)) return;
+    try {
+      const reservado = await getDoc(doc(db, 'cpfs_em_uso', normalizarCpf(cpfInput.value)));
+      if (reservado.exists()) {
+        mostrarErro('Este CPF já está cadastrado em outra conta.', cpfInput);
+      }
+    } catch (erro) {
+      console.error('Erro ao checar CPF:', erro);
+    }
+  });
+
   [nomeInput, sobrenomeInput].forEach(input => {
     input.addEventListener('input', (e) => {
       e.target.value = e.target.value.replace(/[0-9]/g, '');
@@ -323,30 +446,46 @@ document.addEventListener('DOMContentLoaded', () => {
       // 1. Cria a conta de Autenticação no Firebase
       // Espera no máximo 3 s pela coordenada; se não vier, a conta é criada
       // sem ela e a primeira visita à home completa depois.
-      const localizacao = await Promise.race([
-        buscaLocalizacao,
-        new Promise((resolve) => setTimeout(() => resolve(null), 3000))
+      const [localizacao, versaoTermos, versaoPrivacidade] = await Promise.all([
+        Promise.race([buscaLocalizacao, new Promise((resolve) => setTimeout(() => resolve(null), 3000))]),
+        buscarVersaoAtual('termos-de-uso'),
+        buscarVersaoAtual('politica-privacidade')
       ]);
 
       const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
       const user = userCredential.user;
 
-      // 2. Salva os dados complementares no Firestore
-      await setDoc(doc(db, "usuarios", user.uid), {
-        nome: nomeInput.value,
-        sobrenome: sobrenomeInput.value,
-        cpf: cpfInput.value,
-        email: email,
-        dataNascimento: document.getElementById('dataNascimento').value,
-        genero: document.getElementById('genero').value,
-        cep: cepInput.value,
-        rua: document.getElementById('rua').value,
-        numero: numeroInput.value,
-        estado: document.getElementById('estado').value,
-        ...(cidadeDoCep ? { cidade: cidadeDoCep } : {}),
-        ...(localizacao ? { localizacao } : {}),
-        criadoEm: new Date().toISOString()
-      });
+      // 2. Salva os dados complementares e reserva o CPF no mesmo lote: se o
+      // CPF já tiver dono, a regra do Firestore recusa o lote inteiro (nada
+      // fica gravado pela metade), e desfazemos a conta de Auth criada acima.
+      const cpfNormalizado = normalizarCpf(cpfInput.value);
+      try {
+        const lote = writeBatch(db);
+        lote.set(doc(db, "usuarios", user.uid), {
+          nome: nomeInput.value,
+          sobrenome: sobrenomeInput.value,
+          cpf: cpfInput.value,
+          email: email,
+          dataNascimento: document.getElementById('dataNascimento').value,
+          genero: document.getElementById('genero').value,
+          cep: cepInput.value,
+          rua: document.getElementById('rua').value,
+          numero: numeroInput.value,
+          estado: document.getElementById('estado').value,
+          ...(cidadeDoCep ? { cidade: cidadeDoCep } : {}),
+          ...(localizacao ? { localizacao } : {}),
+          termosAceitos: { termos: versaoTermos, privacidade: versaoPrivacidade, aceitoEm: new Date().toISOString() },
+          criadoEm: new Date().toISOString()
+        });
+        lote.set(doc(db, "cpfs_em_uso", cpfNormalizado), {
+          uid: user.uid,
+          criadoEm: new Date().toISOString()
+        });
+        await lote.commit();
+      } catch (erroPerfil) {
+        await deleteUser(user).catch((erroLimpeza) => console.error('Erro ao desfazer conta:', erroLimpeza));
+        throw Object.assign(new Error('CPF já cadastrado'), { code: 'cpf-em-uso' });
+      }
 
       // Se a pessoa fez o teste antes de criar a conta, vincula o resultado agora
       await integrarResultadoPendenteComPerfil(user.uid)
@@ -360,7 +499,10 @@ document.addEventListener('DOMContentLoaded', () => {
       botaoEnviar.disabled = false;
       botaoEnviar.textContent = 'Criar conta';
 
-      if (error.code === 'auth/email-already-in-use') {
+      if (error.code === 'cpf-em-uso') {
+        irParaEtapa(2);
+        mostrarErro("Este CPF já está cadastrado em outra conta.", cpfInput);
+      } else if (error.code === 'auth/email-already-in-use') {
         irParaEtapa(1);
         mostrarErro("Este e-mail já está cadastrado.", document.getElementById('email'));
       } else if (error.code === 'auth/weak-password') {

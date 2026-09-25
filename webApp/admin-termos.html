@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Futuro+ | Admin · Termos e Privacidade</title>
+    <link rel="stylesheet" href="assets/css/admin-instituicoes.css">
+    <link rel="icon" type="image/png" href="/icon-192.png">
+</head>
+
+<body>
+
+    <header class="topo-admin">
+        <div class="titulo-area">
+            <h1>Painel Admin · Termos e Privacidade</h1>
+            <a href="admin-instituicoes.html" class="voltar">&larr; Unidades</a>
+        </div>
+        <div class="usuario-area">
+            <span id="admin-email"></span>
+            <button id="logout-btn" class="btn-sair-admin">Sair</button>
+        </div>
+    </header>
+
+    <div id="acesso-negado" class="acesso-negado">
+        <h2>Acesso restrito</h2>
+        <p>Esta área é exclusiva para administradores do Futuro+. Se você acredita que deveria ter acesso, fale com
+            quem administra o projeto.</p>
+        <a href="index.html" class="btn btn-secundario">Voltar ao início</a>
+    </div>
+
+    <main id="admin-app" style="display:none;">
+        <div class="container-admin">
+
+            <div id="status-publicacao" class="status-importacao"></div>
+
+            <section class="secao-form">
+                <h3>Termos de Uso <span class="versao-atual" id="versao-termos"></span></h3>
+                <div class="campo">
+                    <label for="conteudo-termos">Conteúdo (HTML)</label>
+                    <textarea id="conteudo-termos" class="textarea-legal" spellcheck="false"></textarea>
+                    <span class="campo-dica">Use tags HTML normais: &lt;h2&gt;, &lt;p&gt;, &lt;ul&gt;&lt;li&gt;, &lt;strong&gt;, &lt;a href="..."&gt;.</span>
+                </div>
+            </section>
+
+            <section class="secao-form">
+                <h3>Política de Privacidade <span class="versao-atual" id="versao-privacidade"></span></h3>
+                <div class="campo">
+                    <label for="conteudo-privacidade">Conteúdo (HTML)</label>
+                    <textarea id="conteudo-privacidade" class="textarea-legal" spellcheck="false"></textarea>
+                </div>
+            </section>
+
+            <section class="zona-risco-admin">
+                <h3>⚠️ Publicar nova versão</h3>
+                <p>
+                    Ao publicar, a versão dos dois documentos sobe e <strong>toda conta que já tinha aceitado uma
+                    versão anterior</strong> vai ver um aviso obrigatório na próxima vez que entrar, bloqueando o
+                    uso do site até aceitar de novo. Essa ação não pode ser desfeita.
+                </p>
+                <div class="campo" id="campo-senha-admin">
+                    <label for="confirmar-senha-admin">Confirme sua senha para publicar</label>
+                    <input type="password" id="confirmar-senha-admin" placeholder="Sua senha atual" autocomplete="current-password">
+                </div>
+                <button type="button" id="btn-publicar-termos" class="btn btn-primario">Publicar nova versão</button>
+            </section>
+
+        </div>
+    </main>
+
+    <script type="module" src="assets/js/admin-termos.js"></script>
+</body>
+
+</html>

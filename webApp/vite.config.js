@@ -19,6 +19,9 @@ export default defineConfig({
         mural: resolve(__dirname, 'mural.html'),
         vocacional: resolve(__dirname, 'teste-vocacional.html'),
         adminCursos: resolve(__dirname, 'admin-cursos.html'),
+        termos: resolve(__dirname, 'termos-de-uso.html'),
+        privacidade: resolve(__dirname, 'privacidade.html'),
+        adminTermos: resolve(__dirname, 'admin-termos.html'),
         // sem o redirecionamento "tudo para o index", um endereço errado
         // precisa desta página para não cair no 404 genérico do Firebase
         naoEncontrado: resolve(__dirname, '404.html')
