@@ -95,7 +95,7 @@ def _carregar_unidades() -> list[dict]:
         return _cache_unidades["unidades"]
 
     unidades = []
-    for documento in firestore.client().collection("etecs").stream():
+    for documento in firestore.client().collection("instituicoes").stream():
         dados = documento.to_dict() or {}
         localizacao = dados.get("localizacao") or {}
         unidades.append({

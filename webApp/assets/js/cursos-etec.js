@@ -185,7 +185,7 @@ async function ordenarPelaLocalizacao() {
 async function carregarUnidades() {
     const container = document.getElementById('grid-unidades');
     try {
-        const snap = await getDocs(collection(db, 'etecs'));
+        const snap = await getDocs(collection(db, 'instituicoes'));
         unidadesCache = snap.docs
             .map((d) => ({ id: d.id, ...d.data() }))
             .sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'));

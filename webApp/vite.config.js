@@ -12,10 +12,11 @@ export default defineConfig({
         afinidades: resolve(__dirname, 'teste-afinidades.html'),
         testes: resolve(__dirname, 'testes.html'),
         cadastro: resolve(__dirname, 'cadastro.html'),
-        adminEtecs: resolve(__dirname, 'admin-etecs.html'),
+        adminInstituicoes: resolve(__dirname, 'admin-instituicoes.html'),
         cursos: resolve(__dirname, 'cursos.html'),
         curso: resolve(__dirname, 'curso.html'),
         perfil: resolve(__dirname, 'perfil.html'),
+        mural: resolve(__dirname, 'mural.html'),
         vocacional: resolve(__dirname, 'teste-vocacional.html'),
         adminCursos: resolve(__dirname, 'admin-cursos.html'),
         // sem o redirecionamento "tudo para o index", um endereço errado

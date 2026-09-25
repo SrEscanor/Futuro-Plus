@@ -198,7 +198,12 @@ function loadQuestion() {
 
         btn.textContent = option.text;
 
-        btn.onclick = () => selectOption(option.category);
+        btn.onclick = () => {
+            // no celular o botão continua "focado" depois do toque, e o
+            // próximo, desenhado no mesmo lugar, herdaria o destaque
+            btn.blur();
+            selectOption(option.category);
+        };
 
         optionsContainer.appendChild(btn);
     });

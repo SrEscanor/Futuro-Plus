@@ -181,7 +181,9 @@ function gravarCache(storage, chave, dados) {
 // Oferta: quais unidades oferecem cada curso
 // ============================================================
 let ofertaEmMemoria = null;
-const CHAVE_OFERTA = "futuroplus:ofertaCursos:v2";
+// v3: adicionou o campo "tipo" da unidade (usado para escolher a logo padrão
+// Etec/Fatec no card) — versão nova para não reaproveitar cache sem o campo.
+const CHAVE_OFERTA = "futuroplus:ofertaCursos:v3";
 
 // Guardado por sessão (sessionStorage) para a home não reler as 229
 // unidades a cada visita, mas ainda refletir o que o admin alterar.
@@ -191,7 +193,7 @@ export async function carregarOfertaCursos() {
     let cursos = lerCache(sessionStorage, CHAVE_OFERTA, 6 * 60 * 60 * 1000);
 
     if (!cursos) {
-        const snap = await getDocs(collection(db, "etecs"));
+        const snap = await getDocs(collection(db, "instituicoes"));
         cursos = {};
         snap.docs.forEach((documento) => {
             const u = documento.data();
@@ -199,6 +201,7 @@ export async function carregarOfertaCursos() {
                 id: documento.id,
                 nome: u.nome,
                 municipio: u.municipio,
+                tipo: u.tipo || "",
                 logotipoUrl: u.logotipoUrl || "",
                 localizacao: u.localizacao?.lat != null
                     ? { lat: u.localizacao.lat, lng: u.localizacao.lng, precisao: u.localizacao.precisao }
@@ -440,7 +443,7 @@ export function textoMotivo(recomendacao) {
 
 export function textoOferta(recomendacao, localizacao) {
     const total = recomendacao.unidades.length;
-    const totalTexto = `Em ${total} Etec${total === 1 ? "" : "s"}`;
+    const totalTexto = `Em ${total} unidade${total === 1 ? "" : "s"}`;
     const maisPerto = recomendacao.unidades[0];
     if (!localizacao || !maisPerto) return totalTexto;
 
@@ -465,7 +468,7 @@ export function linkCurso(nomeCurso) {
 // ============================================================
 export async function renderizarRecomendacoesTeste(container, resultado, { uid = null } = {}) {
     if (!container) return;
-    container.innerHTML = `<p class="recomendacoes-carregando">Buscando cursos das Etecs para o seu perfil...</p>`;
+    container.innerHTML = `<p class="recomendacoes-carregando">Buscando cursos das unidades para o seu perfil...</p>`;
 
     try {
         const dadosUsuario = uid
@@ -486,7 +489,7 @@ export async function renderizarRecomendacoesTeste(container, resultado, { uid =
 
         container.innerHTML = `
             <div class="recomendacoes-teste">
-                <h3>🎯 Cursos das Etecs que combinam com você</h3>
+                <h3>🎯 Cursos das unidades que combinam com você</h3>
                 <p class="recomendacoes-teste-sub">
                     Calculado a partir das suas 3 inteligências mais fortes${localizacao ? `, priorizando unidades perto de ${escapeHtml(localizacao.cidade)}` : ""}.
                 </p>

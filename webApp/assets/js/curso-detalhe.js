@@ -179,11 +179,20 @@ async function carregar() {
             return;
         }
 
+        // Cursos técnicos (Etec) e superiores (Fatec) às vezes têm o mesmo
+        // nome ("Logística", "Marketing"...) mas são grades diferentes — o
+        // nome sozinho não basta para casar unidade com curso, senão a
+        // página de um listaria as unidades do outro.
         const termo = normalizar(curso.nome);
-        const unidadesSnap = await getDocs(collection(db, 'etecs'));
+        const ehSuperior = curso.nivel === 'superior';
+        const unidadesSnap = await getDocs(collection(db, 'instituicoes'));
         const unidades = unidadesSnap.docs
             .map((d) => ({ id: d.id, ...d.data() }))
-            .filter((u) => (u.cursos || []).some((c) => normalizar(c?.nome) === termo));
+            .filter((u) => {
+                if (!(u.cursos || []).some((c) => normalizar(c?.nome) === termo)) return false;
+                const unidadeEhFatec = (u.tipo || '').trim().toLowerCase() === 'fatec';
+                return ehSuperior ? unidadeEhFatec : !unidadeEhFatec;
+            });
 
         renderizar(curso, unidades, null);
 

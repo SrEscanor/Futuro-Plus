@@ -1,19 +1,26 @@
 import { auth, db } from './firebase-config.js';
 import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
-import { salvarResultadoNoPerfil } from './resultado-teste.js';
+import { salvarResultadoNoPerfil, extrairResultadoVocacional } from './resultado-teste.js';
 import { escapeHtml, normalizar } from './card-unidade.js';
 import {
     PERGUNTAS_SITUACAO,
     AFIRMACOES_INTERESSE,
     ESCALA_INTERESSE,
-    PERGUNTAS_ESTILO
+    PERGUNTAS_ESTILO,
+    MAXIMO_CARTAS,
+    LOTE_VER_MAIS,
+    AREAS_POR_EXPANSAO,
+    EIXOS
 } from './perguntas-vocacional.js';
 import {
     pontuarEixos,
     escolherCartas,
     montarResultado,
     motivoDaRecomendacao,
-    ranquearEixos
+    ranquearEixos,
+    chaveOferta,
+    avisarPrecisaConcluirMedio,
+    EIXOS_NAS_CARTAS
 } from './vocacional-resultado.js';
 
 const CATALOGO_OFICIAL = '/dados/catalogo-cursos.json';
@@ -33,8 +40,33 @@ let unidadesPorCurso = new Map();
 let cartas = [];
 let etapa = 0;
 
+// Modo edição: pula direto para as cartas, reaproveitando a área e a
+// situação já calculadas antes — não faz sentido pedir de novo as 24
+// afirmações de interesse só para trocar um "talvez" por um "quero".
+let modoEditar = false;
+let notasSalvas = null;
+
+// "Ver mais cursos": começa nas 4 áreas mais fortes e 12 cartas, como
+// sempre foi. Cada clique busca todos os candidatos disponíveis nas áreas
+// já abertas, descarta os que já apareceram e só ACRESCENTA os novos no
+// final — nunca reordena as cartas que a pessoa já estava vendo/respondendo.
+// Quando as áreas atuais não têm mais nada novo, abre mais áreas.
+const SEM_LIMITE_PRATICO = 999;
+let areasCartas = EIXOS_NAS_CARTAS;
+let semMaisCartas = false;
+
+function notasAtuais() {
+    return modoEditar ? notasSalvas : pontuarEixos(respostas.interesse, respostas.estilo);
+}
+
 // Cada etapa sabe se está completa e o que desenhar.
 function etapas() {
+    if (modoEditar) {
+        return [
+            { bloco: 4, titulo: 'Seus cursos', render: renderCartas, completa: () => cartas.every((c) => respostas.cartas[c.curso.slug]) }
+        ];
+    }
+
     const telasInteresse = Math.ceil(AFIRMACOES_INTERESSE.length / AFIRMACOES_POR_TELA);
     const lista = [
         { bloco: 1, titulo: 'Sua situação', render: renderSituacao, completa: () => PERGUNTAS_SITUACAO.every((p) => respostas.situacao[p.id]) }
@@ -132,33 +164,66 @@ function avisosDoCurso(curso) {
     return avisos;
 }
 
+// Corta a descrição, mas sem deixar sem saída: com <details> nativo, "ler
+// mais" abre o texto completo sem precisar de JS nem sair da carta.
+const CORTE_DESCRICAO = 220;
+function blocoDescricao(curso) {
+    const texto = curso.descricao || '';
+    if (!texto) return '';
+    if (texto.length <= CORTE_DESCRICAO) {
+        return `<p class="voc-carta-descricao">${escapeHtml(texto)}</p>`;
+    }
+    const resumo = texto.slice(0, CORTE_DESCRICAO).trim();
+    return `
+        <details class="voc-carta-descricao">
+            <summary>
+                <span class="voc-carta-resumo">${escapeHtml(resumo)}…</span>
+                <span class="voc-carta-ler-mais">ler mais</span>
+                <span class="voc-carta-ler-menos">ler menos</span>
+            </summary>
+            <p>${escapeHtml(texto)}</p>
+        </details>`;
+}
+
 function renderCartas() {
     if (!cartas.length) {
         return '<p class="voc-intro">Não encontrei cursos para a sua situação. Tente rever o primeiro bloco.</p>';
     }
 
     return `
-    <p class="voc-intro">Agora o mais importante: leia o que se aprende em cada curso e diga o que acha.
-    São ${cartas.length} cursos das áreas que mais combinaram com você.</p>
-    ${cartas.map(({ curso, eixo }) => `
-        <article class="voc-carta ${respostas.cartas[curso.slug] ? 'voc-carta--respondida' : ''}">
+    <p class="voc-intro">${modoEditar
+        ? `Reveja o que você respondeu e troque à vontade. São ${cartas.length} cursos das áreas que mais combinaram com você.`
+        : `Agora o mais importante: leia o que se aprende em cada curso e diga o que acha. São ${cartas.length} cursos das áreas que mais combinaram com você.`}</p>
+    ${cartas.map(({ curso, eixo }) => {
+        const nivel = curso.nivel === 'superior' ? 'superior' : 'tecnico';
+        const resposta = respostas.cartas[curso.slug];
+        return `
+        <article class="voc-carta voc-carta--${nivel} ${resposta === 'nao' ? 'voc-carta--resp-nao' : ''}" data-slug="${escapeHtml(curso.slug)}">
             <header>
-                <span class="voc-carta-eixo">${escapeHtml(eixo)}</span>
+                <div class="voc-carta-badges">
+                    <span class="voc-carta-nivel voc-carta-nivel--${nivel}">${nivel === 'superior' ? 'Superior' : 'Técnico'}</span>
+                    <span class="voc-carta-eixo">${escapeHtml(eixo)}</span>
+                </div>
                 <h3>${escapeHtml(curso.nome)}</h3>
             </header>
-            <p class="voc-carta-descricao">${escapeHtml((curso.descricao || '').slice(0, 320))}${(curso.descricao || '').length > 320 ? '…' : ''}</p>
+            ${blocoDescricao(curso)}
             ${curso.ondeTrabalhar ? `<p class="voc-carta-onde"><strong>Onde se trabalha:</strong> ${escapeHtml(curso.ondeTrabalhar.slice(0, 160))}</p>` : ''}
+            ${avisarPrecisaConcluirMedio(curso, respostas.situacao) ? '<p class="voc-carta-aviso-medio">⚠️ Curso superior (Fatec): a matrícula só acontece depois que você concluir o ensino médio.</p>' : ''}
             ${avisosDoCurso(curso).length ? `<p class="voc-carta-ficha">${avisosDoCurso(curso).map((a) => `<span>${escapeHtml(a)}</span>`).join('')}</p>` : ''}
             <div class="voc-carta-botoes">
                 ${[['quero', 'Quero esse'], ['talvez', 'Talvez'], ['nao', 'Não é pra mim']].map(([valor, texto]) => `
-                    <label class="voc-resposta voc-resposta--${valor} ${respostas.cartas[curso.slug] === valor ? 'voc-resposta--ativa' : ''}">
+                    <label class="voc-resposta voc-resposta--${valor} ${resposta === valor ? 'voc-resposta--ativa' : ''}">
                         <input type="radio" name="carta-${escapeHtml(curso.slug)}" value="${valor}"
                             data-tipo="carta" data-id="${escapeHtml(curso.slug)}"
-                            ${respostas.cartas[curso.slug] === valor ? 'checked' : ''}>
+                            ${resposta === valor ? 'checked' : ''}>
                         ${texto}
                     </label>`).join('')}
             </div>
-        </article>`).join('')}`;
+        </article>`;
+    }).join('')}
+    ${semMaisCartas
+        ? '<p class="voc-fim-cartas">Não tem mais nenhum curso pra sua situação além desses.</p>'
+        : `<button type="button" id="voc-ver-mais" class="btn-voc btn-voc--secundario voc-ver-mais">Ver mais cursos</button>`}`;
 }
 
 // ------------------------------------------------------------------
@@ -197,7 +262,9 @@ function registrarResposta(input) {
         alvo?.classList.toggle('voc-nota--ativa', outro === input && alvo.classList.contains('voc-nota'));
         alvo?.classList.toggle('voc-resposta--ativa', outro === input && alvo.classList.contains('voc-resposta'));
     });
-    input.closest('.voc-carta')?.classList.add('voc-carta--respondida');
+    if (tipo === 'carta') {
+        input.closest('.voc-carta')?.classList.toggle('voc-carta--resp-nao', input.value === 'nao');
+    }
 }
 
 async function avancar() {
@@ -210,6 +277,8 @@ async function avancar() {
             ? 'Responda todos os cursos para ver o resultado.'
             : 'Responda todas as perguntas desta tela para continuar.';
         aviso.hidden = false;
+
+        if (atual.bloco === 4) irParaCartaSemResposta();
         return;
     }
     document.getElementById('voc-aviso').hidden = true;
@@ -225,10 +294,55 @@ async function avancar() {
     desenhar();
 }
 
+// Rola até a primeira carta sem resposta e pisca a borda dela, pra não
+// precisar caçar qual das 12 ficou faltando.
+function irParaCartaSemResposta() {
+    const semResposta = cartas.find((c) => !respostas.cartas[c.curso.slug]);
+    if (!semResposta) return;
+
+    const elemento = document.querySelector(`.voc-carta[data-slug="${CSS.escape(semResposta.curso.slug)}"]`);
+    if (!elemento) return;
+
+    elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    elemento.classList.add('voc-carta--destacada');
+    setTimeout(() => elemento.classList.remove('voc-carta--destacada'), 2200);
+}
+
 function prepararCartas() {
-    const notas = pontuarEixos(respostas.interesse, respostas.estilo);
-    cartas = escolherCartas(catalogo, notas, respostas.situacao, { unidadesPorCurso, normalizar });
+    areasCartas = EIXOS_NAS_CARTAS;
+    semMaisCartas = false;
+    cartas = escolherCartas(catalogo, notasAtuais(), respostas.situacao, { unidadesPorCurso, normalizar, limite: MAXIMO_CARTAS, numAreas: areasCartas });
     respostas.cartas = {};
+}
+
+// Chamada pelo botão "Ver mais cursos". Busca todo mundo que cabe nas
+// áreas já abertas, descarta quem já está na tela e acrescenta só os
+// novos no final — as cartas existentes nunca mudam de lugar. Se não
+// sobrar ninguém novo, abre mais áreas antes de desistir de vez.
+function verMaisCartas() {
+    const jaMostrados = new Set(cartas.map((c) => c.curso.slug));
+
+    const buscarNovos = () => escolherCartas(
+        catalogo, notasAtuais(), respostas.situacao,
+        { unidadesPorCurso, normalizar, limite: SEM_LIMITE_PRATICO, numAreas: areasCartas }
+    ).filter((item) => !jaMostrados.has(item.curso.slug));
+
+    let disponiveis = buscarNovos();
+    if (!disponiveis.length && areasCartas < EIXOS.length) {
+        areasCartas = Math.min(EIXOS.length, areasCartas + AREAS_POR_EXPANSAO);
+        disponiveis = buscarNovos();
+    }
+
+    const acrescentar = disponiveis.slice(0, LOTE_VER_MAIS);
+    cartas = [...cartas, ...acrescentar];
+    semMaisCartas = acrescentar.length === 0;
+    // atualiza só o conteúdo (sem usar desenhar(), que rolaria pro topo)
+    document.getElementById('voc-conteudo').innerHTML = renderCartas();
+
+    if (acrescentar.length) {
+        const primeiraNova = document.querySelector(`.voc-carta[data-slug="${CSS.escape(acrescentar[0].curso.slug)}"]`);
+        primeiraNova?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 }
 
 // ------------------------------------------------------------------
@@ -236,7 +350,9 @@ function prepararCartas() {
 // ------------------------------------------------------------------
 
 async function mostrarResultado() {
-    const notas = pontuarEixos(respostas.interesse, respostas.estilo);
+    // No modo edição não refizemos o bloco de interesse/estilo, então a nota
+    // de cada área continua sendo a que já foi salva da primeira vez.
+    const notas = notasAtuais();
     const resultado = montarResultado(cartas, respostas.cartas, notas);
 
     document.getElementById('voc-teste').hidden = true;
@@ -253,6 +369,7 @@ async function mostrarResultado() {
                     <a href="curso.html?c=${encodeURIComponent(curso.slug)}">
                         <span class="voc-resultado-nome">${escapeHtml(curso.nome)}</span>
                         <span class="voc-resultado-motivo">${escapeHtml(motivoDaRecomendacao({ eixo, resposta }, resultado.eixosFortes))}</span>
+                        ${avisarPrecisaConcluirMedio(curso, respostas.situacao) ? '<span class="voc-resultado-aviso">⚠️ Fatec: matrícula só depois de concluir o ensino médio</span>' : ''}
                         <span class="voc-resultado-link">ver o curso e onde estudar →</span>
                     </a>
                 </li>`).join('')}
@@ -286,6 +403,10 @@ async function mostrarResultado() {
             eixosFortes: resultado.eixosFortes,
             cursos: resultado.combinam.map(({ curso, eixo, resposta }) => ({ slug: curso.slug, nome: curso.nome, eixo, resposta })),
             descartados: resultado.descartados.map((d) => d.curso.slug),
+            // o mapa cru de todas as cartas respondidas (não só o top 5 do
+            // "combinam"), pra dar pra reabrir e editar exatamente do jeito
+            // que ficou, sem perder nada por causa do corte do ranking.
+            respostasCartas: respostas.cartas,
             concluidoEm: new Date().toISOString()
         });
         document.getElementById('voc-status-salvo').textContent = 'Resultado salvo no seu perfil.';
@@ -303,7 +424,7 @@ async function mostrarResultado() {
 async function carregarDados() {
     const [resposta, unidadesSnap] = await Promise.all([
         fetch(CATALOGO_OFICIAL),
-        getDocs(collection(db, 'etecs'))
+        getDocs(collection(db, 'instituicoes'))
     ]);
 
     const oficial = await resposta.json();
@@ -316,9 +437,14 @@ async function carregarDados() {
 
     unidadesPorCurso = new Map();
     unidadesSnap.docs.forEach((d) => {
-        (d.data().cursos || []).forEach((c) => {
+        const dados = d.data();
+        // Etec é o único tipo técnico hoje; qualquer outro tipo (Fatec, ou um
+        // tipo novo cadastrado nas unidades) conta como oferta de nível superior.
+        const tipo = (dados.tipo || '').trim().toLowerCase();
+        const nivel = tipo && tipo !== 'etec' ? 'superior' : 'tecnico';
+        (dados.cursos || []).forEach((c) => {
             if (!c?.nome) return;
-            const chave = normalizar(c.nome);
+            const chave = chaveOferta(c.nome, nivel, normalizar);
             unidadesPorCurso.set(chave, (unidadesPorCurso.get(chave) || 0) + 1);
         });
     });
@@ -342,10 +468,39 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
+    if (new URLSearchParams(location.search).get('editar')) {
+        try {
+            const snap = await getDoc(doc(db, 'usuarios', auth.currentUser.uid));
+            const salvo = extrairResultadoVocacional(snap.exists() ? snap.data() : null);
+            if (salvo?.situacao && salvo?.eixos) {
+                modoEditar = true;
+                notasSalvas = salvo.eixos;
+                respostas.situacao = { ...salvo.situacao };
+                cartas = escolherCartas(catalogo, notasSalvas, respostas.situacao, { unidadesPorCurso, normalizar, limite: MAXIMO_CARTAS, numAreas: areasCartas });
+                // resultado salvo antes dessa funcionalidade existir não tem o
+                // mapa completo — reconstrói o que dá do "combinam" (top 5) e
+                // dos descartados; o resto das cartas some sem resposta, e é
+                // só responder de novo essas (bem menos que o teste inteiro).
+                respostas.cartas = salvo.respostasCartas
+                    ? { ...salvo.respostasCartas }
+                    : Object.fromEntries([
+                        ...(salvo.cursos || []).map((c) => [c.slug, c.resposta]),
+                        ...(salvo.descartados || []).map((slug) => [slug, 'nao'])
+                    ]);
+            }
+        } catch (erro) {
+            console.error('Erro ao carregar o resultado salvo para editar:', erro);
+            // segue no teste normal — editar é um atalho, não uma etapa obrigatória
+        }
+    }
+
     desenhar();
 
     document.getElementById('voc-conteudo').addEventListener('change', (e) => {
         if (e.target.matches('input[type="radio"]')) registrarResposta(e.target);
+    });
+    document.getElementById('voc-conteudo').addEventListener('click', (e) => {
+        if (e.target.closest('#voc-ver-mais')) verMaisCartas();
     });
     document.getElementById('voc-avancar').addEventListener('click', avancar);
     document.getElementById('voc-voltar').addEventListener('click', () => {
