@@ -251,6 +251,42 @@
     color: var(--red);
 }
 
+/* ---- Zona de risco ---- */
+.perfil-zona-risco {
+    margin-top: 26px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+}
+
+.perfil-zona-risco h3 {
+    font-family: 'Poppins', 'Sora', sans-serif;
+    font-size: 14.5px;
+    font-weight: 700;
+    color: var(--red);
+    margin-bottom: 6px;
+}
+
+.perfil-zona-risco .perfil-dica {
+    margin-bottom: 12px;
+}
+
+.btn-excluir-conta {
+    padding: 11px 18px;
+    border: 1.5px solid var(--red);
+    border-radius: 99px;
+    background: var(--surface);
+    color: var(--red);
+    font-family: 'Poppins', 'Sora', sans-serif;
+    font-size: 13.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btn-excluir-conta:hover {
+    background-color: var(--red-soft);
+}
+
 @media (max-width: 640px) {
     .perfil-cartao {
         padding: 18px;

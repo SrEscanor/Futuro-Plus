@@ -221,6 +221,59 @@ a {
     font-size: 13px;
 }
 
+.status-importacao--ok {
+    background: var(--green-soft);
+    color: #1d865a;
+}
+
+.status-importacao--erro {
+    background: var(--red-soft);
+    color: #a41c1c;
+}
+
+/* ---- Edição de Termos/Privacidade ---- */
+.versao-atual {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    text-transform: none;
+    letter-spacing: normal;
+    margin-left: 8px;
+}
+
+.textarea-legal {
+    min-height: 320px;
+    font-family: 'Courier New', monospace;
+    font-size: 12.5px;
+    line-height: 1.5;
+}
+
+.zona-risco-admin {
+    margin-top: 30px;
+    padding: 18px 20px;
+    border: 1.5px solid var(--red);
+    border-radius: var(--radius-md);
+    background: var(--red-soft);
+}
+
+.zona-risco-admin h3 {
+    color: var(--red);
+    text-transform: none;
+    letter-spacing: normal;
+    margin-bottom: 8px;
+}
+
+.zona-risco-admin p {
+    font-size: 13px;
+    color: var(--ink);
+    margin-bottom: 14px;
+    line-height: 1.5;
+}
+
+.zona-risco-admin .campo {
+    max-width: 320px;
+}
+
 /* ---- TABELA ---- */
 .tabela-container {
     background: var(--surface);

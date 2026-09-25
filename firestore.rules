@@ -26,6 +26,32 @@ service cloud.firestore {
       allow delete: if request.auth != null && request.auth.uid == uid;
     }
 
+    // Um CPF, uma conta: reservado no mesmo lote que cria o perfil (veja
+    // cadastro.js), então duas contas não conseguem "ganhar a corrida" com o
+    // mesmo CPF. Guarda só o uid do dono — leitura pública apenas confirma
+    // se já tem dono, igual ao que a própria Auth do Firebase já expõe
+    // quando um e-mail já está cadastrado. A liberação do CPF na exclusão de
+    // conta é feita pelo Admin SDK (função agendada em functions/main.py),
+    // que ignora estas regras — por isso não existe "allow delete" aqui.
+    match /cpfs_em_uso/{cpf} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if request.auth != null
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['uid', 'criadoEm'])
+        && !exists(/databases/$(database)/documents/cpfs_em_uso/$(cpf));
+      allow update, delete: if false;
+    }
+
+    // Conteúdo dos Termos de Uso e Política de Privacidade, editável pelo
+    // admin em admin-termos.html. "versao" sobe a cada publicação; é isso
+    // que faz o gate-termos.js pedir novo aceite de quem já tinha aceitado
+    // uma versão anterior.
+    match /configuracoes/{documentoId} {
+      allow read: if true;
+      allow write: if ehAdmin();
+    }
+
     // Unidades (Etec, Fatec ou outra instituição) cadastradas pelo CMS:
     // leitura pública (usadas pelo app e futuramente pelo chatbot), escrita
     // restrita a administradores.

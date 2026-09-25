@@ -2,11 +2,12 @@ import io
 import json
 import re
 import zipfile
+from datetime import datetime, timezone
 
 import requests
 import firebase_admin
 from firebase_admin import firestore, auth as firebase_auth, storage
-from firebase_functions import https_fn, options
+from firebase_functions import https_fn, options, scheduler_fn
 
 # Inicializa o Firebase apenas uma vez e de forma leve
 if not firebase_admin._apps:
@@ -225,3 +226,55 @@ def extrair_logo_etec(req: https_fn.Request) -> https_fn.Response:
     except Exception as e:
         print(f"Erro ao extrair logo: {e}")
         return https_fn.Response(json.dumps({"erro": f"Erro interno: {str(e)}"}), status=500)
+
+
+def _excluir_conta_por_completo(db, uid, dados):
+    """Apaga os certificados (Firestore + Storage), libera o CPF reservado
+    e remove o perfil e a conta de Auth. Usa o Admin SDK, que não exige
+    login recente — diferente do delete que o próprio usuário faria pelo
+    navegador, aqui ninguém está logado para reautenticar."""
+    bucket = storage.bucket("futuroplus-bce54.firebasestorage.app")
+
+    certificados_ref = db.collection("usuarios").document(uid).collection("certificados")
+    for cert_doc in certificados_ref.stream():
+        caminho = (cert_doc.to_dict() or {}).get("caminho")
+        if caminho:
+            try:
+                bucket.blob(caminho).delete()
+            except Exception as erro_storage:
+                print(f"Erro ao apagar certificado {caminho} de {uid}: {erro_storage}")
+        cert_doc.reference.delete()
+
+    cpf_normalizado = re.sub(r"\D", "", dados.get("cpf") or "")
+    if cpf_normalizado:
+        db.collection("cpfs_em_uso").document(cpf_normalizado).delete()
+
+    db.collection("usuarios").document(uid).delete()
+
+    try:
+        firebase_auth.delete_user(uid)
+    except firebase_auth.UserNotFoundError:
+        pass
+
+
+@scheduler_fn.on_schedule(
+    # Uma vez por dia é suficiente pra um prazo de 30 dias, e mantém o custo
+    # da função (Cloud Scheduler + execuções) praticamente zero.
+    schedule="every 24 hours",
+    region=options.SupportedRegion.SOUTHAMERICA_EAST1,
+    memory=options.MemoryOption.MB_256,
+)
+def excluir_contas_agendadas(event: scheduler_fn.ScheduledEvent) -> None:
+    """Apaga de vez as contas cujo prazo de 30 dias pedido pelo próprio
+    usuário (perfil.js) já venceu. Quem volta a logar antes do prazo tem o
+    pedido cancelado por dashboard.js, então só sobra aqui quem não voltou."""
+    db = firestore.client()
+    agora = datetime.now(timezone.utc).isoformat()
+
+    consulta = db.collection("usuarios").where("exclusao.executarEm", "<=", agora).stream()
+    for doc_usuario in consulta:
+        try:
+            _excluir_conta_por_completo(db, doc_usuario.id, doc_usuario.to_dict() or {})
+            print(f"Conta {doc_usuario.id} excluída (prazo de exclusão vencido).")
+        except Exception as erro:
+            print(f"Erro ao excluir a conta {doc_usuario.id}: {erro}")
