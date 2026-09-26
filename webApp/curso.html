@@ -18,10 +18,19 @@
             <span class="menu-subtitulo">Escolha seu caminho</span>
         </div>
 
+        <div class="nav-auth menu-nav-auth" id="menu-nav-auth" hidden>
+            <a href="login.html" class="nav-auth-entrar">Entrar</a>
+            <a href="cadastro.html" class="nav-auth-cadastro">Cadastro</a>
+        </div>
+
+        <button type="button" id="btn-tour-menu" class="menu-tour-cta">
+            <span class="tour-texto">Tour guiado</span> 🧭
+        </button>
+
         <nav class="menu-navegacao">
             <span class="menu-secao">Navegar</span>
             <a href="index.html" class="menu-item" data-icone="🏠">Início</a>
-            <a href="testes.html" class="menu-item" data-icone="🧭">Testes</a>
+            <a href="testes.html" class="menu-item" data-icone="🧠">Testes</a>
             <a href="cursos.html" class="menu-item ativo" data-icone="🎓" aria-current="page">Cursos</a>
             <a href="mural.html" class="menu-item" data-icone="📌">Mural</a>
             <a href="perfil.html" class="menu-item" data-icone="👤">Perfil</a>
@@ -40,7 +49,7 @@
                 <span></span><span></span><span></span>
             </button>
             <div class="search-bar">
-                <input type="text" placeholder="Buscar cursos..." aria-label="Buscar cursos">
+                <input type="text" id="busca-topo" placeholder="Buscar cursos..." aria-label="Buscar cursos">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <circle cx="11" cy="11" r="8" />
                     <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -51,6 +60,7 @@
             <img src="assets/images/logo.png" alt="Futuro+" class="logo-topo">
         </div>
         <div class="nav-right">
+            <button type="button" id="btn-repetir-tour" class="btn-repetir-tour" aria-label="Repetir tour guiado" title="Tour guiado"><span class="tour-texto">Tour guiado</span> 🧭</button>
             <div class="bell-icon">
                 <a href="notificacoes.html" aria-label="Notificações">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -83,6 +93,43 @@
         <article id="curso-detalhe" class="curso-detalhe">
             <p class="carregando-cursos">Carregando curso...</p>
         </article>
+    </div>
+
+    <!-- Botão Flutuante do Chat -->
+    <button id="chatbot-toggle" class="chat-btn-blue" aria-label="Abrir assistente inteligente">
+        <svg width="28" height="28" viewBox="0 0 100 100" fill="currentColor">
+            <g class="estrela estrela-1">
+                <circle class="forma-circulo" cx="42" cy="55" r="9" />
+                <path class="forma-estrela" d="M42,25 L50.4,46.6 L72,55 L50.4,63.4 L42,85 L33.6,63.4 L12,55 L33.6,46.6 Z" />
+            </g>
+            <g class="estrela estrela-2">
+                <circle class="forma-circulo" cx="72" cy="22" r="5" />
+                <path class="forma-estrela" d="M72,6 L76.8,17.2 L88,22 L76.8,26.8 L72,38 L67.2,26.8 L56,22 L67.2,17.2 Z" />
+            </g>
+            <g class="estrela estrela-3">
+                <circle class="forma-circulo" cx="78" cy="68" r="3.5" />
+                <path class="forma-estrela" d="M78,58 L81.2,64.8 L88,68 L81.2,71.2 L78,78 L74.8,71.2 L68,68 L74.8,64.8 Z" />
+            </g>
+        </svg>
+    </button>
+
+    <!-- Janela do Chatbot -->
+    <div id="chatbot-window" class="chat-window oculta">
+        <div class="chat-header">
+            <strong>Assistente Virtual</strong>
+            <button id="close-chat" class="close-btn">×</button>
+        </div>
+        <div id="chat-messages" class="chat-messages">
+            <div class="msg bot">Olá! Sou o assistente da ETEC/FATEC. Como posso ajudar?</div>
+        </div>
+        <div class="chat-permissao-localizacao" id="chat-permissao-localizacao" hidden>
+            📍 O assistente pode usar a localização do seu perfil
+            <button type="button" id="desativar-localizacao-chat">Desativar</button>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chat-input" placeholder="Digite sua dúvida...">
+            <button id="send-chat" class="send-btn">Enviar</button>
+        </div>
     </div>
 
     <script type="module" src="assets/js/dashboard.js"></script>
