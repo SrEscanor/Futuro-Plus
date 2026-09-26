@@ -2,6 +2,7 @@ import { auth, db } from './firebase-config.js';
 import { signOut, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, setDoc, deleteField } from "firebase/firestore";
 import { verificarTermosAtualizados } from './gate-termos.js';
+import { iniciarAtencaoChat } from './chat-atencao.js';
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -27,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const avatarMenu = document.getElementById("avatar-menu");
         const avatarIniciais = document.getElementById("avatar-iniciais");
         const navAuth = document.getElementById("nav-auth");
+        const menuNavAuth = document.getElementById("menu-nav-auth");
 
         if (user) {
             console.log("Usuário logado UID:", user.uid);
@@ -74,6 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (avatarIniciais) avatarIniciais.textContent = iniciaisDoNome(nomeCompleto || user.email);
             if (avatarMenu) avatarMenu.hidden = false;
             if (navAuth) navAuth.hidden = true;
+            if (menuNavAuth) menuNavAuth.hidden = true;
         } else {
             console.log("Nenhum usuário logado. Modo visitante ativado.");
             if (spanNome) {
@@ -81,6 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             if (avatarMenu) avatarMenu.hidden = true;
             if (navAuth) navAuth.hidden = false;
+            if (menuNavAuth) menuNavAuth.hidden = false;
             fecharAvatarDropdown();
         }
     });
@@ -113,6 +117,72 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Pausa enquanto o tour de boas-vindas da home estiver na tela, pra não
+    // empilhar dois avisos ao mesmo tempo (window.__tourAtivo vem de
+    // tour-boas-vindas.js, carregado só no index.html).
+    iniciarAtencaoChat({ pausar: () => window.__tourAtivo === true });
+
+    // Botão do topo pra repetir o tour guiado. Ele só existe de fato na
+    // home (onde tem o que destacar) — em outra página, manda pra lá com um
+    // sinal na URL que inicio-tour.js lê pra começar sozinho.
+    async function abrirTourGuiado() {
+        if (document.getElementById('card-vocacional')) {
+            const { iniciarTourBoasVindas } = await import('./tour-boas-vindas.js');
+            iniciarTourBoasVindas({ forcar: true });
+        } else {
+            window.location.href = 'index.html?tour=1';
+        }
+    }
+    document.getElementById('btn-repetir-tour')?.addEventListener('click', abrirTourGuiado);
+
+    // Mesmo atalho, só que no topo do menu hamburguer (mais visível no
+    // celular do que o ícone sozinho na barra de topo). Fecha o menu antes
+    // de abrir o tour, senão a barra lateral aberta ficaria por cima.
+    document.getElementById('btn-tour-menu')?.addEventListener('click', () => {
+        if (menuPanel?.classList.contains('aberto')) toggleMenu();
+        abrirTourGuiado();
+    });
+
+    // Balão de dica perto do botão de repetir tour: o ícone sozinho passava
+    // despercebido, então avisa por escrito pra quem ainda não fez o tour.
+    (function destacarBotaoTour() {
+        const CHAVE_TOUR_VISTO = 'futuroplus_tour_visto';
+        const botaoTour = document.getElementById('btn-repetir-tour');
+        if (!botaoTour) return;
+
+        function jaViuTour() {
+            try {
+                return localStorage.getItem(CHAVE_TOUR_VISTO) === '1';
+            } catch {
+                return false;
+            }
+        }
+
+        setTimeout(() => {
+            // window.__tourAtivo vem de tour-boas-vindas.js: se o tour de
+            // boas-vindas já estiver na tela, não empilha os dois avisos.
+            if (jaViuTour() || window.__tourAtivo || document.getElementById('tour-dica-balao')) return;
+
+            const dica = document.createElement('div');
+            dica.id = 'tour-dica-balao';
+            dica.className = 'tour-dica-balao';
+            dica.innerHTML = 'Ainda não fez o tour guiado? Clique aqui! <span class="tour-dica-fechar" role="button" tabindex="0" aria-label="Fechar">×</span>';
+            botaoTour.appendChild(dica);
+
+            const fechar = (e) => {
+                e.stopPropagation();
+                dica.remove();
+            };
+            const botaoFechar = dica.querySelector('.tour-dica-fechar');
+            botaoFechar.addEventListener('click', fechar);
+            botaoFechar.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') fechar(e);
+            });
+            botaoTour.addEventListener('click', () => dica.remove(), { once: true });
+            setTimeout(() => dica.remove(), 8000);
+        }, 900);
+    })();
+
     const hamburger = document.querySelector('.hamburger');
     const menuPanel = document.querySelector('.menu-panel');
 
@@ -143,6 +213,32 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     telaGrande.addEventListener('change', ajustarMenu);
     ajustarMenu();
+
+    // Barra de busca do topo: por enquanto o que dá pra buscar de verdade no
+    // site são os cursos, então ela manda pra lá com o mesmo parâmetro
+    // (?curso=) que os links de recomendação já usam — se a pessoa já
+    // estiver em cursos.html, só filtra na hora, sem recarregar a página.
+    const buscaTopo = document.getElementById('busca-topo');
+    if (buscaTopo) {
+        function buscarNoTopo() {
+            const termo = buscaTopo.value.trim();
+            if (!termo) return;
+
+            const campoCursos = document.getElementById('busca-cursos');
+            if (campoCursos) {
+                campoCursos.value = termo;
+                campoCursos.dispatchEvent(new Event('input'));
+                campoCursos.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                window.location.href = `cursos.html?curso=${encodeURIComponent(termo)}`;
+            }
+        }
+
+        buscaTopo.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') buscarNoTopo();
+        });
+        buscaTopo.parentElement.querySelector('svg')?.addEventListener('click', buscarNoTopo);
+    }
 
     const logoutBtn = document.getElementById("logout-btn");
     if (logoutBtn) {
