@@ -363,7 +363,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const user = auth.currentUser;
         if (!user) {
-            addMessage("Você precisa estar logado para usar o assistente.", "bot");
+            addMessage("Opa, essa parte eu só consigo fazer com você logado 😊 Entra na sua conta rapidinho que te ajudo na hora!", "bot");
+            mostrarLinksDoSite([{ texto: "Entrar na conta", url: "login.html" }]);
             return;
         }
 
