@@ -110,7 +110,7 @@ body {
     right: 0;
     bottom: 0;
     padding: 46px 38px 40px 26%;
-    background: linear-gradient(to top, rgba(23, 27, 58, 0.78), rgba(23, 27, 58, 0));
+    background: linear-gradient(to left, #171b3ac7, #171b3a00);
     color: #fff;
 }
 

@@ -2,6 +2,7 @@ import { auth, db } from './firebase-config.js';
 import { signOut, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, setDoc, deleteField } from "firebase/firestore";
 import { verificarTermosAtualizados } from './gate-termos.js';
+import { verificarEmailConfirmado } from './gate-email.js';
 import { iniciarAtencaoChat } from './chat-atencao.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -32,6 +33,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (user) {
             console.log("Usuário logado UID:", user.uid);
+
+            // Conta criada por e-mail/senha precisa confirmar o e-mail antes
+            // de usar o site (contas do Google já chegam verificadas). O
+            // modal trava a tela até confirmar ou sair.
+            const podeUsar = await verificarEmailConfirmado(user);
+            if (!podeUsar) return;
+
             let nomeCompleto = '';
             try {
                 const docRef = doc(db, "usuarios", user.uid);
@@ -77,6 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (avatarMenu) avatarMenu.hidden = false;
             if (navAuth) navAuth.hidden = true;
             if (menuNavAuth) menuNavAuth.hidden = true;
+            desativarDestaqueTour();
         } else {
             console.log("Nenhum usuário logado. Modo visitante ativado.");
             if (spanNome) {
@@ -86,6 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (navAuth) navAuth.hidden = false;
             if (menuNavAuth) menuNavAuth.hidden = false;
             fecharAvatarDropdown();
+            ativarDestaqueTour();
         }
     });
 
@@ -129,9 +139,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (document.getElementById('card-vocacional')) {
             const { iniciarTourBoasVindas } = await import('./tour-boas-vindas.js');
             iniciarTourBoasVindas({ forcar: true });
-        } else {
-            window.location.href = 'index.html?tour=1';
+            return;
         }
+        // Testes, Cursos, Mural e Perfil têm seu próprio mini-tour; nas
+        // demais páginas (sem um definido), manda pra home com o sinal na
+        // URL que inicio-tour.js lê pra começar sozinho.
+        const { iniciarTourDaPagina } = await import('./tour-paginas.js');
+        const iniciou = await iniciarTourDaPagina({ forcar: true });
+        if (!iniciou) window.location.href = 'index.html?tour=1';
     }
     document.getElementById('btn-repetir-tour')?.addEventListener('click', abrirTourGuiado);
 
@@ -143,45 +158,63 @@ document.addEventListener('DOMContentLoaded', () => {
         abrirTourGuiado();
     });
 
-    // Balão de dica perto do botão de repetir tour: o ícone sozinho passava
-    // despercebido, então avisa por escrito pra quem ainda não fez o tour.
-    (function destacarBotaoTour() {
-        const CHAVE_TOUR_VISTO = 'futuroplus_tour_visto';
+    // Pulso + balão de dica no botão de repetir tour: só valem pra quem
+    // ainda não está logado (é quem mais precisa ser guiado pelo site).
+    // Aparece de novo em cada página nova que a pessoa visitar (não é uma
+    // marca "vi uma vez, nunca mais em lugar nenhum" como o tour completo)
+    // — só para de vez se a pessoa fechar no X.
+    const CHAVE_TOUR_DICA_FECHADA = 'futuroplus_tour_dica_fechada';
+    const botoesTour = [document.getElementById('btn-repetir-tour'), document.getElementById('btn-tour-menu')]
+        .filter(Boolean);
+    let destaqueTourJaIniciado = false;
+
+    function dicaTourFechadaPermanente() {
+        try {
+            return localStorage.getItem(CHAVE_TOUR_DICA_FECHADA) === '1';
+        } catch {
+            return false;
+        }
+    }
+
+    function desativarDestaqueTour() {
+        botoesTour.forEach((botao) => botao.classList.remove('tour-cta-destaque'));
+    }
+
+    function ativarDestaqueTour() {
+        if (dicaTourFechadaPermanente()) return;
+        botoesTour.forEach((botao) => botao.classList.add('tour-cta-destaque'));
+        if (destaqueTourJaIniciado) return;
+        destaqueTourJaIniciado = true;
+
         const botaoTour = document.getElementById('btn-repetir-tour');
         if (!botaoTour) return;
 
-        function jaViuTour() {
-            try {
-                return localStorage.getItem(CHAVE_TOUR_VISTO) === '1';
-            } catch {
-                return false;
-            }
-        }
+        // window.__tourAtivo vem de tour-boas-vindas.js: se o tour de
+        // boas-vindas já estiver na tela, não empilha os dois avisos.
+        if (window.__tourAtivo || document.getElementById('tour-dica-balao')) return;
 
-        setTimeout(() => {
-            // window.__tourAtivo vem de tour-boas-vindas.js: se o tour de
-            // boas-vindas já estiver na tela, não empilha os dois avisos.
-            if (jaViuTour() || window.__tourAtivo || document.getElementById('tour-dica-balao')) return;
+        const dica = document.createElement('div');
+        dica.id = 'tour-dica-balao';
+        dica.className = 'tour-dica-balao';
+        dica.innerHTML = 'Clique em mim 😎 <span class="tour-dica-fechar" role="button" tabindex="0" aria-label="Fechar">×</span>';
+        botaoTour.appendChild(dica);
 
-            const dica = document.createElement('div');
-            dica.id = 'tour-dica-balao';
-            dica.className = 'tour-dica-balao';
-            dica.innerHTML = 'Ainda não fez o tour guiado? Clique aqui! <span class="tour-dica-fechar" role="button" tabindex="0" aria-label="Fechar">×</span>';
-            botaoTour.appendChild(dica);
-
-            const fechar = (e) => {
-                e.stopPropagation();
-                dica.remove();
-            };
-            const botaoFechar = dica.querySelector('.tour-dica-fechar');
-            botaoFechar.addEventListener('click', fechar);
-            botaoFechar.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') fechar(e);
-            });
-            botaoTour.addEventListener('click', () => dica.remove(), { once: true });
-            setTimeout(() => dica.remove(), 8000);
-        }, 900);
-    })();
+        // Fechar no X conta como "não quero ver isso de novo": some daqui
+        // pra frente em qualquer tela, igual o balão do chat.
+        const fechar = (e) => {
+            e.stopPropagation();
+            dica.remove();
+            try { localStorage.setItem(CHAVE_TOUR_DICA_FECHADA, '1'); } catch {}
+            desativarDestaqueTour();
+        };
+        const botaoFechar = dica.querySelector('.tour-dica-fechar');
+        botaoFechar.addEventListener('click', fechar);
+        botaoFechar.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') fechar(e);
+        });
+        botaoTour.addEventListener('click', () => dica.remove(), { once: true });
+        setTimeout(() => dica.remove(), 8000);
+    }
 
     const hamburger = document.querySelector('.hamburger');
     const menuPanel = document.querySelector('.menu-panel');

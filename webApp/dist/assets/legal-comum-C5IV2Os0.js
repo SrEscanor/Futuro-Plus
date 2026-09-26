@@ -1,1 +1,0 @@
-import{e as t,d as n,b as c}from"./firebase-config-XD2rgtmE.js";async function g(e,o){const r=document.getElementById("conteudo-legal");try{const a=await t(n(c,"configuracoes",e));r.innerHTML=a.exists()&&a.data().html?a.data().html:o}catch(a){console.error(`Erro ao carregar ${e}:`,a),r.innerHTML=o}}export{g as c};

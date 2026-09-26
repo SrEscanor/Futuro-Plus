@@ -39,9 +39,15 @@ export function iniciarAtencaoChat({ pausar = () => false } = {}) {
         balao.className = 'chat-balao-fala';
         balao.innerHTML = '👋 Posso te ajudar a achar seu curso! <button type="button" class="chat-balao-fechar" aria-label="Fechar">×</button>';
         document.body.appendChild(balao);
+        // Fechar no X conta como "já visto": some daqui pra frente em
+        // qualquer tela, igual clicar no próprio botão do chat.
         balao.querySelector('.chat-balao-fechar').addEventListener('click', (e) => {
             e.stopPropagation();
             balao.remove();
+            marcarComoAberto();
+            bolinha.remove();
+            clearTimeout(timeoutBalao);
+            clearInterval(intervaloAceno);
         });
         setTimeout(() => balao.remove(), DURACAO_BALAO_MS);
     }

@@ -1,5 +1,5 @@
 import { auth, db } from './firebase-config.js';
-import { createUserWithEmailAndPassword, deleteUser } from "firebase/auth";
+import { createUserWithEmailAndPassword, deleteUser, sendEmailVerification } from "firebase/auth";
 import { doc, getDoc, writeBatch } from "firebase/firestore";
 import { integrarResultadoPendenteComPerfil } from "./resultado-teste.js";
 import { localizarRuaDoAluno } from "./geocodificacao.js";
@@ -491,7 +491,12 @@ document.addEventListener('DOMContentLoaded', () => {
       await integrarResultadoPendenteComPerfil(user.uid)
         .catch(erro => console.error("Erro ao vincular resultado do teste:", erro));
 
-      alert("Cadastro realizado com sucesso!");
+      // Manda o link de confirmação; o uso do site fica bloqueado (ver
+      // gate-email.js) até a pessoa clicar nele.
+      await sendEmailVerification(user)
+        .catch(erro => console.error("Erro ao enviar e-mail de confirmação:", erro));
+
+      alert(`Cadastro realizado! Enviamos um link de confirmação para ${email} — confirme antes de continuar.`);
       window.location.href = "login.html";
 
     } catch (error) {

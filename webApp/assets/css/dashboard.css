@@ -242,8 +242,13 @@ h3,
     white-space: nowrap;
     cursor: pointer;
     box-shadow: 0 0 0 2px var(--blue-soft);
-    animation: destacar-tour 2.6s ease-in-out infinite;
     transition: transform 0.2s, background 0.15s;
+}
+
+/* Pulso só chama atenção de quem ainda não está logado — é quem mais
+   precisa ser guiado pelo site. */
+.btn-repetir-tour.tour-cta-destaque {
+    animation: destacar-tour 2.6s ease-in-out infinite;
 }
 
 @media (max-width: 640px) {
@@ -262,22 +267,49 @@ h3,
 
 .tour-dica-balao {
     position: absolute;
-    top: calc(100% + 12px);
+    top: calc(100% + 14px);
     right: -8px;
     width: max-content;
     max-width: 190px;
     background: #fff;
-    color: var(--ink, #1b1f3b);
+    color: #000;
     padding: 10px 26px 10px 14px;
-    border-radius: 14px 14px 4px 14px;
-    box-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.3);
-    font-size: 12.5px;
+    border-radius: 16px;
+    border: 3px solid #000;
+    box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.18);
+    font-family: 'Baloo 2', 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 13.5px;
+    font-weight: 700;
     line-height: 1.4;
-    font-weight: 500;
     text-align: left;
     white-space: normal;
     z-index: var(--z-chat);
     animation: chat-balao-entrada 0.25s ease-out;
+}
+
+/* Ponta do balão apontando pra cima, na direção do botão */
+.tour-dica-balao::before,
+.tour-dica-balao::after {
+    content: '';
+    position: absolute;
+    right: 16px;
+    width: 0;
+    height: 0;
+    border-left: 9px solid transparent;
+    border-right: 9px solid transparent;
+}
+
+.tour-dica-balao::before {
+    top: -12px;
+    border-bottom: 12px solid #000;
+}
+
+.tour-dica-balao::after {
+    top: -8px;
+    right: 19px;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 9px solid #fff;
 }
 
 .tour-dica-fechar {
@@ -286,7 +318,7 @@ h3,
     right: 7px;
     font-size: 14px;
     line-height: 1;
-    color: var(--ink-soft);
+    color: var(--red);
     cursor: pointer;
 }
 
@@ -478,8 +510,11 @@ h3,
     font-weight: 700;
     cursor: pointer;
     box-shadow: 0 0 0 2px var(--blue-soft);
-    animation: destacar-tour 2.6s ease-in-out infinite;
     transition: transform 0.2s, background 0.15s;
+}
+
+.menu-tour-cta.tour-cta-destaque {
+    animation: destacar-tour 2.6s ease-in-out infinite;
 }
 
 .menu-tour-cta:hover {
@@ -1661,8 +1696,8 @@ a.btn-saiba {
     right: 9px;
     border: none;
     background: none;
-    color: #000;
-    opacity: 0.7;
+    color: var(--red);
+    opacity: 0.85;
     font-size: 16px;
     line-height: 1;
     cursor: pointer;
