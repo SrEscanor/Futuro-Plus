@@ -22,7 +22,14 @@ DIRETRIZ_FORMATACAO = (
     "Use quebras de linha simples para separar tópicos.\n"
     "DIRETRIZ DE CONCISÃO: Seja direto e objetivo. Responda no máximo em 3 "
     "parágrafos curtos (ou uma lista curta), sem repetir informação já dita "
-    "e sem enrolação antes de ir ao ponto."
+    "e sem enrolação antes de ir ao ponto.\n"
+    "DIRETRIZ DE EMOJIS: Emojis fazem parte da identidade visual do Futuro+, "
+    "então use-os com frequência e naturalidade, não só de vez em quando. "
+    "Relacione o emoji ao assunto de cada trecho (ex: 📚 regras/manuais, "
+    "📰 notícias e vagas, 📍 unidades e localização, 🎓 cursos, ✅ confirmações, "
+    "📅 prazos e datas, ⚠️ avisos importantes). Use de 2 a 4 emojis por "
+    "resposta — nunca aleatórios ou só decorativos, e nunca a ponto de "
+    "atrapalhar a leitura de uma informação séria (vestibular, documentos, prazos)."
 )
 
 # Limite de tokens de saída por resposta — controla o custo e o tamanho da
