@@ -42,6 +42,7 @@ function renderizarMural() {
     visiveis.forEach((certificado) => {
         const quadro = document.createElement('figure');
         quadro.className = 'mural-quadro mural-quadro--certificado';
+        quadro.dataset.id = certificado.id;
         quadro.innerHTML = `
             <div class="mural-moldura">
                 <img src="${escapeHtml(certificado.url)}" alt="${escapeHtml(certificado.titulo || 'Certificado')}" loading="lazy">
@@ -234,6 +235,26 @@ function fecharModal() {
 }
 
 // ------------------------------------------------------------------
+// Lightbox: ver o certificado clicado em tamanho grande
+// ------------------------------------------------------------------
+
+function abrirLightbox(certificado) {
+    const legenda = [certificado.titulo || 'Certificado', [certificado.instituicao,
+        certificado.cargaHoraria ? `${certificado.cargaHoraria}h` : ''].filter(Boolean).join(' · ')]
+        .filter(Boolean).join(' — ');
+
+    elemento('mural-lightbox-img').src = certificado.url;
+    elemento('mural-lightbox-img').alt = certificado.titulo || 'Certificado';
+    elemento('mural-lightbox-legenda').textContent = legenda;
+    elemento('mural-lightbox').classList.add('aberto');
+}
+
+function fecharLightbox() {
+    elemento('mural-lightbox').classList.remove('aberto');
+    elemento('mural-lightbox-img').src = '';
+}
+
+// ------------------------------------------------------------------
 // Início
 // ------------------------------------------------------------------
 
@@ -280,8 +301,24 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     elemento('mural-quadros')?.addEventListener('click', (e) => {
-        const botao = e.target.closest('.mural-remover');
-        if (botao) removerCertificado(botao.dataset.id);
+        const botaoRemover = e.target.closest('.mural-remover');
+        if (botaoRemover) {
+            removerCertificado(botaoRemover.dataset.id);
+            return;
+        }
+        const quadro = e.target.closest('.mural-quadro--certificado');
+        if (quadro) {
+            const certificado = certificados.find((c) => c.id === quadro.dataset.id);
+            if (certificado) abrirLightbox(certificado);
+        }
+    });
+
+    elemento('btn-fechar-lightbox')?.addEventListener('click', fecharLightbox);
+    elemento('mural-lightbox')?.addEventListener('click', (e) => {
+        if (e.target.id === 'mural-lightbox') fecharLightbox();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && elemento('mural-lightbox')?.classList.contains('aberto')) fecharLightbox();
     });
 });
 

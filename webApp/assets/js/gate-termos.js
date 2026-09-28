@@ -42,7 +42,7 @@ function injetarEstilos() {
             color: var(--ink, #1b1f3b);
         }
         .gt-modal::backdrop { background: rgba(23, 27, 58, 0.65); }
-        .gt-modal[open] { display: flex; flex-direction: column; }
+        .gt-modal[open] { display: flex; flex-direction: column; margin: auto; }
         .gt-cabecalho {
             padding: 20px 22px 8px;
             flex-shrink: 0;

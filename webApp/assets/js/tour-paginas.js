@@ -37,9 +37,9 @@ const CONFIGS = {
                 texto: 'Digite o nome de um curso, cidade ou instituição, ou use os filtros de proximidade, tipo e modalidade pra achar rapidinho.'
             },
             {
-                seletor: '#grid-unidades',
+                seletor: '#grid-unidades .card-unidade',
                 titulo: 'Unidades e cursos',
-                texto: 'Aqui aparecem as Etecs, Fatecs e outras instituições com os cursos que oferecem. Clique em "Ver unidades" pra ver os detalhes de cada uma.'
+                texto: 'Cada card é uma Etec, Fatec ou outra instituição, com os cursos que oferece. Clique em "Ver unidades" pra ver os detalhes — as outras aparecem do mesmo jeito, é só rolar a tela.'
             }
         ]
     },

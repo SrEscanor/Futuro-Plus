@@ -6,20 +6,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Futuro+ | Testes</title>
     <link rel="icon" type="image/png" href="./icon-192.png">
-  <script type="module" crossorigin src="./assets/testes-HJ5aLaw6.js"></script>
-  <link rel="modulepreload" crossorigin href="./assets/firebase-config-BtrRUHdO.js">
-  <link rel="modulepreload" crossorigin href="./assets/conteudo-legal-padrao-DB74JH29.js">
-  <link rel="modulepreload" crossorigin href="./assets/dashboard-Bs6H8aiO.js">
-  <link rel="modulepreload" crossorigin href="./assets/tour-motor-DQB6t-MH.js">
-  <link rel="modulepreload" crossorigin href="./assets/tour-paginas-Bwk8Bj9d.js">
-  <link rel="modulepreload" crossorigin href="./assets/tour-pagina-auto-curN6qf5.js">
+  <script type="module" crossorigin src="./assets/testes-M2P2sOf0.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/firebase-config-B6zsF72T.js">
+  <link rel="modulepreload" crossorigin href="./assets/conteudo-legal-padrao-DcxCgRAC.js">
+  <link rel="modulepreload" crossorigin href="./assets/resultado-teste-sLU03n2U.js">
+  <link rel="modulepreload" crossorigin href="./assets/dashboard-CPE9r9qT.js">
+  <link rel="modulepreload" crossorigin href="./assets/tour-motor-BEVpboCC.js">
+  <link rel="modulepreload" crossorigin href="./assets/tour-paginas-CSOTbXWZ.js">
+  <link rel="modulepreload" crossorigin href="./assets/tour-pagina-auto-cTnJYg0n.js">
   <link rel="modulepreload" crossorigin href="./assets/card-unidade-CA2qFmKO.js">
   <link rel="modulepreload" crossorigin href="./assets/descricoes-inteligencias-xaPm0-jR.js">
   <link rel="modulepreload" crossorigin href="./assets/categorias-teste-82RqXHiT.js">
   <link rel="modulepreload" crossorigin href="./assets/geocodificacao-GFhpmzSl.js">
-  <link rel="modulepreload" crossorigin href="./assets/recomendacao-cursos-iYhGVT_N.js">
-  <link rel="modulepreload" crossorigin href="./assets/resultado-teste-DaV-cfSA.js">
-  <link rel="stylesheet" crossorigin href="./assets/dashboard-sEb0LYAn.css">
+  <link rel="modulepreload" crossorigin href="./assets/recomendacao-cursos-egqyoAUf.js">
+  <link rel="stylesheet" crossorigin href="./assets/dashboard-2NFneaPX.css">
   <link rel="stylesheet" crossorigin href="./assets/cursos-etec-D5b91PcR.css">
 </head>
 
@@ -52,6 +52,7 @@
             <a href="admin-instituicoes.html" id="menu-admin" class="menu-item menu-admin-area" data-icone="🏫" hidden>Unidades</a>
             <a href="admin-cursos.html" id="menu-admin-cursos" class="menu-item menu-admin-area" data-icone="📚" hidden>Catálogo de cursos</a>
             <a href="admin-termos.html" id="menu-admin-termos" class="menu-item menu-admin-area" data-icone="📜" hidden>Termos e Privacidade</a>
+            <a href="admin-notificacoes.html" id="menu-admin-notificacoes" class="menu-item menu-admin-area" data-icone="🔔" hidden>Notificações</a>
         </nav>
 
     </aside>
@@ -74,13 +75,23 @@
         </div>
         <div class="nav-right">
             <button type="button" id="btn-repetir-tour" class="btn-repetir-tour" aria-label="Repetir tour guiado" title="Tour guiado"><span class="tour-texto">Tour guiado</span> 🧭</button>
-            <div class="bell-icon">
-                <a href="notificacoes.html" aria-label="Notificações">
+            <div class="notif-menu" id="notif-menu" hidden>
+                <button type="button" class="bell-icon" id="notif-botao" aria-haspopup="true" aria-expanded="false" aria-label="Notificações">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
                         <path d="M13.73 21a2 2 0 01-3.46 0" />
                     </svg>
-                </a>
+                    <span class="notif-ponto" id="notif-ponto" hidden></span>
+                </button>
+                <div class="notif-dropdown" id="notif-dropdown" hidden>
+                    <div class="notif-dropdown-cabecalho">
+                        <span>Notificações</span>
+                        <button type="button" id="notif-limpar" class="notif-limpar" hidden>Limpar</button>
+                    </div>
+                    <div class="notif-lista" id="notif-lista">
+                        <p class="notif-vazio">Nenhuma notificação por enquanto.</p>
+                    </div>
+                </div>
             </div>
             <div class="avatar-menu" id="avatar-menu" hidden>
                 <button type="button" class="avatar-link" id="avatar-botao" aria-haspopup="true" aria-expanded="false" aria-label="Menu da conta">
@@ -155,7 +166,7 @@
 
     <!-- Botão Flutuante do Chat -->
     <button id="chatbot-toggle" class="chat-btn-blue" aria-label="Abrir assistente inteligente">
-        <svg width="28" height="28" viewBox="0 0 100 100" fill="currentColor">
+        <svg viewBox="0 0 100 100" fill="currentColor">
             <g class="estrela estrela-1">
                 <circle class="forma-circulo" cx="42" cy="55" r="9" />
                 <path class="forma-estrela" d="M42,25 L50.4,46.6 L72,55 L50.4,63.4 L42,85 L33.6,63.4 L12,55 L33.6,46.6 Z" />

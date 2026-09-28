@@ -57,7 +57,13 @@ def e_busca_de_unidades(mensagem: str) -> bool:
 # responde pelo histórico e cita "o botão abaixo" sem ter chamado nenhuma.
 # Nesses casos (ou quando o usuário pede a página dos cursos), o botão geral
 # é incluído para a tela nunca prometer algo que não mostra.
+# A menção a "botão abaixo" sozinha NÃO basta: outras respostas (ex.: sobre
+# inscrição no vestibular) também usam essa frase para o próprio botão delas
+# (veja `garantir_botao_de_inscricao` em tools.py), então também exigimos que
+# a resposta fale de curso/etec/unidade — senão colocaríamos aqui o botão
+# errado por cima do botão certo daquele outro assunto.
 _PADROES_RESPOSTA_CITA_BOTAO = re.compile(r"\bbotao\b.*\babaixo\b|\babaixo\b.*\bbotao\b")
+_PADROES_TEMA_CURSOS_OU_UNIDADES = re.compile(r"\bcursos?\b|\betecs?\b|\bunidades?\b")
 _PADROES_PEDIDO_DA_PAGINA = re.compile(
     r"\b(pagina|link|site)\s+(com |de |dos |das )?(todos os |todas as )?(cursos|etecs|unidades)\b"
 )
@@ -66,7 +72,12 @@ _PADROES_PEDIDO_DA_PAGINA = re.compile(
 def garantir_botao_da_pagina_de_cursos(contexto: ContextoChat, mensagem: str, resposta: str) -> None:
     if contexto.links_para_interface:
         return
-    if _PADROES_RESPOSTA_CITA_BOTAO.search(normalizar(resposta)) or _PADROES_PEDIDO_DA_PAGINA.search(normalizar(mensagem)):
+    resposta_normalizada = normalizar(resposta)
+    cita_botao_de_cursos = (
+        _PADROES_RESPOSTA_CITA_BOTAO.search(resposta_normalizada)
+        and _PADROES_TEMA_CURSOS_OU_UNIDADES.search(resposta_normalizada)
+    )
+    if cita_botao_de_cursos or _PADROES_PEDIDO_DA_PAGINA.search(normalizar(mensagem)):
         contexto.sugerir_link("Ver todos os cursos das Etecs", "cursos.html")
 
 

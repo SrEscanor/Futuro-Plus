@@ -15,8 +15,13 @@
     --moldura-3: #1d865a;
 }
 
+/* Sem limite de largura nem a margem de 95% do `.main` padrão: a
+   ilustração da parede é o destaque da página, então preenche a tela
+   inteira de verdade — os quadros dos certificados continuam no tamanho
+   normal, só centralizados dentro dessa parede mais larga. */
 .mural-main {
-    max-width: 1180px;
+    max-width: none;
+    width: 100%;
 }
 
 .mural-cabecalho {
@@ -40,7 +45,7 @@
 /* ---- A parede ---- */
 .mural-parede {
     position: relative;
-    padding: 40px 16% 190px;
+    padding: 300px 16% 150px;
     border-radius: var(--radius-lg);
     border: 1px solid var(--line);
     overflow: hidden;
@@ -52,7 +57,11 @@
     background-image: url('/mural-parede.webp');
     background-repeat: no-repeat;
     background-position: bottom center;
-    background-size: 100% auto;
+    /* "cover" (em vez de "100% auto") garante que a imagem sempre preenche
+       a caixa inteira, sem sobrar fundo liso do lado nem esticar o desenho
+       de um jeito estranho quando a parede fica bem mais larga que alta —
+       o que sobra de fora (topo, quase sempre) é cortado, sem distorcer. */
+    background-size: cover;
     box-shadow: inset 0 1px 0 #fff, 0 20px 40px -26px rgba(70, 130, 210, 0.9);
     min-height: 420px;
 }
@@ -84,6 +93,7 @@
 
 .mural-quadros {
     position: relative;
+    top: -100px;
     z-index: 2;
     columns: 3 200px;
     column-gap: 14px;
@@ -147,6 +157,7 @@
     width: 100%;
     height: auto;
     background: var(--bg);
+    cursor: zoom-in;
 }
 
 .mural-quadro figcaption {
@@ -442,7 +453,87 @@
         background-size: 200% auto;
     }
 
+    /* No celular, em vez de colunas apertando os certificados, vira uma
+       "esteira" horizontal com scroll-snap — a pessoa passa o dedo pro
+       lado e cada certificado aparece grande, um de cada vez. */
     .mural-quadros {
-        columns: 2 140px;
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        gap: 16px;
+        max-width: 100%;
+        padding: 4px 4px 12px;
+        -webkit-overflow-scrolling: touch;
     }
+
+    .mural-quadro {
+        scroll-snap-align: center;
+        flex: 0 0 78%;
+        max-width: 300px;
+    }
+
+    .mural-quadro--novo {
+        min-height: 220px;
+    }
+}
+
+/* ---- Lightbox: ver certificado em tamanho grande ---- */
+.mural-lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    background: rgba(15, 18, 40, 0.88);
+    padding: 40px 20px;
+    align-items: center;
+    justify-content: center;
+}
+
+.mural-lightbox.aberto {
+    display: flex;
+}
+
+.mural-lightbox-conteudo {
+    max-width: min(90vw, 900px);
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.mural-lightbox-conteudo img {
+    max-width: 100%;
+    max-height: 80vh;
+    width: auto;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.6);
+    background: #fff;
+}
+
+.mural-lightbox-conteudo figcaption {
+    color: #fff;
+    font-family: 'Poppins', 'Sora', sans-serif;
+    font-size: 14px;
+    text-align: center;
+}
+
+.btn-fechar-lightbox {
+    position: fixed;
+    top: 18px;
+    right: 22px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.btn-fechar-lightbox:hover {
+    background: rgba(255, 255, 255, 0.28);
 }

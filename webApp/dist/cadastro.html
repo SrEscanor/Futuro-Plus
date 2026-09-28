@@ -7,13 +7,13 @@
     <meta name="theme-color" content="#4e6ee8">
     <title>Futuro+ | Cadastro</title>
     <link rel="icon" type="image/png" href="./icon-192.png">
-  <script type="module" crossorigin src="./assets/cadastro-BX10B5EQ.js"></script>
-  <link rel="modulepreload" crossorigin href="./assets/firebase-config-BtrRUHdO.js">
-  <link rel="modulepreload" crossorigin href="./assets/resultado-teste-DaV-cfSA.js">
-  <link rel="modulepreload" crossorigin href="./assets/auth-google-DfxXQlbD.js">
+  <script type="module" crossorigin src="./assets/cadastro-CsAFsQDD.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/firebase-config-B6zsF72T.js">
+  <link rel="modulepreload" crossorigin href="./assets/resultado-teste-sLU03n2U.js">
+  <link rel="modulepreload" crossorigin href="./assets/auth-google-CmxJ3zkI.js">
   <link rel="modulepreload" crossorigin href="./assets/card-unidade-CA2qFmKO.js">
   <link rel="modulepreload" crossorigin href="./assets/geocodificacao-GFhpmzSl.js">
-  <link rel="stylesheet" crossorigin href="./assets/auth-google-C6Ua0UcT.css">
+  <link rel="stylesheet" crossorigin href="./assets/auth-google-DYrs7wVC.css">
   <link rel="stylesheet" crossorigin href="./assets/ondas-Cp6OP_7e.css">
 </head>
 
@@ -128,11 +128,6 @@
                                 <!-- ETAPA 2 -->
                                 <section class="wizard-etapa" data-etapa="2" inert>
                                     <div class="form-group">
-                                        <label class="form-label" for="cpf">CPF</label>
-                                        <input type="text" id="cpf" placeholder="000.000.000-00" maxlength="14" inputmode="numeric">
-                                    </div>
-
-                                    <div class="form-group">
                                         <label class="form-label" for="dataNascimento">Data de nascimento</label>
                                         <input type="date" id="dataNascimento">
                                         <small class="campo-ajuda">É necessário ter 14 anos ou mais para se cadastrar.</small>
@@ -144,7 +139,10 @@
                                             <option value="" disabled selected>Selecione seu gênero</option>
                                             <option value="Masculino">Masculino</option>
                                             <option value="Feminino">Feminino</option>
+                                            <option value="Não-binário">Não-binário</option>
+                                            <option value="Transgênero">Transgênero</option>
                                             <option value="Outro">Outro</option>
+                                            <option value="Prefiro não informar">Prefiro não informar</option>
                                         </select>
                                     </div>
 
@@ -156,26 +154,11 @@
 
                                 <!-- ETAPA 3 -->
                                 <section class="wizard-etapa" data-etapa="3" inert>
-                                    <div class="form-row">
-                                        <div class="form-group">
-                                            <label class="form-label" for="cep">CEP</label>
-                                            <input type="text" id="cep" placeholder="00000-000" maxlength="9" inputmode="numeric" autocomplete="postal-code">
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label" for="estado">Estado (UF)</label>
-                                            <input type="text" id="estado" maxlength="2" placeholder="SP">
-                                        </div>
-                                    </div>
-
-                                    <div class="form-row">
-                                        <div class="form-group" style="flex: 2;">
-                                            <label class="form-label" for="rua">Rua / Logradouro</label>
-                                            <input type="text" id="rua" placeholder="Preenchido pelo CEP" autocomplete="street-address">
-                                        </div>
-                                        <div class="form-group" style="flex: 1;">
-                                            <label class="form-label" for="numero">Número</label>
-                                            <input type="text" id="numero" placeholder="123" inputmode="numeric">
-                                        </div>
+                                    <div class="form-group">
+                                        <label class="form-label" for="cep">CEP</label>
+                                        <input type="text" id="cep" placeholder="00000-000" maxlength="9" inputmode="numeric" autocomplete="postal-code">
+                                        <small class="campo-ajuda">Usamos o CEP só para sugerir a Etec/Fatec mais perto de você — não pedimos o endereço completo.</small>
+                                        <p class="cep-resultado" id="cep-resultado" hidden></p>
                                     </div>
 
                                     <div class="termos-leitura">

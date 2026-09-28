@@ -137,7 +137,7 @@ h3,
 }
 
 .hamburger:focus-visible,
-.bell-icon a:focus-visible,
+.bell-icon:focus-visible,
 .avatar-link:focus-visible {
     outline: 2px solid var(--blue);
     outline-offset: 2px;
@@ -218,10 +218,54 @@ h3,
     transition: transform 0.2s;
 }
 
-.bell-icon a {
-    display: flex;
+.bell-icon {
+    position: relative;
+    border: none;
+    background: none;
+    padding: 0;
     color: var(--ink-soft);
     border-radius: 50%;
+    transition: color 0.15s;
+}
+
+.bell-icon--tem-notificacao {
+    color: var(--blue);
+}
+
+.bell-icon--tem-notificacao svg path {
+    fill: currentColor;
+}
+
+.notif-menu {
+    position: relative;
+}
+
+.notif-menu[hidden] {
+    display: none;
+}
+
+.notif-ponto {
+    position: absolute;
+    top: -4px;
+    right: -6px;
+    min-width: 15px;
+    height: 15px;
+    padding: 0 3px;
+    border-radius: 999px;
+    background: var(--red);
+    box-shadow: 0 0 0 2px var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+}
+
+.notif-ponto[hidden] {
+    display: none;
 }
 
 .btn-repetir-tour {
@@ -406,6 +450,149 @@ h3,
     background-color: var(--red-soft);
 }
 
+/* ---- Balão do sino (lista de avisos / limpar) ---- */
+.notif-dropdown {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: -10px;
+    width: min(320px, 88vw);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: 0 14px 30px -10px rgba(20, 24, 60, 0.24);
+    padding: 10px;
+    z-index: 110;
+}
+
+.notif-dropdown[hidden] {
+    display: none;
+}
+
+.notif-dropdown-cabecalho {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 4px 6px 8px;
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.notif-lista {
+    max-height: 280px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.notif-item {
+    padding: 8px 6px;
+    border-radius: 10px;
+}
+
+.notif-item + .notif-item {
+    border-top: 1px solid var(--line);
+}
+
+.notif-item-titulo {
+    display: block;
+    font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+    font-size: 13px;
+    color: var(--ink);
+}
+
+.notif-item-mensagem {
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: var(--ink-soft);
+    margin: 3px 0;
+    white-space: pre-line;
+}
+
+.notif-item-data {
+    font-size: 11px;
+    color: var(--ink-soft);
+}
+
+.notif-item-acoes {
+    display: flex;
+    gap: 8px;
+    margin: 6px 0;
+}
+
+.notif-item-botao {
+    flex: 1;
+    text-align: center;
+    font-family: 'Poppins', 'Segoe UI', Arial, sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    padding: 7px 10px;
+    border-radius: 99px;
+    color: var(--ink-soft);
+    border: 1.5px solid var(--line);
+    transition: background 0.18s, color 0.18s, border-color 0.18s;
+}
+
+.notif-item-botao:hover {
+    border-color: var(--blue);
+    color: var(--blue);
+}
+
+.notif-item-botao--destaque {
+    background: var(--blue);
+    color: #fff;
+    border-color: var(--blue);
+}
+
+.notif-item-botao--destaque:hover {
+    background: var(--blue-dark);
+    color: #fff;
+}
+
+.notif-item--link {
+    display: block;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+
+.notif-item--link:hover {
+    background-color: var(--bg);
+}
+
+.notif-vazio {
+    padding: 10px 6px;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    text-align: center;
+}
+
+.notif-limpar {
+    flex-shrink: 0;
+    border: none;
+    background: none;
+    padding: 0;
+    margin: 0;
+    color: var(--blue);
+    font-family: 'Sora', 'Poppins', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.notif-limpar:hover {
+    text-decoration: underline;
+}
+
+.notif-limpar[hidden] {
+    display: none;
+}
+
 .bell-icon:hover,
 .avatar-link:hover .avatar {
     transform: scale(1.08);
@@ -478,9 +665,15 @@ h3,
 @media (max-width: 1023px) {
 
     /* Sem login, no celular: Entrar/Cadastro já vivem no topo do menu
-       hamburguer, então some daqui pra não duplicar e deixar só o botão
-       do tour guiado na barra de topo. */
+       hamburguer, então some daqui pra não duplicar. */
     #nav-auth {
+        display: none;
+    }
+
+    /* Idem pro tour guiado: no celular ele só vive dentro do menu
+       hamburguer (.menu-tour-cta) — a barra de topo é mais apertada, então
+       some daqui pra não duplicar o mesmo botão duas vezes na tela. */
+    #btn-repetir-tour {
         display: none;
     }
 }
@@ -649,8 +842,9 @@ h3,
 .course-card-mini .inst-logo {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
 }
 
 .inst-name {
@@ -698,8 +892,9 @@ a.btn-saiba {
 }
 
 .inst-logo-img {
-    height: 26px;
+    height: 44px;
     width: auto;
+    max-width: 100%;
     display: block;
 }
 
@@ -1527,8 +1722,8 @@ a.btn-saiba {
     color: white;
     border: none;
     border-radius: 50%;
-    width: 60px;
-    height: 60px;
+    width: 100px;
+    height: 100px;
     cursor: pointer;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     display: flex;
@@ -1540,6 +1735,15 @@ a.btn-saiba {
 
 .chat-btn-blue:hover {
     transform: scale(1.08);
+}
+
+/* O SVG não tem mais width/height fixo no HTML (só o viewBox, que define a
+   proporção): o tamanho real agora vem daqui, em % do botão, então as
+   estrelas sempre acompanham o tamanho do botão em vez de ficarem travadas
+   num tamanho fixo em pixels. */
+.chat-btn-blue svg {
+    width: 46%;
+    height: 46%;
 }
 
 .chat-btn-blue svg .estrela {
@@ -1624,6 +1828,22 @@ a.btn-saiba {
 }
 
 /* ---- Chamar atenção pro chat (até a pessoa abrir pela 1ª vez) ---- */
+.chat-btn-pulsando {
+    animation: chat-pulso-continuo 2.2s ease-in-out infinite;
+}
+
+@keyframes chat-pulso-continuo {
+
+    0%,
+    100% {
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2), 0 0 0 0 rgba(78, 110, 232, 0.55);
+    }
+
+    50% {
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2), 0 0 0 16px rgba(78, 110, 232, 0);
+    }
+}
+
 .chat-notificacao-bolinha {
     position: absolute;
     top: 2px;
@@ -1661,7 +1881,7 @@ a.btn-saiba {
 
 .chat-balao-fala {
     position: fixed;
-    bottom: 95px;
+    bottom: 135px;
     right: 25px;
     max-width: 250px;
     background: #fff;
@@ -1706,7 +1926,7 @@ a.btn-saiba {
 
 .chat-window {
     position: fixed;
-    bottom: 100px;
+    bottom: 140px;
     right: 25px;
     width: 350px;
     height: 500px;
@@ -2001,6 +2221,23 @@ a.btn-saiba {
         width: calc(100vw - 40px);
         right: 20px;
         left: 20px;
+    }
+
+    /* O aumento pra 100px é só pra desktop; no celular mantém o tamanho
+       original pra não tomar espaço demais da tela. */
+    .chat-btn-blue {
+        width: 60px;
+        height: 60px;
+    }
+
+    /* A janela e o balão de fala ficam mais perto do botão no celular,
+       porque aqui ele voltou pro tamanho original (60px, não 100px). */
+    .chat-window {
+        bottom: 100px;
+    }
+
+    .chat-balao-fala {
+        bottom: 95px;
     }
 }
 /* =========================================================

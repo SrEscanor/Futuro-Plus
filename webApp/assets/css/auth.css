@@ -370,6 +370,15 @@ select {
     margin-top: 6px;
 }
 
+.cep-resultado {
+    margin-top: 8px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: var(--bg);
+    font-size: 12.5px;
+    color: var(--ink);
+}
+
 /* ---------------------------------------------------------
    BOTÕES
    --------------------------------------------------------- */
@@ -634,6 +643,7 @@ select {
 .modal-legal[open] {
     display: flex;
     flex-direction: column;
+    margin: auto;
 }
 
 .modal-legal-cabecalho {
@@ -914,6 +924,17 @@ select {
     .auth-card--simples {
         justify-content: center;
         padding-bottom: 40px;
+    }
+
+    /* Campo com menos de 16px de fonte faz o Safari/Chrome do celular dar
+       zoom na página inteira ao focar (pra "ajudar" a leitura) — na etapa
+       do CEP, com só um campo na tela, isso ficava bem visível: a página
+       toda (título, "Já tem conta?" etc.) parecia crescer de repente ao
+       tocar no campo. 16px desativa esse zoom automático. */
+    .form-group input,
+    .form-group select,
+    select {
+        font-size: 16px;
     }
 }
 

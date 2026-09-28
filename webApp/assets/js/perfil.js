@@ -4,6 +4,8 @@ import { auth, db } from './firebase-config.js';
 import { escapeHtml } from './card-unidade.js';
 import { categoriasTeste } from './categorias-teste.js';
 import { extrairResultadoMaisRecente, extrairResultadoVocacional } from './resultado-teste.js';
+import { localizarRuaDoAluno } from './geocodificacao.js';
+import { ITENS_DO_PERFIL } from './perfil-completude.js';
 
 // A página abre no perfil montado (o que a pessoa — e, no futuro, uma Etec —
 // veria). O formulário é o modo de edição, com uma marcação por campo do que
@@ -42,17 +44,6 @@ const ESCOLARIDADES = {
     superior_concluido: 'Ensino superior completo'
 };
 
-const ITENS_DO_PERFIL = [
-    { rotulo: 'cidade no cadastro', completo: (d) => Boolean(d.cadastro.cidade || d.cadastro.cep) },
-    { rotulo: 'seu momento nos estudos', completo: (d) => Boolean(d.perfil.escolaridade) },
-    { rotulo: 'sua formação', completo: (d) => Boolean(d.perfil.formacao || d.perfil.semFormacao) },
-    { rotulo: 'o curso que você quer', completo: (d) => Boolean(d.perfil.cursoDesejado) },
-    { rotulo: 'suas áreas de interesse', completo: (d) => (d.perfil.modalidades || []).length > 0 },
-    { rotulo: 'seu estilo de aprendizado', completo: (d) => (d.perfil.estilos || []).length > 0 },
-    { rotulo: 'seu objetivo', completo: (d) => Boolean(d.perfil.objetivo) },
-    { rotulo: 'fazer um teste', completo: (d) => Boolean(d.temTeste) }
-];
-
 const VISIVEL_POR_PADRAO = {
     formacao: true, cursoDesejado: true, modalidades: true, estilos: true, objetivo: true, testes: true
 };
@@ -64,6 +55,26 @@ let temTeste = false;
 let resultados = { vocacional: null, gardner: null };
 
 const elemento = (id) => document.getElementById(id);
+
+// ------------------------------------------------------------------
+// Endereço (CEP): a pessoa só digita o CEP, rua/cidade/estado vêm do
+// ViaCEP e a coordenada (pra recomendação de unidade) do geocodificador —
+// mesma lógica do cadastro, adaptada pra edição (só refaz a busca se o
+// CEP realmente mudou; senão mantém o que já estava salvo).
+let cepResolvido = { cepDigitos: '', rua: '', estado: '', cidade: '', localizacao: null };
+let buscaLocalizacaoPerfil = Promise.resolve(null);
+
+function mostrarResultadoCepPerfil(texto) {
+    const alvo = elemento('perfil-cep-resultado');
+    if (!alvo) return;
+    if (!texto) {
+        alvo.hidden = true;
+        alvo.textContent = '';
+        return;
+    }
+    alvo.hidden = false;
+    alvo.textContent = `📍 ${texto}`;
+}
 
 // ------------------------------------------------------------------
 // Modo visualização
@@ -230,6 +241,22 @@ function montarTags(container, opcoes, selecionadas, limite) {
 function abrirEdicao() {
     elemento('perfil-nome').value = cadastro.nome || '';
     elemento('perfil-sobrenome').value = cadastro.sobrenome || '';
+    elemento('perfil-data-nascimento').value = cadastro.dataNascimento || '';
+    elemento('perfil-genero').value = cadastro.genero || '';
+    elemento('perfil-cep').value = cadastro.cep || '';
+
+    // Parte do que já está salvo — só é substituído se a pessoa trocar o
+    // CEP e sair do campo (ver listener de blur mais abaixo).
+    cepResolvido = {
+        cepDigitos: (cadastro.cep || '').replace(/\D/g, ''),
+        rua: cadastro.rua || '',
+        estado: cadastro.estado || '',
+        cidade: cadastro.cidade || '',
+        localizacao: cadastro.localizacao || null
+    };
+    buscaLocalizacaoPerfil = Promise.resolve(cadastro.localizacao || null);
+    mostrarResultadoCepPerfil([cepResolvido.rua, cepResolvido.cidade, cepResolvido.estado].filter(Boolean).join(', '));
+
     elemento('perfil-escolaridade').value = perfil.escolaridade || '';
     elemento('perfil-formacao').value = perfil.formacao || '';
     elemento('perfil-sem-formacao').checked = perfil.semFormacao === true;
@@ -264,6 +291,9 @@ function lerEdicao() {
     return {
         nome: elemento('perfil-nome').value.trim(),
         sobrenome: elemento('perfil-sobrenome').value.trim(),
+        dataNascimento: elemento('perfil-data-nascimento').value,
+        genero: elemento('perfil-genero').value,
+        cep: elemento('perfil-cep').value.trim(),
         escolaridade: elemento('perfil-escolaridade').value,
         formacao: elemento('perfil-formacao').value.trim(),
         semFormacao: elemento('perfil-sem-formacao').checked,
@@ -311,7 +341,7 @@ async function excluirConta() {
 async function salvar(evento) {
     evento.preventDefault();
     const status = elemento('perfil-status');
-    const { nome, sobrenome, ...novoPerfil } = lerEdicao();
+    const { nome, sobrenome, dataNascimento, genero, cep, ...novoPerfil } = lerEdicao();
 
     if (!nome) {
         status.textContent = 'Informe seu nome.';
@@ -319,15 +349,49 @@ async function salvar(evento) {
         elemento('perfil-nome').focus({ preventScroll: true });
         return;
     }
+    if (!genero) {
+        status.textContent = 'Selecione seu gênero.';
+        status.className = 'perfil-status perfil-status--erro';
+        elemento('perfil-genero').focus({ preventScroll: true });
+        return;
+    }
+    if (cep.replace(/\D/g, '').length !== 8 || !cepResolvido.rua) {
+        status.textContent = 'Informe um CEP válido (8 dígitos).';
+        status.className = 'perfil-status perfil-status--erro';
+        elemento('perfil-cep').focus({ preventScroll: true });
+        return;
+    }
+
+    status.textContent = 'Salvando...';
+    status.className = 'perfil-status';
+
+    // Espera no máximo 3 s pela coordenada nova (só existe busca em
+    // andamento se o CEP mudou); sem ela, mantém a localização anterior.
+    const localizacao = await Promise.race([
+        buscaLocalizacaoPerfil,
+        new Promise((resolve) => setTimeout(() => resolve(cepResolvido.localizacao), 3000))
+    ]);
 
     try {
         await setDoc(
             doc(db, 'usuarios', usuarioAtual.uid),
-            { nome, sobrenome, perfil: { ...novoPerfil, atualizadoEm: new Date().toISOString() } },
+            {
+                nome, sobrenome, dataNascimento, genero, cep,
+                rua: cepResolvido.rua,
+                estado: cepResolvido.estado,
+                ...(cepResolvido.cidade ? { cidade: cepResolvido.cidade } : {}),
+                ...(localizacao ? { localizacao } : {}),
+                perfil: { ...novoPerfil, atualizadoEm: new Date().toISOString() }
+            },
             { merge: true }
         );
         status.textContent = '';
-        cadastro = { ...cadastro, nome, sobrenome };
+        cadastro = {
+            ...cadastro, nome, sobrenome, dataNascimento, genero, cep,
+            rua: cepResolvido.rua, estado: cepResolvido.estado,
+            ...(cepResolvido.cidade ? { cidade: cepResolvido.cidade } : {}),
+            ...(localizacao ? { localizacao } : {})
+        };
         mostrarVisualizacao(novoPerfil);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (erro) {
@@ -407,6 +471,50 @@ document.addEventListener('DOMContentLoaded', () => {
         const campo = elemento('perfil-formacao');
         campo.disabled = e.target.checked;
         if (e.target.checked) campo.value = '';
+    });
+
+    elemento('perfil-cep')?.addEventListener('input', (e) => {
+        let valor = e.target.value.replace(/\D/g, '');
+        if (valor.length > 8) valor = valor.slice(0, 8);
+        e.target.value = valor.replace(/(\d{5})(\d)/, '$1-$2');
+    });
+
+    elemento('perfil-cep')?.addEventListener('blur', async (e) => {
+        const status = elemento('perfil-status');
+        const cepDigitos = e.target.value.replace(/\D/g, '');
+
+        if (cepDigitos.length !== 8) {
+            if (cepDigitos.length > 0) {
+                status.textContent = 'CEP incompleto (precisa de 8 dígitos).';
+                status.className = 'perfil-status perfil-status--erro';
+            }
+            return;
+        }
+        // CEP igual ao que já estava resolvido: nada a refazer.
+        if (cepDigitos === cepResolvido.cepDigitos) return;
+
+        try {
+            const resposta = await fetch(`https://viacep.com.br/ws/${cepDigitos}/json/`);
+            const dados = await resposta.json();
+            if (dados.erro) {
+                status.textContent = 'CEP não encontrado.';
+                status.className = 'perfil-status perfil-status--erro';
+                return;
+            }
+            cepResolvido = {
+                cepDigitos,
+                rua: dados.logradouro || '',
+                estado: dados.uf || '',
+                cidade: dados.localidade || '',
+                localizacao: null
+            };
+            mostrarResultadoCepPerfil([cepResolvido.rua, cepResolvido.cidade, cepResolvido.estado].filter(Boolean).join(', '));
+            buscaLocalizacaoPerfil = localizarRuaDoAluno({ rua: dados.logradouro, cidade: dados.localidade, uf: dados.uf })
+                .catch(() => null);
+            status.textContent = '';
+        } catch (erro) {
+            console.error('Erro na busca do CEP:', erro);
+        }
     });
 });
 

@@ -13,6 +13,9 @@ import { distanciaKm, formatarDistancia, localizarRuaDoAluno } from "./geocodifi
 const PESOS_CURSOS = {
     "Administração": { interpessoal: 2, intrapessoal: 2, logica: 1, linguistica: 1 },
     "Desenvolvimento de Sistemas": { logica: 3, espacial: 1, intrapessoal: 1 },
+    // Curso superior de tecnologia da Fatec, equivalente ao técnico acima —
+    // mesmo perfil de afinidade, só que com o nome oficial da Fatec.
+    "Análise e Desenvolvimento de Sistemas": { logica: 3, espacial: 1, intrapessoal: 1 },
     "Recursos Humanos": { interpessoal: 3, linguistica: 1, intrapessoal: 1 },
     "Logística": { logica: 2, espacial: 2, interpessoal: 1 },
     "Informática para Internet": { logica: 3, espacial: 2 },
@@ -419,6 +422,38 @@ export function calcularRecomendacoes(resultado, { oferta, localizacao = null, r
     return recomendacoes
         .sort((a, b) => b.pontuacao - a.pontuacao)
         .slice(0, limite);
+}
+
+// O Teste Vocacional já sugere cursos pelo nome (não por afinidade com as 8
+// inteligências, como o Gardner/Afinidades), então aqui não tem cálculo de
+// pontuação: só busca a oferta real de cada curso sugerido e monta o card no
+// mesmo formato dos outros. Um curso sugerido que nenhuma unidade cadastrada
+// oferece é ignorado (não dá pra mostrar "Ver unidades" pra ele).
+export function recomendacoesDoVocacional(vocacional, { oferta, localizacao = null, regioes = null, limite = 8 } = {}) {
+    if (!vocacional?.cursos?.length || !oferta) return [];
+
+    const avaliar = criarAvaliadorProximidade(localizacao, regioes);
+    const vistos = new Set();
+    const recomendacoes = [];
+
+    for (const cursoSugerido of vocacional.cursos) {
+        const chave = normalizar(cursoSugerido?.nome || "");
+        if (!chave || vistos.has(chave)) continue;
+        const curso = oferta.get(chave);
+        if (!curso) continue;
+        vistos.add(chave);
+
+        const unidades = unidadesPorProximidade(curso.unidades, avaliar);
+        recomendacoes.push({
+            nome: curso.nome,
+            motivoTexto: "Sugerido pelo seu Teste Vocacional",
+            unidades,
+            ...resumirProximidade(unidades)
+        });
+        if (recomendacoes.length >= limite) break;
+    }
+
+    return recomendacoes;
 }
 
 // Para quem ainda não tem resultado: os cursos oferecidos em mais unidades.

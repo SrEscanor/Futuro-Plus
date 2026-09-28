@@ -1,6 +1,6 @@
 import { auth, db } from './firebase-config.js';
 import { createUserWithEmailAndPassword, deleteUser, sendEmailVerification } from "firebase/auth";
-import { doc, getDoc, writeBatch } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { integrarResultadoPendenteComPerfil } from "./resultado-teste.js";
 import { localizarRuaDoAluno } from "./geocodificacao.js";
 import { entrarComGoogle } from "./auth-google.js";
@@ -98,10 +98,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   const cepInput = document.getElementById('cep');
-  const cpfInput = document.getElementById('cpf');
   const nomeInput = document.getElementById('nome');
   const sobrenomeInput = document.getElementById('sobrenome');
-  const numeroInput = document.getElementById('numero');
   const formCadastro = document.getElementById('formCadastro');
   const msgErro = document.getElementById('msgErro');
 
@@ -117,12 +115,27 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   let etapaAtual = 1;
-  // Cidade devolvida pelo ViaCEP e a coordenada da rua (sem o número da
-  // casa); usadas para recomendar as Etecs mais perto da pessoa. A busca da
-  // coordenada começa assim que o CEP é preenchido, enquanto a pessoa segue
-  // para os próximos campos.
+  // Preenchidos pelo ViaCEP a partir do CEP digitado — a pessoa não digita
+  // rua/estado manualmente, só confere o resultado. A coordenada da rua é
+  // usada para recomendar as Etecs mais perto da pessoa; a busca dela começa
+  // assim que o CEP é confirmado, enquanto a pessoa segue para os próximos
+  // campos.
+  let ruaDoCep = '';
+  let estadoDoCep = '';
   let cidadeDoCep = '';
   let buscaLocalizacao = Promise.resolve(null);
+  const cepResultado = document.getElementById('cep-resultado');
+
+  function mostrarResultadoCep(texto) {
+    if (!cepResultado) return;
+    if (!texto) {
+      cepResultado.hidden = true;
+      cepResultado.textContent = '';
+      return;
+    }
+    cepResultado.hidden = false;
+    cepResultado.textContent = `📍 ${texto}`;
+  }
 
   // ---------------------------------------------------------------
   // Mensagens de erro
@@ -200,10 +213,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // ---------------------------------------------------------------
   // Validações
   // ---------------------------------------------------------------
-  function normalizarCpf(cpf) {
-    return cpf.replace(/\D/g, '');
-  }
-
   // Versão atual do documento publicado em admin-termos.html (1 se ninguém
   // publicou nada ainda) — grava qual versão a pessoa aceitou no cadastro.
   async function buscarVersaoAtual(colecaoId) {
@@ -213,24 +222,6 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch {
       return 1;
     }
-  }
-
-  function validaCPF(cpf) {
-    cpf = cpf.replace(/\D/g, '');
-    if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
-
-    let soma = 0, resto;
-    for (let i = 1; i <= 9; i++) soma += parseInt(cpf.substring(i - 1, i)) * (11 - i);
-    resto = (soma * 10) % 11;
-    if ((resto === 10) || (resto === 11)) resto = 0;
-    if (resto !== parseInt(cpf.substring(9, 10))) return false;
-
-    soma = 0;
-    for (let i = 1; i <= 10; i++) soma += parseInt(cpf.substring(i - 1, i)) * (12 - i);
-    resto = (soma * 10) % 11;
-    if ((resto === 10) || (resto === 11)) resto = 0;
-    if (resto !== parseInt(cpf.substring(10, 11))) return false;
-    return true;
   }
 
   function verificaIdade(dataString) {
@@ -271,9 +262,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const dataNascimento = document.getElementById('dataNascimento');
       const genero = document.getElementById('genero');
 
-      if (!validaCPF(cpfInput.value)) {
-        return falhar('CPF inválido. Por favor, verifique os números.', cpfInput);
-      }
       if (!dataNascimento.value) {
         return falhar('Informe sua data de nascimento.', dataNascimento);
       }
@@ -287,16 +275,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (numero === 3) {
-      const rua = document.getElementById('rua');
-      const estado = document.getElementById('estado');
       const aceiteTermos = document.getElementById('aceiteTermos');
 
       if (cepInput.value.replace(/\D/g, '').length !== 8) {
         return falhar('Informe um CEP válido (8 dígitos).', cepInput);
       }
-      if (!rua.value.trim()) return falhar('Informe a rua / logradouro.', rua);
-      if (!numeroInput.value.trim()) return falhar('Informe o número do endereço.', numeroInput);
-      if (!estado.value.trim()) return falhar('Informe o estado (UF).', estado);
+      if (!ruaDoCep) return falhar('Não encontramos esse CEP — confira e tente de novo.', cepInput);
       if (!aceiteTermos.checked) {
         return falhar('É preciso aceitar os termos para criar a conta.');
       }
@@ -343,33 +327,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // ---------------------------------------------------------------
   // Máscaras e preenchimento automático
   // ---------------------------------------------------------------
-  cpfInput.addEventListener('input', (e) => {
-    let value = e.target.value.replace(/\D/g, '');
-    if (value.length > 11) value = value.slice(0, 11);
-
-    value = value.replace(/(\d{3})(\d)/, '$1.$2');
-    value = value.replace(/(\d{3})(\d)/, '$1.$2');
-    value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-
-    e.target.value = value;
-  });
-
-  // Avisa na hora se o CPF já tem conta, sem esperar o fim do cadastro. A
-  // checagem definitiva (que reserva o CPF de verdade) acontece de novo no
-  // envio, porque entre o blur e o clique em "Criar conta" outra pessoa pode
-  // ter cadastrado o mesmo CPF primeiro.
-  cpfInput.addEventListener('blur', async () => {
-    if (!validaCPF(cpfInput.value)) return;
-    try {
-      const reservado = await getDoc(doc(db, 'cpfs_em_uso', normalizarCpf(cpfInput.value)));
-      if (reservado.exists()) {
-        mostrarErro('Este CPF já está cadastrado em outra conta.', cpfInput);
-      }
-    } catch (erro) {
-      console.error('Erro ao checar CPF:', erro);
-    }
-  });
-
   [nomeInput, sobrenomeInput].forEach(input => {
     input.addEventListener('input', (e) => {
       e.target.value = e.target.value.replace(/[0-9]/g, '');
@@ -380,10 +337,6 @@ document.addEventListener('DOMContentLoaded', () => {
         e.target.value = val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
       }
     });
-  });
-
-  numeroInput.addEventListener('input', (e) => {
-    e.target.value = e.target.value.replace(/\D/g, '');
   });
 
   cepInput.addEventListener('input', (e) => {
@@ -400,20 +353,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
         const data = await response.json();
         if (!data.erro) {
-          document.getElementById('rua').value = data.logradouro;
-          document.getElementById('estado').value = data.uf;
+          ruaDoCep = data.logradouro || '';
+          estadoDoCep = data.uf || '';
           cidadeDoCep = data.localidade || '';
+          mostrarResultadoCep([ruaDoCep, cidadeDoCep, estadoDoCep].filter(Boolean).join(', '));
           buscaLocalizacao = localizarRuaDoAluno({ rua: data.logradouro, cidade: data.localidade, uf: data.uf })
             .catch(() => null);
           limparErro();
         } else {
+          ruaDoCep = '';
+          estadoDoCep = '';
           cidadeDoCep = '';
           buscaLocalizacao = Promise.resolve(null);
+          mostrarResultadoCep(null);
           mostrarErro("CEP não encontrado.", cepInput);
         }
       } catch (error) {
         console.error("Erro na busca do CEP:", error);
       }
+    } else {
+      ruaDoCep = '';
+      estadoDoCep = '';
+      cidadeDoCep = '';
+      mostrarResultadoCep(null);
     }
   });
 
@@ -435,7 +397,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     limparErro();
 
-    const email = document.getElementById('email').value.trim();
+    // Minúsculo porque o Firebase Auth trata e-mail com case-sensitivity:
+    // "Fulano@gmail.com" e "fulano@gmail.com" virariam duas contas diferentes.
+    const email = document.getElementById('email').value.trim().toLowerCase();
     const senha = document.getElementById('senha').value;
     const botaoEnviar = formCadastro.querySelector('button[type="submit"]');
 
@@ -455,36 +419,26 @@ document.addEventListener('DOMContentLoaded', () => {
       const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
       const user = userCredential.user;
 
-      // 2. Salva os dados complementares e reserva o CPF no mesmo lote: se o
-      // CPF já tiver dono, a regra do Firestore recusa o lote inteiro (nada
-      // fica gravado pela metade), e desfazemos a conta de Auth criada acima.
-      const cpfNormalizado = normalizarCpf(cpfInput.value);
+      // 2. Salva os dados complementares do perfil. Se der errado, desfaz a
+      // conta de Auth criada acima em vez de deixar uma conta pela metade.
       try {
-        const lote = writeBatch(db);
-        lote.set(doc(db, "usuarios", user.uid), {
+        await setDoc(doc(db, "usuarios", user.uid), {
           nome: nomeInput.value,
           sobrenome: sobrenomeInput.value,
-          cpf: cpfInput.value,
           email: email,
           dataNascimento: document.getElementById('dataNascimento').value,
           genero: document.getElementById('genero').value,
           cep: cepInput.value,
-          rua: document.getElementById('rua').value,
-          numero: numeroInput.value,
-          estado: document.getElementById('estado').value,
+          rua: ruaDoCep,
+          estado: estadoDoCep,
           ...(cidadeDoCep ? { cidade: cidadeDoCep } : {}),
           ...(localizacao ? { localizacao } : {}),
           termosAceitos: { termos: versaoTermos, privacidade: versaoPrivacidade, aceitoEm: new Date().toISOString() },
           criadoEm: new Date().toISOString()
         });
-        lote.set(doc(db, "cpfs_em_uso", cpfNormalizado), {
-          uid: user.uid,
-          criadoEm: new Date().toISOString()
-        });
-        await lote.commit();
       } catch (erroPerfil) {
         await deleteUser(user).catch((erroLimpeza) => console.error('Erro ao desfazer conta:', erroLimpeza));
-        throw Object.assign(new Error('CPF já cadastrado'), { code: 'cpf-em-uso' });
+        throw erroPerfil;
       }
 
       // Se a pessoa fez o teste antes de criar a conta, vincula o resultado agora
@@ -504,10 +458,7 @@ document.addEventListener('DOMContentLoaded', () => {
       botaoEnviar.disabled = false;
       botaoEnviar.textContent = 'Criar conta';
 
-      if (error.code === 'cpf-em-uso') {
-        irParaEtapa(2);
-        mostrarErro("Este CPF já está cadastrado em outra conta.", cpfInput);
-      } else if (error.code === 'auth/email-already-in-use') {
+      if (error.code === 'auth/email-already-in-use') {
         irParaEtapa(1);
         mostrarErro("Este e-mail já está cadastrado.", document.getElementById('email'));
       } else if (error.code === 'auth/weak-password') {
