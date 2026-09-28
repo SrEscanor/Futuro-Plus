@@ -27,10 +27,9 @@ export const TERMOS_PADRAO = `
 <h2>3. Sua conta</h2>
 <ul>
     <li>Os dados que você informa no cadastro precisam ser verdadeiros.</li>
-    <li>Cada CPF só pode ser usado em uma conta.</li>
     <li>Você é responsável por manter sua senha em sigilo e por tudo que acontecer usando a sua conta.</li>
-    <li>Também é possível entrar com sua conta Google — nesse caso, alguns dados (como CPF e endereço) não
-        são coletados automaticamente.</li>
+    <li>Também é possível entrar com sua conta Google — nesse caso, o endereço não é coletado
+        automaticamente.</li>
 </ul>
 
 <h2>4. Como usar o site</h2>
@@ -99,11 +98,11 @@ export const PRIVACIDADE_PADRAO = `
     pedido ou reclamação sobre seus dados.</p>
 
 <h2>2. Quais dados coletamos</h2>
-<p><strong>No cadastro por e-mail e senha:</strong> nome, sobrenome, e-mail, CPF, data de nascimento,
-    gênero, CEP, rua, número e estado. A cidade e uma localização aproximada da sua rua (nunca o número da
-    casa) também são guardadas, para sugerir unidades mais perto de você.</p>
+<p><strong>No cadastro por e-mail e senha:</strong> nome, sobrenome, e-mail, data de nascimento, gênero,
+    CEP, rua e estado. A cidade e uma localização aproximada da sua rua também são guardadas, para sugerir
+    unidades mais perto de você.</p>
 <p><strong>No cadastro com Google:</strong> apenas nome, sobrenome, e-mail e foto de perfil, entregues pelo
-    Google. CPF e endereço não são coletados nesse fluxo.</p>
+    Google. Endereço não é coletado nesse fluxo.</p>
 <p><strong>No seu perfil:</strong> escolaridade, formação, curso que você quer seguir, áreas de interesse,
     estilo de aprendizado e objetivo — todos opcionais, preenchidos por você.</p>
 <p><strong>Nos testes:</strong> suas respostas e os resultados do teste vocacional e do teste de perfil
@@ -120,7 +119,6 @@ export const PRIVACIDADE_PADRAO = `
     <li><strong>Pesquisa e estatísticas internas:</strong> entender quantas pessoas usam o Futuro+, quais
         cursos e áreas são mais procurados, e melhorar o site com base nesses números. Isso é feito com
         dados agregados, que não identificam você individualmente;</li>
-    <li>Impedir cadastros duplicados com o mesmo CPF;</li>
     <li>Cumprir obrigações legais, quando aplicável.</li>
 </ul>
 <p>A base legal para tratar seus dados é o seu <strong>consentimento</strong>, dado ao aceitar estes
@@ -148,7 +146,7 @@ export const PRIVACIDADE_PADRAO = `
     resultados de teste.</p>
 <div class="legal-destaque">
     Isso só vai valer para os campos que você <strong>marcar manualmente como "Mostrar no meu perfil"</strong>
-    na edição do seu perfil. Dados sensíveis — CPF, e-mail, endereço completo, data de nascimento e gênero —
+    na edição do seu perfil. Dados sensíveis — e-mail, endereço completo, data de nascimento e gênero —
     nunca ficam públicos, mesmo quando esse recurso estiver ativo.
 </div>
 
@@ -167,7 +165,7 @@ export const PRIVACIDADE_PADRAO = `
 <ul>
     <li>Você é desconectado na hora, e sua conta fica marcada para exclusão;</li>
     <li>Se ninguém entrar de novo em <strong>30 dias</strong>, a conta é apagada de vez: perfil, testes,
-        endereço, CPF reservado e certificados do mural;</li>
+        endereço e certificados do mural;</li>
     <li>Se você entrar de novo antes dos 30 dias, o pedido é cancelado automaticamente e a conta continua
         normal, sem precisar fazer mais nada.</li>
 </ul>

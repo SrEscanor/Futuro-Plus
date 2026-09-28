@@ -1,6 +1,8 @@
 // Chama atenção pro botão do assistente até a pessoa abrir o chat pela
-// primeira vez. Depois disso, para de "incomodar" — quem já sabe que o
-// botão existe não precisa continuar vendo isso a cada visita.
+// primeira vez naquela sessão. Depois disso, para de "incomodar" nessa
+// mesma sessão — mas volta a chamar atenção da próxima vez que a pessoa
+// logar (sessionStorage, ao contrário de localStorage, é por aba/sessão:
+// zera sozinho quando a aba fecha ou numa próxima visita/login).
 const CHAVE_JA_ABRIU = 'futuroplus_chat_ja_abriu';
 const INTERVALO_ACENO_MS = 45000;
 const ATRASO_BALAO_MS = 0;
@@ -8,7 +10,7 @@ const DURACAO_BALAO_MS = 8000;
 
 function jaAbriuAntes() {
     try {
-        return localStorage.getItem(CHAVE_JA_ABRIU) === '1';
+        return sessionStorage.getItem(CHAVE_JA_ABRIU) === '1';
     } catch {
         return false;
     }
@@ -16,9 +18,9 @@ function jaAbriuAntes() {
 
 function marcarComoAberto() {
     try {
-        localStorage.setItem(CHAVE_JA_ABRIU, '1');
+        sessionStorage.setItem(CHAVE_JA_ABRIU, '1');
     } catch {
-        // localStorage bloqueado (modo privado etc.) — sem problema, só não lembra pra próxima visita
+        // sessionStorage bloqueado (modo privado etc.) — sem problema, só não lembra pro resto da sessão
     }
 }
 
@@ -31,6 +33,7 @@ export function iniciarAtencaoChat({ pausar = () => false } = {}) {
     const bolinha = document.createElement('span');
     bolinha.className = 'chat-notificacao-bolinha';
     botao.appendChild(bolinha);
+    botao.classList.add('chat-btn-pulsando');
 
     function mostrarBalaoDeFala() {
         if (jaAbriuAntes() || pausar() || document.getElementById('chat-balao-fala')) return;
@@ -46,6 +49,7 @@ export function iniciarAtencaoChat({ pausar = () => false } = {}) {
             balao.remove();
             marcarComoAberto();
             bolinha.remove();
+            botao.classList.remove('chat-btn-pulsando');
             clearTimeout(timeoutBalao);
             clearInterval(intervaloAceno);
         });
@@ -75,6 +79,7 @@ export function iniciarAtencaoChat({ pausar = () => false } = {}) {
     botao.addEventListener('click', () => {
         marcarComoAberto();
         bolinha.remove();
+        botao.classList.remove('chat-btn-pulsando');
         document.getElementById('chat-balao-fala')?.remove();
         clearTimeout(timeoutBalao);
         clearInterval(intervaloAceno);

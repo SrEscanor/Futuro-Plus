@@ -118,6 +118,7 @@
 }
 
 .perfil-campo input[type="text"],
+.perfil-campo input[type="date"],
 .perfil-campo select,
 .perfil-campo textarea {
     width: 100%;
@@ -133,10 +134,20 @@
 }
 
 .perfil-campo input[type="text"]:focus,
+.perfil-campo input[type="date"]:focus,
 .perfil-campo select:focus,
 .perfil-campo textarea:focus {
     border-color: var(--blue);
     box-shadow: 0 0 0 4px var(--blue-soft);
+}
+
+.perfil-campo .cep-resultado {
+    margin-top: 8px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: var(--bg);
+    font-size: 12.5px;
+    color: var(--ink);
 }
 
 .perfil-campo input[disabled] {
@@ -294,6 +305,15 @@
 
     .perfil-identidade {
         align-items: flex-start;
+    }
+
+    /* Campo com menos de 16px de fonte faz o celular dar zoom na página
+       inteira ao focar (mesmo ajuste feito no cadastro, ver auth.css). */
+    .perfil-campo input[type="text"],
+    .perfil-campo input[type="date"],
+    .perfil-campo select,
+    .perfil-campo textarea {
+        font-size: 16px;
     }
 }
 

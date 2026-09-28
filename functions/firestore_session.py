@@ -22,6 +22,30 @@ identificado pelo id_usuario. Assim:
 MAX_ITEMS = 40
 
 
+def _sem_resultado_orfao(itens: list) -> list:
+    """Remove um `function_call_output` cujo `function_call` correspondente
+    (mesmo call_id) não está mais na lista.
+
+    Uma chamada de ferramenta é sempre gravada como dois itens seguidos: o
+    pedido (`function_call`) e o resultado (`function_call_output`). Cortar
+    a lista só por quantidade (`[-MAX_ITEMS:]`) pode cair bem no meio desse
+    par — cortando o pedido mas mantendo o resultado —, e a OpenAI rejeita a
+    conversa inteira nesse caso ("No tool call found for function call
+    output..."), quebrando o chat até o histórico ser limpo. Rodar isso a
+    cada leitura também "cura" sozinho um documento que já ficou corrompido
+    antes dessa correção existir.
+    """
+    ids_com_chamada = {
+        item.get("call_id") for item in itens
+        if isinstance(item, dict) and item.get("type") == "function_call"
+    }
+    return [
+        item for item in itens
+        if not (isinstance(item, dict) and item.get("type") == "function_call_output"
+                and item.get("call_id") not in ids_com_chamada)
+    ]
+
+
 class FirestoreSession:
     """Implementação de Session (Agents SDK) apoiada no Firestore."""
 
@@ -32,6 +56,7 @@ class FirestoreSession:
     async def get_items(self, limit: int | None = None) -> list:
         snap = self._doc_ref.get()
         itens = snap.to_dict().get("items", []) if snap.exists else []
+        itens = _sem_resultado_orfao(itens)
         if limit is not None:
             return itens[-limit:]
         return itens
@@ -41,7 +66,7 @@ class FirestoreSession:
             return
         snap = self._doc_ref.get()
         itens_atuais = snap.to_dict().get("items", []) if snap.exists else []
-        itens_atualizados = (itens_atuais + list(items))[-MAX_ITEMS:]
+        itens_atualizados = _sem_resultado_orfao((itens_atuais + list(items))[-MAX_ITEMS:])
         self._doc_ref.set({"items": itens_atualizados}, merge=True)
 
     async def pop_item(self):

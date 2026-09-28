@@ -3,6 +3,10 @@ import { signOut, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, setDoc, deleteField } from "firebase/firestore";
 import { verificarTermosAtualizados } from './gate-termos.js';
 import { verificarEmailConfirmado } from './gate-email.js';
+import {
+    verificarNotificacaoModal, configurarSino,
+    verificarNotificacaoModalVisitante, configurarSinoVisitante
+} from './notificacoes.js';
 import { iniciarAtencaoChat } from './chat-atencao.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -23,6 +27,11 @@ document.addEventListener('DOMContentLoaded', () => {
         return partes.slice(0, 2).map((parte) => parte[0].toUpperCase()).join('') || '?';
     }
 
+    // configurarSino()/configurarSinoVisitante() devolvem a função de marcar
+    // como visto — guardada aqui pra o clique no sino (mais abaixo) poder
+    // chamar, seja qual for a conta (ou visitante) da vez.
+    let marcarNotificacoesVistas = async () => {};
+
     // Monitora a sessão e busca o nome no Firestore (Login Opcional)
     onAuthStateChanged(auth, async (user) => {
         const spanNome = document.getElementById("nomeUsuario");
@@ -30,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const avatarIniciais = document.getElementById("avatar-iniciais");
         const navAuth = document.getElementById("nav-auth");
         const menuNavAuth = document.getElementById("menu-nav-auth");
+        const notifMenu = document.getElementById("notif-menu");
 
         if (user) {
             console.log("Usuário logado UID:", user.uid);
@@ -61,6 +71,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     // versão, caso de contas criadas antes desse controle existir).
                     verificarTermosAtualizados(dados).catch((erro) => console.error("Erro ao checar termos:", erro));
 
+                    // Avisos do admin: modal (uma vez por conta) e lista do sino do topo.
+                    verificarNotificacaoModal(dados).catch((erro) => console.error("Erro ao checar notificações:", erro));
+                    configurarSino(user.uid, dados)
+                        .then((fn) => { marcarNotificacoesVistas = fn; })
+                        .catch((erro) => console.error("Erro ao carregar o sino de notificações:", erro));
+
                     nomeCompleto = [dados.nome, dados.sobrenome].filter(Boolean).join(' ').trim();
                     if (dados.nome && spanNome) {
                         spanNome.textContent = dados.nome;
@@ -83,6 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (avatarIniciais) avatarIniciais.textContent = iniciaisDoNome(nomeCompleto || user.email);
             if (avatarMenu) avatarMenu.hidden = false;
+            if (notifMenu) notifMenu.hidden = false;
             if (navAuth) navAuth.hidden = true;
             if (menuNavAuth) menuNavAuth.hidden = true;
             desativarDestaqueTour();
@@ -91,10 +108,20 @@ document.addEventListener('DOMContentLoaded', () => {
             if (spanNome) {
                 spanNome.textContent = "ESTUDANTE";
             }
+
+            // Avisos do admin voltados para visitante (sem conta): mesma ideia
+            // do bloco acima, mas guardando o "já visto"/"limpo" no navegador.
+            verificarNotificacaoModalVisitante().catch((erro) => console.error("Erro ao checar notificações:", erro));
+            configurarSinoVisitante()
+                .then((fn) => { marcarNotificacoesVistas = fn; })
+                .catch((erro) => console.error("Erro ao carregar o sino de notificações:", erro));
+
             if (avatarMenu) avatarMenu.hidden = true;
+            if (notifMenu) notifMenu.hidden = false;
             if (navAuth) navAuth.hidden = false;
             if (menuNavAuth) menuNavAuth.hidden = false;
             fecharAvatarDropdown();
+            fecharNotifDropdown();
             ativarDestaqueTour();
         }
     });
@@ -113,6 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (avatarBotao && avatarDropdown) {
         avatarBotao.addEventListener("click", (e) => {
             e.stopPropagation();
+            fecharNotifDropdown();
             const vaiAbrir = avatarDropdown.hidden;
             avatarDropdown.hidden = !vaiAbrir;
             avatarBotao.setAttribute("aria-expanded", String(vaiAbrir));
@@ -124,6 +152,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.addEventListener("keydown", (e) => {
             if (e.key === "Escape") fecharAvatarDropdown();
+        });
+    }
+
+    // Balão do sino: mesmo comportamento do balão do avatar (abre no clique,
+    // fecha clicando fora, com Esc ou trocando pra o outro balão).
+    const notifBotao = document.getElementById("notif-botao");
+    const notifDropdown = document.getElementById("notif-dropdown");
+
+    function fecharNotifDropdown() {
+        if (!notifDropdown || notifDropdown.hidden) return;
+        notifDropdown.hidden = true;
+        notifBotao?.setAttribute("aria-expanded", "false");
+    }
+
+    if (notifBotao && notifDropdown) {
+        notifBotao.addEventListener("click", (e) => {
+            e.stopPropagation();
+            fecharAvatarDropdown();
+            const vaiAbrir = notifDropdown.hidden;
+            notifDropdown.hidden = !vaiAbrir;
+            notifBotao.setAttribute("aria-expanded", String(vaiAbrir));
+
+            // Abrir o balão já conta como "visto": grava a data (fica assim
+            // mesmo depois de recarregar a página) e some a bolha/cor azul.
+            // A lista continua ali (só some de vez com "Limpar").
+            if (vaiAbrir) marcarNotificacoesVistas();
+        });
+
+        document.addEventListener("click", (e) => {
+            if (!notifDropdown.hidden && !e.target.closest("#notif-menu")) fecharNotifDropdown();
+        });
+
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") fecharNotifDropdown();
         });
     }
 
@@ -277,6 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (logoutBtn) {
         logoutBtn.addEventListener("click", async () => {
             try {
+                limparHistoricoChat();
                 await signOut(auth);
                 window.location.href = "login.html";
             } catch (error) {
@@ -293,6 +356,39 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatInput = document.getElementById('chat-input');
     const sendChatBtn = document.getElementById('send-chat');
     const chatMessages = document.getElementById('chat-messages');
+
+    // A conversa com o assistente já é guardada de verdade no backend
+    // (Firestore, por conta), então o modelo já "lembra" do histórico não
+    // importa de qual página a pergunta venha — só a JANELA do chat, aqui no
+    // navegador, começava vazia de novo a cada troca de página. Guardamos as
+    // mensagens no sessionStorage (mesma aba) só pra reconstruir essa janela;
+    // não manda nada a mais pro backend, então não gasta token extra.
+    const CHAVE_CHAT_HISTORICO = 'futuroplus_chat_historico';
+    const LIMITE_HISTORICO_CHAT = 60;
+
+    function lerHistoricoChat() {
+        try {
+            return JSON.parse(sessionStorage.getItem(CHAVE_CHAT_HISTORICO)) || [];
+        } catch {
+            return [];
+        }
+    }
+
+    function salvarHistoricoChat(historico) {
+        try {
+            sessionStorage.setItem(CHAVE_CHAT_HISTORICO, JSON.stringify(historico.slice(-LIMITE_HISTORICO_CHAT)));
+        } catch {
+            // sem sessionStorage (modo privado etc.): a conversa só não sobrevive à troca de página, sem problema
+        }
+    }
+
+    function limparHistoricoChat() {
+        try {
+            sessionStorage.removeItem(CHAVE_CHAT_HISTORICO);
+        } catch {
+            // idem
+        }
+    }
 
     const toggleChat = () => {
         if (chatWindow) chatWindow.classList.toggle('oculta');
@@ -341,7 +437,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function addMessage(text, sender) {
+    function addMessage(text, sender, { salvarNoHistorico = true } = {}) {
         if (!text.trim() || !chatMessages) return;
         const msgDiv = document.createElement('div');
         msgDiv.classList.add('msg', sender);
@@ -352,19 +448,62 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         chatMessages.appendChild(msgDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        if (salvarNoHistorico) {
+            const historico = lerHistoricoChat();
+            historico.push({ texto: text, remetente: sender });
+            salvarHistoricoChat(historico);
+        }
     }
+
+    // Reconstrói a janela do chat com o que já foi conversado nesta aba —
+    // troca a saudação padrão (fixa no HTML) pelas mensagens de verdade
+    // quando existe algo guardado.
+    (function restaurarHistoricoChat() {
+        const historico = lerHistoricoChat();
+        if (!historico.length || !chatMessages) return;
+        chatMessages.innerHTML = '';
+        historico.forEach(({ texto, remetente }) => addMessage(texto, remetente, { salvarNoHistorico: false }));
+    })();
 
     // Botões para páginas do próprio site, enviados pelo backend. Só aceita
     // caminhos internos como "cursos.html?curso=...".
+    // Páginas do próprio site (relativas, ex.: "cursos.html?...") sempre
+    // valem. Links pra fora só valem pros sites oficiais de inscrição —
+    // uma lista fechada, não qualquer "https://" — já que o backend só
+    // deveria mandar esses dois (ver `mostrar_link_de_inscricao` em
+    // functions/tools.py), mas conferimos de novo aqui por segurança.
+    const ORIGENS_INSCRICAO_PERMITIDAS = [
+        'https://www.vestibulinhoetec.com.br',
+        'https://www.vestibularfatec.com.br'
+    ];
+
+    function origemPermitida(url) {
+        try {
+            const alvo = new URL(url);
+            return ORIGENS_INSCRICAO_PERMITIDAS.some((permitida) => alvo.origin === new URL(permitida).origin);
+        } catch {
+            return false;
+        }
+    }
+
     function mostrarLinksDoSite(links) {
         if (!chatMessages || !Array.isArray(links) || !links.length) return;
         const grupo = document.createElement('div');
         grupo.className = 'chat-links-site';
         links.forEach(({ texto, url }) => {
-            if (typeof url !== 'string' || !/^[a-z0-9-]+\.html(\?[^\s<>"']*)?$/i.test(url)) return;
+            if (typeof url !== 'string') return;
+            const interno = /^[a-z0-9-]+\.html(\?[^\s<>"']*)?$/i.test(url);
+            const externoOficial = !interno && origemPermitida(url);
+            if (!interno && !externoOficial) return;
+
             const botao = document.createElement('a');
             botao.className = 'chat-link-site';
             botao.href = url;
+            if (externoOficial) {
+                botao.target = '_blank';
+                botao.rel = 'noopener noreferrer';
+            }
             botao.textContent = `${texto} →`;
             grupo.appendChild(botao);
         });

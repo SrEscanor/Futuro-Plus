@@ -95,7 +95,7 @@ linkEsqueciSenha.addEventListener("click", async (e) => {
     if (linkEsqueciSenha.dataset.enviando === "1") return;
 
     const campoEmail = document.getElementById("email");
-    const email = campoEmail.value.trim();
+    const email = campoEmail.value.trim().toLowerCase();
 
     if (!email) {
         alert('Digite seu e-mail no campo acima e clique de novo em "esqueci minha senha".');
@@ -153,7 +153,9 @@ formLogin.addEventListener("submit", async (e) => {
 
     limparErroLogin();
 
-    const email = document.getElementById("email").value.trim();
+    // Minúsculo pra bater com o e-mail salvo no cadastro (o Firebase Auth
+    // trata case-sensitivity, então "Fulano@x.com" != "fulano@x.com").
+    const email = document.getElementById("email").value.trim().toLowerCase();
     const senha = document.getElementById("senha").value;
 
     if (!email || !senha) {

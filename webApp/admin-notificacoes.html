@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Futuro+ | Admin · Notificações</title>
+    <link rel="stylesheet" href="assets/css/admin-instituicoes.css">
+    <link rel="icon" type="image/png" href="/icon-192.png">
+</head>
+
+<body>
+
+    <header class="topo-admin">
+        <div class="titulo-area">
+            <h1>Painel Admin · Notificações</h1>
+            <a href="admin-termos.html" class="voltar">&larr; Termos e Privacidade</a>
+        </div>
+        <div class="usuario-area">
+            <span id="admin-email"></span>
+            <button id="logout-btn" class="btn-sair-admin">Sair</button>
+        </div>
+    </header>
+
+    <div id="acesso-negado" class="acesso-negado">
+        <h2>Acesso restrito</h2>
+        <p>Esta área é exclusiva para administradores do Futuro+. Se você acredita que deveria ter acesso, fale com
+            quem administra o projeto.</p>
+        <a href="index.html" class="btn btn-secundario">Voltar ao início</a>
+    </div>
+
+    <main id="admin-app" style="display:none;">
+        <div class="container-admin">
+
+            <div class="toolbar">
+                <div class="busca-area">
+                    <p class="campo-dica" style="margin:0;">Avisos como modal ao entrar e/ou na lista do sino no
+                        topo do site — para quem já tem conta, para visitante (sem login) ou para todo mundo.</p>
+                </div>
+                <div class="acoes-toolbar">
+                    <button type="button" id="btn-nova-notificacao" class="btn btn-primario">+ Nova notificação</button>
+                </div>
+            </div>
+
+            <div id="status-notificacoes" class="status-importacao"></div>
+
+            <div class="tabela-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Título</th>
+                            <th>Mensagem</th>
+                            <th>Público</th>
+                            <th title="Aparece como modal ao entrar, uma vez por conta/visitante">Modal</th>
+                            <th title="Aparece na lista do sino no topo">Sino</th>
+                            <th>Ativa</th>
+                            <th>Criada em</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-notificacoes-corpo">
+                        <tr>
+                            <td colspan="8" class="tabela-vazia">Carregando notificações...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- ---------- MODAL: FORMULÁRIO DE NOTIFICAÇÃO ---------- -->
+    <div id="modal-form" class="modal-overlay">
+        <div class="modal modal--estreito">
+            <form id="form-notificacao">
+                <div class="modal-cabecalho">
+                    <h2 id="form-titulo">Nova notificação</h2>
+                    <button type="button" id="btn-fechar-form" class="btn-fechar-modal" aria-label="Fechar">&times;</button>
+                </div>
+
+                <div class="modal-corpo">
+                    <div class="campo">
+                        <label for="f-titulo">Título *</label>
+                        <input type="text" id="f-titulo" required>
+                    </div>
+                    <div class="campo">
+                        <label for="f-mensagem">Mensagem *</label>
+                        <textarea id="f-mensagem" required></textarea>
+                    </div>
+                    <div class="campo">
+                        <label>Para quem</label>
+                        <label class="opcao-radio">
+                            <input type="radio" name="f-publico" id="f-publico-logados" value="logados" checked>
+                            Só quem já tem conta
+                        </label>
+                        <label class="opcao-radio">
+                            <input type="radio" name="f-publico" id="f-publico-deslogados" value="deslogados">
+                            Só visitante (sem login)
+                        </label>
+                        <label class="opcao-radio">
+                            <input type="radio" name="f-publico" id="f-publico-todos" value="todos">
+                            Todo mundo
+                        </label>
+                    </div>
+                    <div class="campo">
+                        <label>Onde aparece</label>
+                        <label class="opcao-radio">
+                            <input type="checkbox" id="f-modal">
+                            Modal ao entrar no site (uma vez por conta/visitante)
+                        </label>
+                        <label class="opcao-radio">
+                            <input type="checkbox" id="f-sino" checked>
+                            Lista do sino no topo
+                        </label>
+                    </div>
+                    <div class="campo">
+                        <label class="opcao-radio">
+                            <input type="checkbox" id="f-ativa" checked>
+                            Notificação ativa
+                        </label>
+                        <small class="campo-dica">Desmarque para esconder sem excluir (fica guardada para reativar
+                            depois).</small>
+                    </div>
+                </div>
+
+                <div class="modal-rodape">
+                    <button type="button" id="btn-cancelar-form" class="btn btn-secundario">Cancelar</button>
+                    <button type="submit" class="btn btn-primario">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module" src="assets/js/admin-notificacoes.js"></script>
+</body>
+
+</html>

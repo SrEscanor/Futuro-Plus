@@ -20,7 +20,7 @@ function injetarEstilos() {
             color: var(--ink, #1b1f3b);
         }
         .ge-modal::backdrop { background: rgba(23, 27, 58, 0.65); }
-        .ge-modal[open] { display: flex; flex-direction: column; }
+        .ge-modal[open] { display: flex; flex-direction: column; margin: auto; }
         .ge-corpo { padding: 26px 24px 22px; text-align: center; }
         .ge-icone { font-size: 40px; margin-bottom: 6px; }
         .ge-corpo h2 {

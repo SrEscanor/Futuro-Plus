@@ -56,6 +56,7 @@ def chat_bot(req: https_fn.Request) -> https_fn.Response:
         from firestore_session import FirestoreSession
         from contexto_chat import ContextoChat
         from ferramentas_unidades import e_busca_de_unidades, garantir_botao_da_pagina_de_cursos
+        from tools import garantir_botao_de_inscricao
 
         dados = req.get_json()
         if not dados:
@@ -104,6 +105,7 @@ def chat_bot(req: https_fn.Request) -> https_fn.Response:
 
         # Extrai a resposta final do agente
         resposta_texto = getattr(resultado, "final_output", None) or str(resultado)
+        garantir_botao_de_inscricao(contexto, resposta_texto)
         garantir_botao_da_pagina_de_cursos(contexto, mensagem, resposta_texto)
 
         # Registra só o caminho da execução (agente final, handoffs e ferramentas
@@ -228,11 +230,11 @@ def extrair_logo_etec(req: https_fn.Request) -> https_fn.Response:
         return https_fn.Response(json.dumps({"erro": f"Erro interno: {str(e)}"}), status=500)
 
 
-def _excluir_conta_por_completo(db, uid, dados):
-    """Apaga os certificados (Firestore + Storage), libera o CPF reservado
-    e remove o perfil e a conta de Auth. Usa o Admin SDK, que não exige
-    login recente — diferente do delete que o próprio usuário faria pelo
-    navegador, aqui ninguém está logado para reautenticar."""
+def _excluir_conta_por_completo(db, uid):
+    """Apaga os certificados (Firestore + Storage) e remove o perfil e a
+    conta de Auth. Usa o Admin SDK, que não exige login recente —
+    diferente do delete que o próprio usuário faria pelo navegador, aqui
+    ninguém está logado para reautenticar."""
     bucket = storage.bucket("futuroplus-bce54.firebasestorage.app")
 
     certificados_ref = db.collection("usuarios").document(uid).collection("certificados")
@@ -244,10 +246,6 @@ def _excluir_conta_por_completo(db, uid, dados):
             except Exception as erro_storage:
                 print(f"Erro ao apagar certificado {caminho} de {uid}: {erro_storage}")
         cert_doc.reference.delete()
-
-    cpf_normalizado = re.sub(r"\D", "", dados.get("cpf") or "")
-    if cpf_normalizado:
-        db.collection("cpfs_em_uso").document(cpf_normalizado).delete()
 
     db.collection("usuarios").document(uid).delete()
 
@@ -274,7 +272,7 @@ def excluir_contas_agendadas(event: scheduler_fn.ScheduledEvent) -> None:
     consulta = db.collection("usuarios").where("exclusao.executarEm", "<=", agora).stream()
     for doc_usuario in consulta:
         try:
-            _excluir_conta_por_completo(db, doc_usuario.id, doc_usuario.to_dict() or {})
+            _excluir_conta_por_completo(db, doc_usuario.id)
             print(f"Conta {doc_usuario.id} excluída (prazo de exclusão vencido).")
         except Exception as erro:
             print(f"Erro ao excluir a conta {doc_usuario.id}: {erro}")
