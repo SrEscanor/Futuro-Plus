@@ -86,14 +86,10 @@ export function borrarAreas(imagem, areas, { margem = 6 } = {}) {
         const largura = Math.min(canvas.width - x, (area.x1 - area.x0) + margem * 2);
         const altura = Math.min(canvas.height - y, (area.y1 - area.y0) + margem * 2);
 
-        // desenha o próprio pedaço esticado e desfocado por cima: fica como
-        // uma tarja borrada, sem deixar o texto legível
-        contexto.save();
-        contexto.filter = 'blur(12px)';
-        contexto.drawImage(canvas, x, y, largura, altura, x, y, largura, altura);
-        contexto.restore();
-
-        contexto.fillStyle = 'rgba(27, 31, 59, 0.35)';
+        // Tarja sólida e 100% opaca — blur sozinho (o que tinha antes) não
+        // garante que o texto fique ilegível, e com opacidade parcial o CPF
+        // ainda passava por baixo. Cobrir de verdade é a única forma segura.
+        contexto.fillStyle = '#1b1f3b';
         contexto.fillRect(x, y, largura, altura);
     });
 

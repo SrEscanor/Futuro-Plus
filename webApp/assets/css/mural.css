@@ -458,6 +458,11 @@
        lado e cada certificado aparece grande, um de cada vez. */
     .mural-quadros {
         display: flex;
+        /* o "top: -100px" do desktop pressupõe o padding-top grande da
+           parede (300px); aqui, com a parede bem mais baixa, esse mesmo
+           deslocamento cortava o topo dos quadros na caixa (overflow:
+           hidden) — então no celular ele fica desligado. */
+        top: 0;
         overflow-x: auto;
         scroll-snap-type: x mandatory;
         gap: 16px;
