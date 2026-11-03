@@ -10,7 +10,35 @@
     box-shadow: 0 3px 8px rgba(27, 31, 59, 0.07), 0 20px 36px -18px rgba(70, 130, 210, 0.8);
     padding: 22px;
     margin-bottom: 18px;
-    max-width: 720px;
+}
+
+/* usado nos cartões que são formulário/estado único (login, edição),
+   que não devem esticar junto com o resto do layout */
+.perfil-cartao--estreito {
+    max-width: 680px;
+}
+
+/* ---- Layout geral: coluna de identidade + coluna de conteúdo ---- */
+.perfil-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 18px;
+}
+
+.perfil-coluna-lateral .perfil-topo {
+    margin-bottom: 0;
+}
+
+@media (min-width: 900px) {
+    .perfil-layout {
+        grid-template-columns: 320px 1fr;
+    }
+
+    .perfil-coluna-lateral {
+        position: sticky;
+        top: 84px;
+    }
 }
 
 .perfil-cartao h1 {
@@ -65,6 +93,20 @@
     margin-top: 2px;
 }
 
+@media (min-width: 900px) {
+    .perfil-coluna-lateral .perfil-identidade {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+    }
+
+    .perfil-coluna-lateral .perfil-avatar {
+        width: 88px;
+        height: 88px;
+        font-size: 30px;
+    }
+}
+
 /* ---- Barra de perfil completo ---- */
 .perfil-progresso-topo {
     display: flex;
@@ -99,6 +141,20 @@
 /* ---- Campos ---- */
 .perfil-campo {
     margin-top: 18px;
+}
+
+/* pares de campos curtos (nome/sobrenome, data/gênero, cep/escolaridade)
+   lado a lado quando há espaço, empilhados no mobile */
+.perfil-form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    column-gap: 16px;
+}
+
+@media (min-width: 560px) {
+    .perfil-form-grid {
+        grid-template-columns: 1fr 1fr;
+    }
 }
 
 .perfil-campo > label {
@@ -433,7 +489,6 @@
     display: flex;
     align-items: flex-start;
     gap: 14px;
-    max-width: 720px;
     margin-bottom: 18px;
     padding: 16px 20px;
     border-radius: var(--radius-lg);

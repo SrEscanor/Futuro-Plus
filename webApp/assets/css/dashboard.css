@@ -726,8 +726,7 @@ h3,
 /* ---- MAIN CONTENT ---- */
 .main {
     display: block;
-    max-width: 1280px;
-    width: 95%;
+    width: 98%;
     margin: 28px auto;
     box-sizing: border-box;
     clear: both;
