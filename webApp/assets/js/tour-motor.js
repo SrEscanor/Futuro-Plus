@@ -287,6 +287,18 @@ export function iniciarTourSpotlight({ chaveVisto, passos, forcar = false } = {}
         });
     }
 
+    // Rola pro alvo deixando uma folga fixa no topo (abaixo do menu fixo),
+    // em vez de centralizar. Com "center", um alvo alto (ex.: os filtros de
+    // Cursos, com vários chips) sobrava pouco espaço embaixo pro balão, que
+    // acabava clampado em cima do próprio destaque — cobrindo o que devia
+    // estar em destaque. Encostando o alvo no topo, sobra o máximo de
+    // espaço possível abaixo dele pro balão não precisar invadir o recorte.
+    function rolarParaAlvo(alvo) {
+        const folgaTopo = 84;
+        const destino = window.scrollY + alvo.getBoundingClientRect().top - folgaTopo;
+        window.scrollTo({ top: Math.max(0, destino), behavior: 'smooth' });
+    }
+
     function posicionarRecorte(seletor) {
         const alvo = document.querySelector(seletor);
         if (!alvo) {
@@ -295,7 +307,7 @@ export function iniciarTourSpotlight({ chaveVisto, passos, forcar = false } = {}
             posicionarBalao(null);
             return;
         }
-        alvo.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        rolarParaAlvo(alvo);
         aguardarRolagemParar(alvo).then((r) => {
             const folga = 8;
             recorte.hidden = false;
