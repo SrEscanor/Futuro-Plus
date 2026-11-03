@@ -141,6 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
         avatarBotao.addEventListener("click", (e) => {
             e.stopPropagation();
             fecharNotifDropdown();
+            document.getElementById('tour-dica-balao')?.remove();
             const vaiAbrir = avatarDropdown.hidden;
             avatarDropdown.hidden = !vaiAbrir;
             avatarBotao.setAttribute("aria-expanded", String(vaiAbrir));
@@ -170,6 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
         notifBotao.addEventListener("click", (e) => {
             e.stopPropagation();
             fecharAvatarDropdown();
+            document.getElementById('tour-dica-balao')?.remove();
             const vaiAbrir = notifDropdown.hidden;
             notifDropdown.hidden = !vaiAbrir;
             notifBotao.setAttribute("aria-expanded", String(vaiAbrir));
