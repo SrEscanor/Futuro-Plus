@@ -78,7 +78,7 @@ def garantir_botao_da_pagina_de_cursos(contexto: ContextoChat, mensagem: str, re
         and _PADROES_TEMA_CURSOS_OU_UNIDADES.search(resposta_normalizada)
     )
     if cita_botao_de_cursos or _PADROES_PEDIDO_DA_PAGINA.search(normalizar(mensagem)):
-        contexto.sugerir_link("Ver todos os cursos das Etecs", "cursos.html")
+        contexto.sugerir_link("Ver todos os cursos das Etecs", "instituicoes.html")
 
 
 def normalizar(texto: str) -> str:
@@ -265,7 +265,7 @@ AVISO_BOTAO = "A tela mostra um botão abaixo da resposta que abre a página do 
 
 
 def _sugerir_pagina_de_cursos(contexto: ContextoChat, termo_curso: str, candidatas: list, cidade: str) -> None:
-    """Botão para cursos.html já filtrada (a página ordena pela distância para quem está logado)."""
+    """Botão para instituicoes.html já filtrada (a página ordena pela distância para quem está logado)."""
     if termo_curso:
         nomes = [c["nome"] for _, encontrados in candidatas for c in encontrados]
         exato = next((n for n in nomes if normalizar(n) == termo_curso), None)
@@ -273,9 +273,9 @@ def _sugerir_pagina_de_cursos(contexto: ContextoChat, termo_curso: str, candidat
         # o termo digitado filtra todas as variações na página
         filtro = exato or termo_curso
         rotulo = exato or termo_curso.title()
-        contexto.sugerir_link(f"Ver todas as Etecs com {rotulo}", f"cursos.html?curso={quote(filtro)}")
+        contexto.sugerir_link(f"Ver todas as Etecs com {rotulo}", f"instituicoes.html?curso={quote(filtro)}")
     elif cidade:
-        contexto.sugerir_link(f"Ver as Etecs de {cidade}", f"cursos.html?curso={quote(cidade)}")
+        contexto.sugerir_link(f"Ver as Etecs de {cidade}", f"instituicoes.html?curso={quote(cidade)}")
 
 
 # ------------------------------------------------------------------
@@ -303,7 +303,7 @@ def buscar_etecs_com_curso(
             candidatas.append((unidade, encontrados))
 
     if not candidatas:
-        ctx.context.sugerir_link("Ver todos os cursos das Etecs", "cursos.html")
+        ctx.context.sugerir_link("Ver todos os cursos das Etecs", "instituicoes.html")
         return (
             f"Nenhuma Etec do cadastro oferece um curso chamado '{curso}'. Sugira conferir o nome do curso. "
             + AVISO_BOTAO

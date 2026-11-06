@@ -32,6 +32,7 @@
             <a href="index.html" class="menu-item" data-icone="🏠">Início</a>
             <a href="testes.html" class="menu-item" data-icone="🧠">Testes</a>
             <a href="cursos.html" class="menu-item ativo" data-icone="🎓" aria-current="page">Cursos</a>
+            <a href="instituicoes.html" class="menu-item" data-icone="🏛️">Instituições</a>
             <a href="mural.html" class="menu-item" data-icone="📌">Mural</a>
             <a href="perfil.html" class="menu-item" data-icone="👤">Perfil</a>
 
@@ -104,12 +105,9 @@
                 Cursos <span style="color: #4e6ee8;">Etec e Fatec</span> 🎓
             </div>
             <div class="cursos-subtitle">
-                Explore os cursos oferecidos pelas unidades Etec, Fatec e outras instituições cadastradas em São
-                Paulo.
+                Veja todos os cursos do catálogo oficial do Centro Paula Souza e descubra qual combina com você.
             </div>
         </div>
-
-        <section id="meus-resultados" class="meus-resultados" hidden></section>
 
         <div class="filtros-cursos">
             <div class="busca-cursos-area">
@@ -117,21 +115,20 @@
                     <circle cx="11" cy="11" r="8" />
                     <line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
-                <input type="text" id="busca-cursos" placeholder="Buscar por curso, unidade, cidade ou região...">
+                <input type="text" id="busca-cursos-catalogo" placeholder="Buscar por curso ou eixo tecnológico...">
             </div>
 
-            <!-- os filtros são montados a partir do que existe no cadastro -->
+            <!-- os filtros são montados a partir do que existe no catálogo -->
             <div class="grupos-chips">
-                <div class="grupo-chips" id="chips-proximidade"></div>
-                <div class="grupo-chips" id="chips-instituicao"></div>
-                <div class="grupo-chips" id="chips-modalidade"></div>
+                <div class="grupo-chips" id="chips-nivel"></div>
+                <div class="grupo-chips" id="chips-eixo"></div>
             </div>
 
             <div class="contagem-resultados" id="contagem-resultados"></div>
         </div>
 
-        <div class="grid-unidades" id="grid-unidades">
-            <p class="carregando-cursos">Carregando unidades...</p>
+        <div class="grid-cursos" id="grid-cursos">
+            <p class="carregando-cursos">Carregando cursos...</p>
         </div>
     </div>
 
@@ -174,8 +171,7 @@
 
     <script type="module" src="assets/js/dashboard.js"></script>
     <script type="module" src="assets/js/tour-pagina-auto.js"></script>
-    <script type="module" src="assets/js/cursos-etec.js"></script>
-    <script type="module" src="assets/js/cursos-meus-resultados.js"></script>
+    <script type="module" src="assets/js/catalogo-cursos.js"></script>
 </body>
 
 </html>

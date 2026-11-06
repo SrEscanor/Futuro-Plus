@@ -44,7 +44,7 @@ function blocoVocacional(resultado) {
             chegar mais perto de você.</p>
 
         <div class="resultado-teste-acoes">
-            <a class="btn-resultado-teste" href="cursos.html">Ver onde estudar</a>
+            <a class="btn-resultado-teste" href="instituicoes.html">Ver onde estudar</a>
             <a class="btn-resultado-teste btn-resultado-teste--verde" href="teste-vocacional.html?editar=1">✏️ Editar minhas escolhas</a>
             <a class="btn-resultado-teste btn-resultado-teste--secundario" href="teste-vocacional.html">Refazer o teste</a>
         </div>

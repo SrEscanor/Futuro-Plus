@@ -299,6 +299,23 @@ thead th {
     border-bottom: 1px solid var(--line);
 }
 
+.th-ordenavel {
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.th-ordenavel:hover {
+    color: var(--ink);
+}
+
+.seta-ordenacao {
+    display: inline-block;
+    width: 10px;
+    margin-left: 2px;
+    font-size: 10px;
+}
+
 tbody td {
     padding: 10px 16px;
     border-bottom: 1px solid var(--line);

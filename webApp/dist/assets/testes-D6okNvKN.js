@@ -1,4 +1,4 @@
-import{o as n,e as d,d as u,b as p,f as m}from"./firebase-config-B6zsF72T.js";import"./dashboard-GBDnm_Yi.js";/* empty css                    */import"./tour-pagina-auto-cTnJYg0n.js";import{e as s}from"./card-unidade-CA2qFmKO.js";import{d as c}from"./descricoes-inteligencias-xaPm0-jR.js";import{h}from"./recomendacao-cursos-egqyoAUf.js";import{e as f,a as g}from"./resultado-teste-sLU03n2U.js";import"./conteudo-legal-padrao-DcxCgRAC.js";import"./tour-paginas-CSOTbXWZ.js";import"./tour-motor-BEVpboCC.js";import"./categorias-teste-82RqXHiT.js";import"./geocodificacao-GFhpmzSl.js";const i=document.getElementById("resultados-testes");function l(e){if(!e)return"";const t=new Date(e);return Number.isNaN(t.getTime())?"":t.toLocaleDateString("pt-BR")}function v(e){return e?`
+import{o as n,e as d,d as u,b as p,f as m}from"./firebase-config-B6zsF72T.js";import"./dashboard-vpWbk0TU.js";/* empty css                    */import"./tour-pagina-auto-CGVq5cr3.js";import{e as s}from"./card-unidade-CA2qFmKO.js";import{d as c}from"./descricoes-inteligencias-xaPm0-jR.js";import{h}from"./recomendacao-cursos-CUABUXbH.js";import{a as f,e as g}from"./resultado-teste-D4qcTXs5.js";import"./conteudo-legal-padrao-DcxCgRAC.js";import"./tour-paginas-DS8B-tTs.js";import"./tour-motor-BeDtj6px.js";import"./categorias-teste-82RqXHiT.js";import"./geocodificacao-GFhpmzSl.js";const i=document.getElementById("resultados-testes");function l(e){if(!e)return"";const t=new Date(e);return Number.isNaN(t.getTime())?"":t.toLocaleDateString("pt-BR")}function v(e){return e?`
     <article class="resultado-teste-bloco">
         <header>
             <h3>Teste Vocacional</h3>
@@ -22,7 +22,7 @@ import{o as n,e as d,d as u,b as p,f as m}from"./firebase-config-B6zsF72T.js";im
             chegar mais perto de você.</p>
 
         <div class="resultado-teste-acoes">
-            <a class="btn-resultado-teste" href="cursos.html">Ver onde estudar</a>
+            <a class="btn-resultado-teste" href="instituicoes.html">Ver onde estudar</a>
             <a class="btn-resultado-teste btn-resultado-teste--verde" href="teste-vocacional.html?editar=1">✏️ Editar minhas escolhas</a>
             <a class="btn-resultado-teste btn-resultado-teste--secundario" href="teste-vocacional.html">Refazer o teste</a>
         </div>

@@ -283,6 +283,30 @@ function gravarLocalizacao(id, unidade, localizacao) {
 
 let filtroSemLocalizacao = false;
 
+// Ordem usada quando a coluna "Mapa" é clicada: localizadas primeiro (crescente).
+const RANK_LOCALIZACAO = { ok: 0, so_cidade: 1, nao_encontrada: 2, nao_localizada: 3 };
+
+const EXTRATORES_ORDENACAO = {
+    codigo: (e) => e.codigo || '',
+    nome: (e) => e.nome || '',
+    municipio: (e) => e.municipio || '',
+    regiao: (e) => e.regiao || '',
+    cursos: (e) => (e.cursos || []).length,
+    mapa: (e) => RANK_LOCALIZACAO[situacaoLocalizacao(e)]
+};
+
+let ordenacao = { coluna: 'nome', direcao: 'asc' };
+
+function atualizarSetasOrdenacao() {
+    document.querySelectorAll('.th-ordenavel').forEach((th) => {
+        const seta = th.querySelector('.seta-ordenacao');
+        if (!seta) return;
+        seta.textContent = th.dataset.coluna === ordenacao.coluna
+            ? (ordenacao.direcao === 'asc' ? '▲' : '▼')
+            : '';
+    });
+}
+
 function renderizarAlertaLocalizacao() {
     const alerta = document.getElementById('alerta-localizacao');
     const contagem = { so_cidade: 0, nao_encontrada: 0, nao_localizada: 0 };
@@ -333,7 +357,15 @@ function unidadesVisiveis() {
             || (e.nome || '').toLowerCase().includes(filtro)
             || (e.municipio || '').toLowerCase().includes(filtro)
             || (e.codigo || '').toLowerCase().includes(filtro))
-        .sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'));
+        .sort((a, b) => {
+            const extrator = EXTRATORES_ORDENACAO[ordenacao.coluna] || EXTRATORES_ORDENACAO.nome;
+            const va = extrator(a);
+            const vb = extrator(b);
+            const comparacao = typeof va === 'number'
+                ? va - vb
+                : String(va).localeCompare(String(vb), 'pt-BR');
+            return ordenacao.direcao === 'asc' ? comparacao : -comparacao;
+        });
 }
 
 // Marcar linhas serve para agir em um grupo que a busca não isola sozinha
@@ -357,6 +389,7 @@ function renderizarTabela() {
     const corpo = document.getElementById('tabela-instituicoes-corpo');
 
     renderizarAlertaLocalizacao();
+    atualizarSetasOrdenacao();
 
     const linhas = unidadesVisiveis();
 
@@ -866,7 +899,10 @@ function abrirFormulario(instituicao) {
     renderizarListasDinamicas();
 
     document.getElementById('f-codigo').value = instituicao?.codigo || '';
-    document.getElementById('f-codigo').disabled = !!instituicao;
+    // Só trava quem já tem código (pra não virar um ID novo por acidente).
+    // Unidade sem código ainda pode receber um — não muda o ID do documento,
+    // que já foi gerado a partir do nome quando o código estava vazio.
+    document.getElementById('f-codigo').disabled = !!(instituicao && instituicao.codigo);
     document.getElementById('f-nome').value = instituicao?.nome || '';
     document.getElementById('f-tipo').value = instituicao?.tipo || TIPO_PADRAO;
     atualizarSugestoesDeTipo();
@@ -1004,6 +1040,17 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-cancelar-form').addEventListener('click', fecharFormulario);
     document.getElementById('form-instituicao').addEventListener('submit', salvarInstituicao);
     document.getElementById('busca-unidade').addEventListener('input', renderizarTabela);
+    document.querySelectorAll('.th-ordenavel').forEach((th) => {
+        th.addEventListener('click', () => {
+            const coluna = th.dataset.coluna;
+            if (ordenacao.coluna === coluna) {
+                ordenacao.direcao = ordenacao.direcao === 'asc' ? 'desc' : 'asc';
+            } else {
+                ordenacao = { coluna, direcao: 'asc' };
+            }
+            renderizarTabela();
+        });
+    });
     document.getElementById('btn-filtrar-sem-localizacao').addEventListener('click', () => {
         filtroSemLocalizacao = !filtroSemLocalizacao;
         renderizarTabela();

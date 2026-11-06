@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!container) return;
 
     try {
-        // Só a prévia: a página de cursos é quem carrega a lista completa.
+        // Só a prévia: a página de instituições é quem carrega a lista completa.
         const snap = await getDocs(query(collection(db, 'instituicoes'), limit(QUANTIDADE_PREVIA)));
         const unidades = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 

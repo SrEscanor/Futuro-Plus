@@ -495,7 +495,7 @@ export function textoOferta(recomendacao, localizacao) {
 }
 
 export function linkCurso(nomeCurso) {
-    return `cursos.html?curso=${encodeURIComponent(nomeCurso)}`;
+    return `instituicoes.html?curso=${encodeURIComponent(nomeCurso)}`;
 }
 
 // ============================================================

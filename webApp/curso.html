@@ -32,6 +32,7 @@
             <a href="index.html" class="menu-item" data-icone="🏠">Início</a>
             <a href="testes.html" class="menu-item" data-icone="🧠">Testes</a>
             <a href="cursos.html" class="menu-item ativo" data-icone="🎓" aria-current="page">Cursos</a>
+            <a href="instituicoes.html" class="menu-item" data-icone="🏛️">Instituições</a>
             <a href="mural.html" class="menu-item" data-icone="📌">Mural</a>
             <a href="perfil.html" class="menu-item" data-icone="👤">Perfil</a>
 
@@ -101,9 +102,19 @@
     <div class="main">
         <a class="voltar-cursos" href="cursos.html">&larr; Todos os cursos</a>
 
-        <article id="curso-detalhe" class="curso-detalhe">
-            <p class="carregando-cursos">Carregando curso...</p>
-        </article>
+        <div class="curso-layout">
+            <article id="curso-detalhe" class="curso-detalhe">
+                <p class="carregando-cursos">Carregando curso...</p>
+            </article>
+
+            <aside id="curso-plano-pdf" class="curso-plano-pdf" hidden>
+                <div class="curso-plano-pdf-cabecalho">
+                    <h2>Plano de Curso</h2>
+                    <a id="curso-plano-pdf-abrir" href="#" target="_blank" rel="noopener">Abrir em nova aba &#8599;</a>
+                </div>
+                <iframe id="curso-plano-pdf-iframe" title="Plano de Curso em PDF"></iframe>
+            </aside>
+        </div>
     </div>
 
     <!-- Botão Flutuante do Chat -->

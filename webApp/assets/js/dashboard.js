@@ -312,9 +312,10 @@ document.addEventListener('DOMContentLoaded', () => {
     ajustarMenu();
 
     // Barra de busca do topo: por enquanto o que dá pra buscar de verdade no
-    // site são os cursos, então ela manda pra lá com o mesmo parâmetro
-    // (?curso=) que os links de recomendação já usam — se a pessoa já
-    // estiver em cursos.html, só filtra na hora, sem recarregar a página.
+    // site são as unidades que oferecem cada curso, então ela manda pra lá
+    // com o mesmo parâmetro (?curso=) que os links de recomendação já usam —
+    // se a pessoa já estiver em instituicoes.html, só filtra na hora, sem
+    // recarregar a página.
     const buscaTopo = document.getElementById('busca-topo');
     if (buscaTopo) {
         function buscarNoTopo() {
@@ -327,7 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 campoCursos.dispatchEvent(new Event('input'));
                 campoCursos.scrollIntoView({ behavior: 'smooth', block: 'center' });
             } else {
-                window.location.href = `cursos.html?curso=${encodeURIComponent(termo)}`;
+                window.location.href = `instituicoes.html?curso=${encodeURIComponent(termo)}`;
             }
         }
 
@@ -469,8 +470,8 @@ document.addEventListener('DOMContentLoaded', () => {
     })();
 
     // Botões para páginas do próprio site, enviados pelo backend. Só aceita
-    // caminhos internos como "cursos.html?curso=...".
-    // Páginas do próprio site (relativas, ex.: "cursos.html?...") sempre
+    // caminhos internos como "instituicoes.html?curso=...".
+    // Páginas do próprio site (relativas, ex.: "instituicoes.html?...") sempre
     // valem. Links pra fora só valem pros sites oficiais de inscrição —
     // uma lista fechada, não qualquer "https://" — já que o backend só
     // deveria mandar esses dois (ver `mostrar_link_de_inscricao` em

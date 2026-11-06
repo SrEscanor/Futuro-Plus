@@ -6,20 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Futuro+ | Cursos</title>
     <link rel="icon" type="image/png" href="./icon-192.png">
-  <script type="module" crossorigin src="./assets/cursos-BvmMXnqp.js"></script>
+  <script type="module" crossorigin src="./assets/cursos-Cs3LllYl.js"></script>
   <link rel="modulepreload" crossorigin href="./assets/firebase-config-B6zsF72T.js">
   <link rel="modulepreload" crossorigin href="./assets/conteudo-legal-padrao-DcxCgRAC.js">
-  <link rel="modulepreload" crossorigin href="./assets/resultado-teste-sLU03n2U.js">
-  <link rel="modulepreload" crossorigin href="./assets/dashboard-GBDnm_Yi.js">
-  <link rel="modulepreload" crossorigin href="./assets/tour-motor-BEVpboCC.js">
-  <link rel="modulepreload" crossorigin href="./assets/tour-paginas-CSOTbXWZ.js">
-  <link rel="modulepreload" crossorigin href="./assets/tour-pagina-auto-cTnJYg0n.js">
+  <link rel="modulepreload" crossorigin href="./assets/resultado-teste-D4qcTXs5.js">
+  <link rel="modulepreload" crossorigin href="./assets/dashboard-vpWbk0TU.js">
+  <link rel="modulepreload" crossorigin href="./assets/tour-motor-BeDtj6px.js">
+  <link rel="modulepreload" crossorigin href="./assets/tour-paginas-DS8B-tTs.js">
+  <link rel="modulepreload" crossorigin href="./assets/tour-pagina-auto-CGVq5cr3.js">
   <link rel="modulepreload" crossorigin href="./assets/card-unidade-CA2qFmKO.js">
-  <link rel="modulepreload" crossorigin href="./assets/categorias-teste-82RqXHiT.js">
-  <link rel="modulepreload" crossorigin href="./assets/geocodificacao-GFhpmzSl.js">
-  <link rel="modulepreload" crossorigin href="./assets/recomendacao-cursos-egqyoAUf.js">
   <link rel="stylesheet" crossorigin href="./assets/dashboard-BsrOzzFW.css">
-  <link rel="stylesheet" crossorigin href="./assets/cursos-etec-D5b91PcR.css">
+  <link rel="stylesheet" crossorigin href="./assets/cursos-etec-BpJ4mvh5.css">
 </head>
 
 <body>
@@ -44,6 +41,7 @@
             <a href="index.html" class="menu-item" data-icone="🏠">Início</a>
             <a href="testes.html" class="menu-item" data-icone="🧠">Testes</a>
             <a href="cursos.html" class="menu-item ativo" data-icone="🎓" aria-current="page">Cursos</a>
+            <a href="instituicoes.html" class="menu-item" data-icone="🏛️">Instituições</a>
             <a href="mural.html" class="menu-item" data-icone="📌">Mural</a>
             <a href="perfil.html" class="menu-item" data-icone="👤">Perfil</a>
 
@@ -116,12 +114,9 @@
                 Cursos <span style="color: #4e6ee8;">Etec e Fatec</span> 🎓
             </div>
             <div class="cursos-subtitle">
-                Explore os cursos oferecidos pelas unidades Etec, Fatec e outras instituições cadastradas em São
-                Paulo.
+                Veja todos os cursos do catálogo oficial do Centro Paula Souza e descubra qual combina com você.
             </div>
         </div>
-
-        <section id="meus-resultados" class="meus-resultados" hidden></section>
 
         <div class="filtros-cursos">
             <div class="busca-cursos-area">
@@ -129,21 +124,20 @@
                     <circle cx="11" cy="11" r="8" />
                     <line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
-                <input type="text" id="busca-cursos" placeholder="Buscar por curso, unidade, cidade ou região...">
+                <input type="text" id="busca-cursos-catalogo" placeholder="Buscar por curso ou eixo tecnológico...">
             </div>
 
-            <!-- os filtros são montados a partir do que existe no cadastro -->
+            <!-- os filtros são montados a partir do que existe no catálogo -->
             <div class="grupos-chips">
-                <div class="grupo-chips" id="chips-proximidade"></div>
-                <div class="grupo-chips" id="chips-instituicao"></div>
-                <div class="grupo-chips" id="chips-modalidade"></div>
+                <div class="grupo-chips" id="chips-nivel"></div>
+                <div class="grupo-chips" id="chips-eixo"></div>
             </div>
 
             <div class="contagem-resultados" id="contagem-resultados"></div>
         </div>
 
-        <div class="grid-unidades" id="grid-unidades">
-            <p class="carregando-cursos">Carregando unidades...</p>
+        <div class="grid-cursos" id="grid-cursos">
+            <p class="carregando-cursos">Carregando cursos...</p>
         </div>
     </div>
 

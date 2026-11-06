@@ -6,17 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Futuro+ | Curso</title>
     <link rel="icon" type="image/png" href="./icon-192.png">
-  <script type="module" crossorigin src="./assets/curso-C0xSOx0b.js"></script>
+  <script type="module" crossorigin src="./assets/curso-DnlTJYpT.js"></script>
   <link rel="modulepreload" crossorigin href="./assets/firebase-config-B6zsF72T.js">
   <link rel="modulepreload" crossorigin href="./assets/conteudo-legal-padrao-DcxCgRAC.js">
-  <link rel="modulepreload" crossorigin href="./assets/resultado-teste-sLU03n2U.js">
-  <link rel="modulepreload" crossorigin href="./assets/dashboard-GBDnm_Yi.js">
+  <link rel="modulepreload" crossorigin href="./assets/resultado-teste-D4qcTXs5.js">
+  <link rel="modulepreload" crossorigin href="./assets/dashboard-vpWbk0TU.js">
   <link rel="modulepreload" crossorigin href="./assets/card-unidade-CA2qFmKO.js">
   <link rel="modulepreload" crossorigin href="./assets/categorias-teste-82RqXHiT.js">
   <link rel="modulepreload" crossorigin href="./assets/geocodificacao-GFhpmzSl.js">
-  <link rel="modulepreload" crossorigin href="./assets/recomendacao-cursos-egqyoAUf.js">
+  <link rel="modulepreload" crossorigin href="./assets/recomendacao-cursos-CUABUXbH.js">
   <link rel="stylesheet" crossorigin href="./assets/dashboard-BsrOzzFW.css">
-  <link rel="stylesheet" crossorigin href="./assets/cursos-etec-D5b91PcR.css">
+  <link rel="stylesheet" crossorigin href="./assets/cursos-etec-BpJ4mvh5.css">
 </head>
 
 <body>
@@ -41,6 +41,7 @@
             <a href="index.html" class="menu-item" data-icone="🏠">Início</a>
             <a href="testes.html" class="menu-item" data-icone="🧠">Testes</a>
             <a href="cursos.html" class="menu-item ativo" data-icone="🎓" aria-current="page">Cursos</a>
+            <a href="instituicoes.html" class="menu-item" data-icone="🏛️">Instituições</a>
             <a href="mural.html" class="menu-item" data-icone="📌">Mural</a>
             <a href="perfil.html" class="menu-item" data-icone="👤">Perfil</a>
 
@@ -110,9 +111,19 @@
     <div class="main">
         <a class="voltar-cursos" href="cursos.html">&larr; Todos os cursos</a>
 
-        <article id="curso-detalhe" class="curso-detalhe">
-            <p class="carregando-cursos">Carregando curso...</p>
-        </article>
+        <div class="curso-layout">
+            <article id="curso-detalhe" class="curso-detalhe">
+                <p class="carregando-cursos">Carregando curso...</p>
+            </article>
+
+            <aside id="curso-plano-pdf" class="curso-plano-pdf" hidden>
+                <div class="curso-plano-pdf-cabecalho">
+                    <h2>Plano de Curso</h2>
+                    <a id="curso-plano-pdf-abrir" href="#" target="_blank" rel="noopener">Abrir em nova aba &#8599;</a>
+                </div>
+                <iframe id="curso-plano-pdf-iframe" title="Plano de Curso em PDF"></iframe>
+            </aside>
+        </div>
     </div>
 
     <!-- Botão Flutuante do Chat -->

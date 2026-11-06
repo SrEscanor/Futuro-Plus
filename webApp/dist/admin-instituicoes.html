@@ -6,12 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Futuro+ | Admin · Unidades</title>
     <link rel="icon" type="image/png" href="./icon-192.png">
-  <script type="module" crossorigin src="./assets/adminInstituicoes-cJZI8mRR.js"></script>
+  <script type="module" crossorigin src="./assets/adminInstituicoes-BA86eEbs.js"></script>
   <link rel="modulepreload" crossorigin href="./assets/firebase-config-B6zsF72T.js">
   <link rel="modulepreload" crossorigin href="./assets/card-unidade-CA2qFmKO.js">
   <link rel="modulepreload" crossorigin href="./assets/geocodificacao-GFhpmzSl.js">
   <link rel="modulepreload" crossorigin href="./assets/csv-BvtVVs2F.js">
-  <link rel="stylesheet" crossorigin href="./assets/admin-instituicoes-CZawI5Sw.css">
+  <link rel="stylesheet" crossorigin href="./assets/admin-instituicoes-ixgYndw6.css">
 </head>
 
 <body>
@@ -79,12 +79,12 @@
                             <th class="col-selecao">
                                 <input type="checkbox" id="check-todas" aria-label="Marcar todas as unidades da lista">
                             </th>
-                            <th>Código</th>
-                            <th>Unidade</th>
-                            <th>Município</th>
-                            <th>Região</th>
-                            <th>Cursos</th>
-                            <th title="Localização no mapa">Mapa</th>
+                            <th class="th-ordenavel" data-coluna="codigo">Código<span class="seta-ordenacao"></span></th>
+                            <th class="th-ordenavel" data-coluna="nome">Unidade<span class="seta-ordenacao"></span></th>
+                            <th class="th-ordenavel" data-coluna="municipio">Município<span class="seta-ordenacao"></span></th>
+                            <th class="th-ordenavel" data-coluna="regiao">Região<span class="seta-ordenacao"></span></th>
+                            <th class="th-ordenavel" data-coluna="cursos">Cursos<span class="seta-ordenacao"></span></th>
+                            <th class="th-ordenavel" data-coluna="mapa" title="Clique para ordenar por localização no mapa">Mapa<span class="seta-ordenacao"></span></th>
                             <th></th>
                         </tr>
                     </thead>

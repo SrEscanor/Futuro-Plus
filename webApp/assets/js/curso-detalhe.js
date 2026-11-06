@@ -99,7 +99,7 @@ function listaDeUnidades(unidades, avaliar, nomeDoCurso) {
 
     const restantes = comProximidade.length - MAXIMO_UNIDADES;
     const verTodas = restantes > 0
-        ? `<a class="curso-ver-todas" href="cursos.html?curso=${encodeURIComponent(nomeDoCurso)}">
+        ? `<a class="curso-ver-todas" href="instituicoes.html?curso=${encodeURIComponent(nomeDoCurso)}">
              Ver as outras ${restantes} unidades &rarr;</a>`
         : '';
 
@@ -143,6 +143,17 @@ function renderizar(curso, unidades, avaliar) {
     `;
 }
 
+function mostrarPlanoDeCurso(curso) {
+    const painel = document.getElementById('curso-plano-pdf');
+    if (!curso.planoCursoUrl) {
+        painel.hidden = true;
+        return;
+    }
+    document.getElementById('curso-plano-pdf-iframe').src = curso.planoCursoUrl;
+    document.getElementById('curso-plano-pdf-abrir').href = curso.planoCursoUrl;
+    painel.hidden = false;
+}
+
 async function localizacaoDoUsuario() {
     await auth.authStateReady();
     const usuario = auth.currentUser;
@@ -174,7 +185,7 @@ async function carregar() {
         if (!curso) {
             container.innerHTML = `<p class="sem-resultados">
                 Ainda não temos a descrição deste curso.
-                <a href="cursos.html?curso=${encodeURIComponent(identificador)}">Ver as unidades que oferecem</a>.
+                <a href="instituicoes.html?curso=${encodeURIComponent(identificador)}">Ver as unidades que oferecem</a>.
             </p>`;
             return;
         }
@@ -194,6 +205,7 @@ async function carregar() {
                 return ehSuperior ? unidadeEhFatec : !unidadeEhFatec;
             });
 
+        mostrarPlanoDeCurso(curso);
         renderizar(curso, unidades, null);
 
         // a distância entra depois, quando dá para descobrir onde a pessoa mora

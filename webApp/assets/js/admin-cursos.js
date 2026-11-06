@@ -436,6 +436,7 @@ function abrirFormulario(curso) {
     document.getElementById('f-eixos').value = (curso.eixos || []).join(', ');
     document.getElementById('f-prerequisitos').value = curso.preRequisitos || '';
     document.getElementById('f-aptidao').checked = curso.provaAptidao === true;
+    document.getElementById('f-plano-curso').value = curso.planoCursoUrl || '';
     document.getElementById('f-descricao').value = curso.descricao || '';
     document.getElementById('f-atuacao').value = curso.atuacao || '';
     document.getElementById('f-onde-trabalhar').value = curso.ondeTrabalhar || '';
@@ -458,6 +459,7 @@ async function salvarCurso(evento) {
         eixos: document.getElementById('f-eixos').value.split(',').map((e) => e.trim()).filter(Boolean),
         preRequisitos: document.getElementById('f-prerequisitos').value.trim(),
         provaAptidao: document.getElementById('f-aptidao').checked,
+        planoCursoUrl: document.getElementById('f-plano-curso').value.trim(),
         descricao: document.getElementById('f-descricao').value.trim(),
         atuacao: document.getElementById('f-atuacao').value.trim(),
         ondeTrabalhar: document.getElementById('f-onde-trabalhar').value.trim(),

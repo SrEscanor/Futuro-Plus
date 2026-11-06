@@ -14,6 +14,7 @@ export default defineConfig({
         cadastro: resolve(__dirname, 'cadastro.html'),
         adminInstituicoes: resolve(__dirname, 'admin-instituicoes.html'),
         cursos: resolve(__dirname, 'cursos.html'),
+        instituicoes: resolve(__dirname, 'instituicoes.html'),
         curso: resolve(__dirname, 'curso.html'),
         perfil: resolve(__dirname, 'perfil.html'),
         mural: resolve(__dirname, 'mural.html'),

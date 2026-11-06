@@ -1350,7 +1350,7 @@ a.btn-saiba {
     color: #fff;
 }
 
-/* na prévia da home os cards ficam mais baixos; a lista completa fica em cursos.html */
+/* na prévia da home os cards ficam mais baixos; a lista completa fica em instituicoes.html */
 #preview-unidades .card-unidade-cursos {
     max-height: 190px;
 }

@@ -199,7 +199,7 @@ async function carregarUnidades() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Links das recomendações chegam como cursos.html?curso=Nome do Curso
+    // Links das recomendações chegam como instituicoes.html?curso=Nome do Curso
     const cursoNaUrl = new URLSearchParams(window.location.search).get('curso');
     const campoBusca = document.getElementById('busca-cursos');
     if (cursoNaUrl) campoBusca.value = cursoNaUrl;
