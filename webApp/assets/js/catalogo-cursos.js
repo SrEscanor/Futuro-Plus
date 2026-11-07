@@ -1,12 +1,13 @@
 import { db } from './firebase-config.js';
 import { collection, getDocs } from 'firebase/firestore';
-import { escapeHtml, normalizar } from './card-unidade.js';
+import { escapeHtml, normalizar, logoPadraoPorTipo } from './card-unidade.js';
 
 const CURSOS_COLLECTION = 'cursos';
 const CATALOGO_OFICIAL = '/dados/catalogo-cursos.json';
+const CURSOS_POR_PAGINA = 24;
 
 let cursosCache = [];
-const filtros = { nivel: '', eixo: '', busca: '' };
+const filtros = { nivel: '', eixo: '', busca: '', pagina: 1 };
 
 async function carregarCursos() {
     const snap = await getDocs(collection(db, CURSOS_COLLECTION));
@@ -59,7 +60,7 @@ function montarFiltros() {
             .forEach(({ valor, rotulo }) => grupoNivel.appendChild(criarChip({
                 rotulo,
                 ativo: filtros.nivel === valor,
-                aoClicar: () => { filtros.nivel = valor; montarFiltros(); renderizarCursos(); }
+                aoClicar: () => { filtros.nivel = valor; filtros.pagina = 1; montarFiltros(); renderizarCursos(); }
             })));
     }
 
@@ -69,7 +70,7 @@ function montarFiltros() {
         .forEach(({ valor, rotulo }) => grupoEixo.appendChild(criarChip({
             rotulo,
             ativo: filtros.eixo === valor,
-            aoClicar: () => { filtros.eixo = valor; montarFiltros(); renderizarCursos(); }
+            aoClicar: () => { filtros.eixo = valor; filtros.pagina = 1; montarFiltros(); renderizarCursos(); }
         })));
 }
 
@@ -86,34 +87,87 @@ function cursosFiltrados() {
 
 function cardCurso(curso) {
     const nivel = nivelDoCurso(curso);
+    const logo = logoPadraoPorTipo(nivel === 'superior' ? 'fatec' : 'etec');
+    const eixosExtras = (curso.eixos || []).length - 1;
     return `
     <a class="card-curso-catalogo" href="curso.html?c=${encodeURIComponent(curso.id)}">
-        <div class="card-curso-catalogo-faixa-titulo card-curso-catalogo-faixa-titulo--${nivel}">
-            <span class="nome-unidade">${escapeHtml(curso.nome)}</span>
-            <span class="badge-nivel">${rotuloNivel(nivel)}</span>
+        <div class="card-curso-catalogo-cabecalho">
+            <img class="card-curso-catalogo-logo" src="${logo}" alt="">
+            <span class="badge-nivel badge-nivel--${nivel}">${rotuloNivel(nivel)}</span>
         </div>
+        <h3 class="card-curso-catalogo-titulo">${escapeHtml(curso.nome)}</h3>
         <div class="card-curso-catalogo-eixos">
-            ${(curso.eixos || []).map((e) => `<span class="tag-curso">${escapeHtml(e)}</span>`).join('')}
+            ${(curso.eixos || []).slice(0, 1).map((e) => `<span class="tag-curso">${escapeHtml(e)}</span>`).join('')}
+            ${eixosExtras > 0 ? `<span class="tag-curso tag-curso--mais">+${eixosExtras}</span>` : ''}
         </div>
         ${curso.descricao ? `
         <div class="card-curso-catalogo-descricao">
             <span class="card-curso-catalogo-descricao-rotulo">O que você aprende</span>
             <p>${escapeHtml(curso.descricao)}</p>
+        </div>` : ''}
+        <div class="card-curso-catalogo-rodape">
+            <span class="card-curso-catalogo-ler-mais">Ver detalhes &rarr;</span>
         </div>
-        <span class="card-curso-catalogo-ler-mais">Ler mais &rarr;</span>` : ''}
     </a>`;
+}
+
+// Mostra todos os números até caber (poucas páginas), e colapsa em "..."
+// só quando o catálogo crescer o bastante pra isso virar necessário —
+// com o tamanho de hoje (~150 cursos) nunca passa de 7-8 páginas.
+function numerosDaPaginacao(paginaAtual, totalPaginas) {
+    if (totalPaginas <= 8) {
+        return Array.from({ length: totalPaginas }, (_, i) => i + 1);
+    }
+    const numeros = new Set([1, totalPaginas, paginaAtual, paginaAtual - 1, paginaAtual + 1]);
+    return [...numeros].filter((n) => n >= 1 && n <= totalPaginas).sort((a, b) => a - b);
+}
+
+function renderizarPaginacao(paginaAtual, totalPaginas) {
+    const containers = [document.getElementById('paginacao-topo'), document.getElementById('paginacao-rodape')];
+    if (totalPaginas <= 1) {
+        containers.forEach((c) => c && (c.innerHTML = ''));
+        return;
+    }
+
+    const numeros = numerosDaPaginacao(paginaAtual, totalPaginas);
+    let html = '';
+    let ultimo = 0;
+    numeros.forEach((n) => {
+        if (n - ultimo > 1) html += '<span class="pagina-reticencias">…</span>';
+        html += `<button type="button" class="pagina-botao${n === paginaAtual ? ' pagina-botao--ativo' : ''}" data-pagina="${n}">${n}</button>`;
+        ultimo = n;
+    });
+
+    containers.forEach((container) => {
+        if (!container) return;
+        container.innerHTML = html;
+        container.querySelectorAll('[data-pagina]').forEach((botao) => {
+            botao.addEventListener('click', () => {
+                filtros.pagina = Number(botao.dataset.pagina);
+                renderizarCursos();
+                document.querySelector('.filtros-cursos')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+    });
 }
 
 function renderizarCursos() {
     const grid = document.getElementById('grid-cursos');
     const contagem = document.getElementById('contagem-resultados');
     const lista = cursosFiltrados();
+    const totalPaginas = Math.max(1, Math.ceil(lista.length / CURSOS_POR_PAGINA));
+    filtros.pagina = Math.min(filtros.pagina, totalPaginas);
 
     contagem.textContent = lista.length === 1 ? '1 curso encontrado' : `${lista.length} cursos encontrados`;
 
-    grid.innerHTML = lista.length
-        ? lista.map(cardCurso).join('')
+    const inicio = (filtros.pagina - 1) * CURSOS_POR_PAGINA;
+    const pagina = lista.slice(inicio, inicio + CURSOS_POR_PAGINA);
+
+    grid.innerHTML = pagina.length
+        ? pagina.map(cardCurso).join('')
         : '<p class="sem-resultados">Nenhum curso encontrado com esses filtros.</p>';
+
+    renderizarPaginacao(filtros.pagina, totalPaginas);
 }
 
 async function iniciar() {
@@ -131,6 +185,7 @@ async function iniciar() {
 
     document.getElementById('busca-cursos-catalogo').addEventListener('input', (e) => {
         filtros.busca = e.target.value;
+        filtros.pagina = 1;
         renderizarCursos();
     });
 }
