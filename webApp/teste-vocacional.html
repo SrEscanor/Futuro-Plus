@@ -8,6 +8,7 @@
     <link rel="icon" href="/favicon.ico" sizes="48x48">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="stylesheet" href="assets/css/ondas.css">
     <link rel="stylesheet" href="assets/css/dashboard.css">
     <link rel="stylesheet" href="assets/css/cursos-etec.css">
     <link rel="stylesheet" href="assets/css/teste-vocacional.css">
@@ -102,10 +103,28 @@
         </div>
     </nav>
 
+    <header class="home-hero home-hero--compacta">
+        <div class="home-hero-conteudo">
+            <h1>Teste Vocacional</h1>
+            <p class="home-hero-sub">O teste completo: termina mostrando cursos de verdade, com o que se aprende em cada um.</p>
+        </div>
+
+        <div class="hero-ondas" aria-hidden="true">
+            <svg class="onda onda-laranja" viewBox="0 0 1440 60" preserveAspectRatio="none">
+                <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
+            </svg>
+            <svg class="onda onda-tras" viewBox="0 0 1440 60" preserveAspectRatio="none">
+                <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
+            </svg>
+            <svg class="onda onda-frente" viewBox="0 0 1440 60" preserveAspectRatio="none">
+                <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
+            </svg>
+        </div>
+    </header>
+
     <div class="main">
 
         <div id="voc-precisa-login" class="voc-cartao" hidden>
-            <h1>Teste Vocacional</h1>
             <p class="voc-intro">Este teste é mais longo e o resultado fica guardado no seu perfil, para você
                 consultar depois. Por isso ele pede login.</p>
             <div class="voc-acoes-resultado">
@@ -116,7 +135,6 @@
 
         <section id="voc-teste" class="voc-cartao">
             <header class="voc-cabecalho">
-                <h1>Teste Vocacional</h1>
                 <p class="voc-aviso-duracao">São cerca de 40 perguntas, em 4 blocos — uns 10 minutos. As últimas
                     mostram cursos de verdade, com o que se aprende em cada um.</p>
             </header>

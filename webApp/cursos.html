@@ -8,6 +8,7 @@
     <link rel="icon" href="/favicon.ico" sizes="48x48">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="stylesheet" href="assets/css/ondas.css">
     <link rel="stylesheet" href="assets/css/dashboard.css">
     <link rel="stylesheet" href="assets/css/cursos-etec.css">
 </head>
@@ -101,16 +102,26 @@
         </div>
     </nav>
 
-    <div class="main">
-        <div class="cursos-hero">
-            <div class="greeting">
-                Cursos <span style="color: #4e6ee8;">Etec e Fatec</span> 🎓
-            </div>
-            <div class="cursos-subtitle">
-                Veja todos os cursos do catálogo oficial do Centro Paula Souza e descubra qual combina com você.
-            </div>
+    <header class="home-hero home-hero--compacta">
+        <div class="home-hero-conteudo">
+            <h1>Cursos Etec e Fatec 🎓</h1>
+            <p class="home-hero-sub">Veja todos os cursos do catálogo oficial do Centro Paula Souza e descubra qual combina com você.</p>
         </div>
 
+        <div class="hero-ondas" aria-hidden="true">
+            <svg class="onda onda-laranja" viewBox="0 0 1440 60" preserveAspectRatio="none">
+                <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
+            </svg>
+            <svg class="onda onda-tras" viewBox="0 0 1440 60" preserveAspectRatio="none">
+                <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
+            </svg>
+            <svg class="onda onda-frente" viewBox="0 0 1440 60" preserveAspectRatio="none">
+                <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
+            </svg>
+        </div>
+    </header>
+
+    <div class="main">
         <div class="filtros-cursos">
             <div class="busca-cursos-area">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">

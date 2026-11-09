@@ -8,6 +8,7 @@
     <link rel="icon" href="/favicon.ico" sizes="48x48">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="stylesheet" href="assets/css/ondas.css">
     <link rel="stylesheet" href="assets/css/dashboard.css">
     <link rel="stylesheet" href="assets/css/mural.css">
 </head>
@@ -101,10 +102,28 @@
         </div>
     </nav>
 
+    <header class="home-hero home-hero--compacta">
+        <div class="home-hero-conteudo">
+            <h1>Seu mural de certificados</h1>
+            <p class="home-hero-sub">Seus certificados ficam guardados aqui, de forma privada, mostrando suas conquistas.</p>
+        </div>
+
+        <div class="hero-ondas" aria-hidden="true">
+            <svg class="onda onda-laranja" viewBox="0 0 1440 60" preserveAspectRatio="none">
+                <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
+            </svg>
+            <svg class="onda onda-tras" viewBox="0 0 1440 60" preserveAspectRatio="none">
+                <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
+            </svg>
+            <svg class="onda onda-frente" viewBox="0 0 1440 60" preserveAspectRatio="none">
+                <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
+            </svg>
+        </div>
+    </header>
+
     <div class="main mural-main">
 
         <div id="mural-precisa-login" class="mural-aviso-login" hidden>
-            <h1>Seu mural de certificados</h1>
             <p>Entre na sua conta para guardar seus certificados aqui.</p>
             <div class="mural-acoes">
                 <a class="btn-mural-acao" href="login.html">Entrar</a>
@@ -114,7 +133,6 @@
 
         <div id="mural-app" hidden>
             <header class="mural-cabecalho">
-                <h1>Seu mural de certificados</h1>
                 <p id="mural-contagem">Nenhum certificado ainda</p>
             </header>
 
