@@ -783,6 +783,50 @@ h3,
     max-width: 520px;
 }
 
+/* Faixa compacta das páginas internas: mesma linguagem do topo da home,
+   com metade da altura e alinhada à borda do conteúdo (.main), pra dar
+   identidade sem empurrar a página pra baixo. */
+.home-hero.home-hero--compacta {
+    padding: 20px 1% 54px;
+}
+
+.home-hero--compacta .home-hero-conteudo {
+    max-width: none;
+    width: 100%;
+}
+
+.home-hero--compacta h1 {
+    font-size: 22px;
+}
+
+.home-hero--compacta .home-hero-sub {
+    margin-top: 4px;
+    font-size: 13.5px;
+    max-width: 640px;
+}
+
+.home-hero--compacta .hero-ondas {
+    height: 50px;
+}
+
+.home-hero--compacta .onda {
+    height: 30px;
+}
+
+.home-hero--compacta .onda-laranja {
+    bottom: 15px;
+}
+
+.home-hero--compacta .onda-tras {
+    bottom: 7px;
+}
+
+@media (max-width: 640px) {
+    .home-hero.home-hero--compacta {
+        padding: 16px 4% 50px;
+    }
+}
+
 .home-hero+.main {
     margin-top: 22px;
 }
