@@ -120,8 +120,14 @@
 
             <!-- os filtros são montados a partir do que existe no catálogo -->
             <div class="grupos-chips">
-                <div class="grupo-chips" id="chips-nivel"></div>
-                <div class="grupo-chips" id="chips-eixo"></div>
+                <div class="filtro-bloco" id="bloco-nivel" role="group" aria-labelledby="legenda-nivel" hidden>
+                    <span class="filtro-legenda" id="legenda-nivel">Instituição</span>
+                    <div class="grupo-chips" id="chips-nivel"></div>
+                </div>
+                <div class="filtro-bloco" role="group" aria-labelledby="legenda-eixo">
+                    <span class="filtro-legenda" id="legenda-eixo">Eixos</span>
+                    <div class="grupo-chips" id="chips-eixo"></div>
+                </div>
             </div>
 
             <div class="contagem-resultados" id="contagem-resultados"></div>

@@ -56,6 +56,8 @@ function montarFiltros() {
 
     const niveis = niveisDisponiveis();
     grupoNivel.innerHTML = '';
+    // sem os dois níveis no catálogo não há o que filtrar: some a legenda junto
+    document.getElementById('bloco-nivel').hidden = niveis.length <= 1;
     if (niveis.length > 1) {
         [{ valor: '', rotulo: 'Todos' }, ...niveis.map((n) => ({ valor: n, rotulo: rotuloNivel(n) }))]
             .forEach(({ valor, rotulo }) => grupoNivel.appendChild(criarChip({
