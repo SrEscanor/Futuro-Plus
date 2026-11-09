@@ -8,6 +8,7 @@ const CURSOS_POR_PAGINA = 24;
 
 let cursosCache = [];
 const filtros = { nivel: '', eixo: '', busca: '', pagina: 1 };
+let eixosExpandidos = false;
 
 async function carregarCursos() {
     const snap = await getDocs(collection(db, CURSOS_COLLECTION));
@@ -64,14 +65,34 @@ function montarFiltros() {
             })));
     }
 
+    // Com todos os eixos abertos, os chips empurravam os cursos pra fora da
+    // primeira tela (no celular eram 7 linhas só de filtro). Mostra os
+    // primeiros e recolhe o resto atrás de "Ver mais"; o eixo selecionado
+    // continua à vista mesmo recolhido, pra pessoa não perder o que filtrou.
     const eixos = eixosDisponiveis();
+    const limite = window.matchMedia('(max-width: 640px)').matches ? 3 : 6;
+    const recolhivel = eixos.length > limite;
+    const visiveis = !recolhivel || eixosExpandidos
+        ? eixos
+        : eixos.filter((e, i) => i < limite || e === filtros.eixo);
+
     grupoEixo.innerHTML = '';
-    [{ valor: '', rotulo: 'Todos os eixos' }, ...eixos.map((e) => ({ valor: e, rotulo: e }))]
+    [{ valor: '', rotulo: 'Todos os eixos' }, ...visiveis.map((e) => ({ valor: e, rotulo: e }))]
         .forEach(({ valor, rotulo }) => grupoEixo.appendChild(criarChip({
             rotulo,
             ativo: filtros.eixo === valor,
             aoClicar: () => { filtros.eixo = valor; filtros.pagina = 1; montarFiltros(); renderizarCursos(); }
         })));
+
+    if (recolhivel) {
+        const alternar = document.createElement('button');
+        alternar.type = 'button';
+        alternar.className = 'chip-filtro chip-filtro--alternar';
+        alternar.setAttribute('aria-expanded', String(eixosExpandidos));
+        alternar.textContent = eixosExpandidos ? 'Ver menos' : `Ver mais (+${eixos.length - visiveis.length})`;
+        alternar.addEventListener('click', () => { eixosExpandidos = !eixosExpandidos; montarFiltros(); });
+        grupoEixo.appendChild(alternar);
+    }
 }
 
 function cursosFiltrados() {

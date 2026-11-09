@@ -69,6 +69,15 @@
     color: #fff;
 }
 
+/* "Ver mais / Ver menos": é uma ação, não um filtro — por isso o contorno
+   tracejado e sem fundo, pra não se confundir com os eixos. */
+.chip-filtro--alternar {
+    border-style: dashed;
+    border-color: var(--blue);
+    background: transparent;
+    color: var(--blue-dark);
+}
+
 /* o filtro de proximidade é o destaque da tela */
 .chip-filtro--destaque {
     border-color: rgba(46, 204, 113, 0.5);
