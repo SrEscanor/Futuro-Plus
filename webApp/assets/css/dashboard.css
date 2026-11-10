@@ -99,8 +99,8 @@ h3,
     align-items: center;
     background: var(--surface);
     padding: 10px 24px;
-    border-bottom: none;
-    box-shadow: 0 2px 10px rgba(70, 130, 210, 0.55), 0 8px 24px -6px rgba(70, 130, 210, 0.4);
+    border-bottom: 1px solid var(--line);
+    box-shadow: none;
     height: 64px;
     width: 100%;
     box-sizing: border-box;
@@ -1620,9 +1620,8 @@ a.btn-saiba {
 
     display: flex;
     flex-direction: column;
-    /* mesma sombra azulada da barra de cima, para o menu parecer parte dela */
-    border-right: 1px solid rgba(78, 110, 232, 0.18);
-    box-shadow: 2px 0 10px rgba(70, 130, 210, 0.45), 8px 0 24px -6px rgba(70, 130, 210, 0.35);
+    border-right: 1px solid var(--line);
+    box-shadow: none;
 
     transform: translateX(-100%);
     visibility: hidden;
