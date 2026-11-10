@@ -1765,8 +1765,8 @@ a.btn-saiba {
     color: white;
     border: none;
     border-radius: 50%;
-    width: 100px;
-    height: 100px;
+    width: 80px;
+    height: 80px;
     cursor: pointer;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     display: flex;
@@ -1924,7 +1924,7 @@ a.btn-saiba {
 
 .chat-balao-fala {
     position: fixed;
-    bottom: 135px;
+    bottom: 115px;
     right: 25px;
     max-width: 250px;
     background: #fff;
@@ -1969,7 +1969,7 @@ a.btn-saiba {
 
 .chat-window {
     position: fixed;
-    bottom: 140px;
+    bottom: 120px;
     right: 25px;
     width: 350px;
     height: 500px;
