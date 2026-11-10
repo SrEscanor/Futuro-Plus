@@ -20,7 +20,8 @@ const MODALIDADES = [
     'Especialização',
     'EaD / Online',
     'Semipresencial',
-    'Médio + Superior (AMS)'
+    'Médio + Superior (AMS)',
+    'Superior'
 ];
 
 const ESTILOS = [
