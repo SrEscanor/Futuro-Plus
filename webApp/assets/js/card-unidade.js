@@ -93,6 +93,69 @@ function agruparCursosPorCategoria(cursos, modalidades) {
 // destaque: faixa de distância em evidência (ex.: "A 4,8 km de você").
 // termoCurso: termo já normalizado; os cursos que o contêm ficam realçados.
 // modalidades: conjunto de chaves de modalidade a exibir (null mostra todas).
+export function logoDaUnidade(unidade) {
+    return unidade.logotipoUrl ? escapeHtml(unidade.logotipoUrl) : logoPadraoPorTipo((unidade.tipo || '').trim());
+}
+
+// Todos os cursos da unidade, agrupados pela categoria do cadastro, cada um
+// levando à página do curso.
+export function renderizarCursosPorCategoria(unidade, { termoCurso = '', modalidades = null } = {}) {
+    const tipo = (unidade.tipo || '').trim();
+    const grupos = agruparCursosPorCategoria(unidade.cursos, modalidades);
+
+    return [...grupos.entries()].map(([categoria, nomes]) => `
+        <div class="grupo-categoria">
+            <div class="categoria-label">${escapeHtml(categoria)}</div>
+            <div class="tags-cursos">
+                ${nomes.map((nome) => {
+                    const realcado = termoCurso && normalizar(nome).includes(termoCurso);
+                    const endereco = `curso.html?c=${encodeURIComponent(paginaDoCurso(nome, tipo))}`;
+                    return `<a class="tag-curso${realcado ? ' tag-curso--destaque' : ''}" href="${endereco}">${escapeHtml(nome)}</a>`;
+                }).join('')}
+            </div>
+        </div>
+    `).join('');
+}
+
+const ICONE_LOCAL = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.800 7-13a7 7 0 0 0-7-7zm0 9.500A2.500 2.500 0 1 1 12 6.500a2.500 2.500 0 0 1 0 5z"/></svg>';
+const ICONE_CURSOS = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3 1 9l11 6 9-4.910V17h2V9L12 3zm-7 9.180V16c0 1.660 3.130 3 7 3s7-1.340 7-3v-3.820l-7 3.820-7-3.820z"/></svg>';
+const ICONE_SETA = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.200" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+
+// Card da lista de instituições: logo em destaque, um resumo com até três
+// cursos e o botão que abre o painel com a lista completa.
+// destaque: texto de distância ("A 4,8 km de você"), quando dá pra medir.
+// cursosDestaque: nomes já escolhidos por quem chama (os que casam com a
+// busca vêm primeiro). totalCursos: quantos cursos diferentes a unidade tem.
+export function renderizarCardInstituicao(unidade, { destaque = '', cursosDestaque = [], totalCursos = 0 } = {}) {
+    const tipo = (unidade.tipo || '').trim();
+    const local = unidade.municipio ? `${unidade.municipio} - SP` : '';
+
+    return `
+    <article class="card-unidade card-instituicao">
+        <div class="card-instituicao-topo">
+            <img class="card-instituicao-logo" src="${logoDaUnidade(unidade)}" alt="" onerror="this.onerror=null;this.src='${LOGO_FALLBACK}';">
+            <span class="card-instituicao-divisor" aria-hidden="true"></span>
+            <h3 class="nome-unidade">${escapeHtml(unidade.nome)}</h3>
+        </div>
+        <div class="card-instituicao-info">
+            ${local ? `<div class="card-instituicao-local">${ICONE_LOCAL}<span>${escapeHtml(local)}</span></div>` : ''}
+            <div class="card-instituicao-selos">
+                ${tipo ? `<span class="selo-instituicao">${escapeHtml(tipo)}</span>` : ''}
+                ${destaque ? `<span class="selo-instituicao selo-instituicao--perto">${escapeHtml(destaque)}</span>` : ''}
+            </div>
+        </div>
+        <div class="card-instituicao-cursos">
+            <div class="card-instituicao-total">${ICONE_CURSOS}<span><strong>${totalCursos}</strong> ${totalCursos === 1 ? 'curso disponível' : 'cursos disponíveis'}</span></div>
+            ${cursosDestaque.length ? `
+            <div class="card-instituicao-destaques">
+                <span>Cursos em destaque:</span>
+                <ul>${cursosDestaque.map((nome) => `<li>${escapeHtml(nome)}</li>`).join('')}</ul>
+            </div>` : '<p class="sem-cursos">Nenhum curso cadastrado ainda.</p>'}
+        </div>
+        <button type="button" class="btn-ver-instituicao" data-unidade="${escapeHtml(unidade.id)}">Ver instituição ${ICONE_SETA}</button>
+    </article>`;
+}
+
 export function renderizarCardUnidade(unidade, { destaque = '', termoCurso = '', modalidades = null } = {}) {
     const tipo = (unidade.tipo || '').trim();
     const logo = unidade.logotipoUrl ? escapeHtml(unidade.logotipoUrl) : logoPadraoPorTipo(tipo);

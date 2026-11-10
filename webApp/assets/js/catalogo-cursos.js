@@ -1,6 +1,7 @@
 import { db } from './firebase-config.js';
 import { collection, getDocs } from 'firebase/firestore';
 import { escapeHtml, normalizar, logoPadraoPorTipo } from './card-unidade.js';
+import { renderizarPaginacao } from './paginacao.js';
 
 const CURSOS_COLLECTION = 'cursos';
 const CATALOGO_OFICIAL = '/dados/catalogo-cursos.json';
@@ -134,46 +135,6 @@ function cardCurso(curso) {
     </a>`;
 }
 
-// Mostra todos os números até caber (poucas páginas), e colapsa em "..."
-// só quando o catálogo crescer o bastante pra isso virar necessário —
-// com o tamanho de hoje (~150 cursos) nunca passa de 7-8 páginas.
-function numerosDaPaginacao(paginaAtual, totalPaginas) {
-    if (totalPaginas <= 8) {
-        return Array.from({ length: totalPaginas }, (_, i) => i + 1);
-    }
-    const numeros = new Set([1, totalPaginas, paginaAtual, paginaAtual - 1, paginaAtual + 1]);
-    return [...numeros].filter((n) => n >= 1 && n <= totalPaginas).sort((a, b) => a - b);
-}
-
-function renderizarPaginacao(paginaAtual, totalPaginas) {
-    const containers = [document.getElementById('paginacao-topo'), document.getElementById('paginacao-rodape')];
-    if (totalPaginas <= 1) {
-        containers.forEach((c) => c && (c.innerHTML = ''));
-        return;
-    }
-
-    const numeros = numerosDaPaginacao(paginaAtual, totalPaginas);
-    let html = '';
-    let ultimo = 0;
-    numeros.forEach((n) => {
-        if (n - ultimo > 1) html += '<span class="pagina-reticencias">…</span>';
-        html += `<button type="button" class="pagina-botao${n === paginaAtual ? ' pagina-botao--ativo' : ''}" data-pagina="${n}">${n}</button>`;
-        ultimo = n;
-    });
-
-    containers.forEach((container) => {
-        if (!container) return;
-        container.innerHTML = html;
-        container.querySelectorAll('[data-pagina]').forEach((botao) => {
-            botao.addEventListener('click', () => {
-                filtros.pagina = Number(botao.dataset.pagina);
-                renderizarCursos();
-                document.querySelector('.filtros-cursos')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            });
-        });
-    });
-}
-
 function renderizarCursos() {
     const grid = document.getElementById('grid-cursos');
     const contagem = document.getElementById('contagem-resultados');
@@ -190,7 +151,16 @@ function renderizarCursos() {
         ? pagina.map(cardCurso).join('')
         : '<p class="sem-resultados">Nenhum curso encontrado com esses filtros.</p>';
 
-    renderizarPaginacao(filtros.pagina, totalPaginas);
+    renderizarPaginacao(
+        [document.getElementById('paginacao-topo'), document.getElementById('paginacao-rodape')],
+        filtros.pagina,
+        totalPaginas,
+        (pagina) => {
+            filtros.pagina = pagina;
+            renderizarCursos();
+            document.querySelector('.filtros-cursos')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    );
 }
 
 async function iniciar() {

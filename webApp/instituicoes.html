@@ -8,7 +8,6 @@
     <link rel="icon" href="/favicon.ico" sizes="48x48">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-    <link rel="stylesheet" href="assets/css/ondas.css">
     <link rel="stylesheet" href="assets/css/dashboard.css">
     <link rel="stylesheet" href="assets/css/cursos-etec.css">
 </head>
@@ -102,26 +101,19 @@
         </div>
     </nav>
 
-    <header class="home-hero home-hero--compacta">
-        <div class="home-hero-conteudo">
-            <h1>Instituições Etec e Fatec 🏫</h1>
-            <p class="home-hero-sub">Explore as unidades Etec, Fatec e outras instituições cadastradas em São Paulo, e veja os cursos que cada uma oferece.</p>
-        </div>
+    <div class="main instituicoes-main">
+        <header class="inst-cabecalho">
+            <img class="inst-ilustracao" src="/cps-instituicoes.webp" alt="" aria-hidden="true">
+            <div class="inst-cabecalho-texto">
+                <a class="inst-voltar" href="cursos.html">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6" /></svg>
+                    Todos os cursos
+                </a>
+                <h1>Instituições de ensino</h1>
+                <p>Encontre unidades e conheça os cursos disponíveis.</p>
+            </div>
+        </header>
 
-        <div class="hero-ondas" aria-hidden="true">
-            <svg class="onda onda-laranja" viewBox="0 0 1440 60" preserveAspectRatio="none">
-                <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
-            </svg>
-            <svg class="onda onda-tras" viewBox="0 0 1440 60" preserveAspectRatio="none">
-                <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
-            </svg>
-            <svg class="onda onda-frente" viewBox="0 0 1440 60" preserveAspectRatio="none">
-                <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
-            </svg>
-        </div>
-    </header>
-
-    <div class="main">
         <section id="meus-resultados" class="meus-resultados" hidden></section>
 
         <div class="filtros-cursos">
@@ -130,32 +122,38 @@
                     <circle cx="11" cy="11" r="8" />
                     <line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
-                <input type="text" id="busca-cursos" placeholder="Buscar por curso, unidade, cidade ou região...">
+                <input type="text" id="busca-cursos" placeholder="Buscar por instituição, cidade ou curso...">
             </div>
 
             <!-- os filtros são montados a partir do que existe no cadastro -->
-            <div class="grupos-chips">
-                <div class="filtro-bloco" role="group" aria-labelledby="legenda-proximidade" hidden>
-                    <span class="filtro-legenda" id="legenda-proximidade">Localização</span>
-                    <div class="grupo-chips" id="chips-proximidade"></div>
-                </div>
-                <div class="filtro-bloco" role="group" aria-labelledby="legenda-instituicao" hidden>
-                    <span class="filtro-legenda" id="legenda-instituicao">Instituição</span>
-                    <div class="grupo-chips" id="chips-instituicao"></div>
-                </div>
-                <div class="filtro-bloco" role="group" aria-labelledby="legenda-modalidade" hidden>
-                    <span class="filtro-legenda" id="legenda-modalidade">Tipo de curso</span>
-                    <div class="grupo-chips" id="chips-modalidade"></div>
-                </div>
+            <div class="inst-filtros-linha">
+                <div class="grupo-chips" id="chips-instituicao" role="group" aria-label="Instituição"></div>
+                <span class="inst-filtros-divisor" id="divisor-instituicao" aria-hidden="true"></span>
+                <select class="select-filtro" id="filtro-curso" aria-label="Filtrar por curso"></select>
+                <select class="select-filtro" id="filtro-modalidade" aria-label="Filtrar por modalidade"></select>
+                <select class="select-filtro" id="filtro-regiao" aria-label="Filtrar por região"></select>
+                <div class="grupo-chips" id="chips-proximidade"></div>
             </div>
 
-            <div class="contagem-resultados" id="contagem-resultados"></div>
+            <div class="inst-resultado-linha">
+                <div class="contagem-resultados" id="contagem-resultados"></div>
+                <label class="inst-ordenar">
+                    Ordenar por:
+                    <select id="ordenar-unidades"></select>
+                </label>
+            </div>
         </div>
 
-        <div class="grid-unidades" id="grid-unidades">
+        <div class="grid-unidades grid-instituicoes" id="grid-unidades">
             <p class="carregando-cursos">Carregando unidades...</p>
         </div>
+
+        <div class="paginacao" id="paginacao-rodape"></div>
     </div>
+
+    <dialog class="painel-unidade" id="painel-unidade" aria-labelledby="painel-unidade-titulo">
+        <div class="painel-unidade-conteudo" id="painel-unidade-conteudo"></div>
+    </dialog>
 
     <!-- Botão Flutuante do Chat -->
     <button id="chatbot-toggle" class="chat-btn-blue" aria-label="Abrir assistente inteligente">

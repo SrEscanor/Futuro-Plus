@@ -38,8 +38,8 @@ const CONFIGS = {
             },
             {
                 seletor: '#grid-unidades .card-unidade',
-                titulo: 'Unidades e cursos',
-                texto: 'Cada card é uma Etec, Fatec ou outra instituição, com os cursos que oferece. Clique em "Ver unidades" pra ver os detalhes — as outras aparecem do mesmo jeito, é só rolar a tela.'
+                titulo: 'Instituições e cursos',
+                texto: 'Cada card é uma Etec, Fatec ou outra instituição, com um resumo dos cursos. Clique em "Ver instituição" pra ver todos os cursos dela — as outras aparecem do mesmo jeito, é só rolar a tela.'
             }
         ]
     },

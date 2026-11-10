@@ -1,11 +1,15 @@
 import { auth, db } from './firebase-config.js';
 import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
 import {
-    renderizarCardUnidade,
+    renderizarCardInstituicao,
+    renderizarCursosPorCategoria,
+    logoDaUnidade,
+    escapeHtml,
     normalizar,
     modalidadeDaCategoria,
     rotuloDaModalidade,
-    ordemDaModalidade
+    ordemDaModalidade,
+    LOGO_FALLBACK
 } from './card-unidade.js';
 import {
     carregarRegioesSP,
@@ -14,10 +18,15 @@ import {
     PROXIMIDADE
 } from './recomendacao-cursos.js';
 import { formatarDistancia } from './geocodificacao.js';
+import { renderizarPaginacao } from './paginacao.js';
 
 // Até esta distância a unidade entra no filtro "Perto de você" mesmo estando
 // em outra cidade (ex.: quem mora na divisa).
 const RAIO_PERTO_KM = 30;
+const UNIDADES_POR_PAGINA = 12;
+const CURSOS_EM_DESTAQUE = 3;
+
+const ICONE_INSTITUICOES = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2 2 7v2h20V7L12 2zM4 11v7h3v-7H4zm6.500 0v7h3v-7h-3zM17 11v7h3v-7h-3zM2 20v2h20v-2H2z"/></svg>';
 
 function textoDistancia({ nivel, km }) {
     if (km != null) {
@@ -40,10 +49,34 @@ let unidadesCache = [];
 let avaliarProximidade = null;
 let localizacao = null;
 
-const filtros = { instituicao: '', modalidade: '', perto: false };
+// curso guarda o nome normalizado; os demais, o valor como está no cadastro.
+const filtros = { instituicao: '', modalidade: '', curso: '', regiao: '', perto: false, ordem: 'az', pagina: 1 };
+
+function elemento(id) {
+    return document.getElementById(id);
+}
+
+function tipoDaUnidade(unidade) {
+    return (unidade.tipo || '').trim();
+}
+
+function cursosValidos(unidade) {
+    return (unidade.cursos || []).filter((c) => c?.nome);
+}
+
+// Uma unidade costuma oferecer o mesmo curso em mais de uma modalidade
+// (técnico e integrado ao médio, por exemplo); aqui cada nome conta uma vez.
+function nomesDistintos(cursos) {
+    const vistos = new Map();
+    cursos.forEach((c) => {
+        const chave = normalizar(c.nome);
+        if (!vistos.has(chave)) vistos.set(chave, c.nome);
+    });
+    return vistos;
+}
 
 // ------------------------------------------------------------------
-// Filtros (chips)
+// Filtros
 // ------------------------------------------------------------------
 function criarChip({ rotulo, ativo, destaque = false, aoClicar }) {
     const botao = document.createElement('button');
@@ -57,44 +90,53 @@ function criarChip({ rotulo, ativo, destaque = false, aoClicar }) {
     return botao;
 }
 
+function preencherSelect(select, opcoes, valorAtual) {
+    select.innerHTML = opcoes
+        .map(({ valor, rotulo }) => `<option value="${escapeHtml(valor)}">${escapeHtml(rotulo)}</option>`)
+        .join('');
+    select.value = valorAtual;
+}
+
 function instituicoesDisponiveis() {
-    return [...new Set(unidadesCache.map((u) => (u.tipo || '').trim()).filter(Boolean))]
+    return [...new Set(unidadesCache.map(tipoDaUnidade).filter(Boolean))]
         .sort((a, b) => a.localeCompare(b, 'pt-BR'));
 }
 
-// Só os tipos que existem na instituição escolhida: com "Etec" marcado não
-// faz sentido oferecer "Superior", nem "Médio + Técnico" com "Fatec".
+// Modalidades e cursos acompanham a instituição escolhida: com "Etec" marcado
+// não faz sentido oferecer "Superior", nem os cursos que só a Fatec tem.
+function unidadesDaInstituicao() {
+    return unidadesCache.filter((u) => !filtros.instituicao || tipoDaUnidade(u) === filtros.instituicao);
+}
+
 function modalidadesDisponiveis() {
     const chaves = new Set();
-    unidadesCache
-        .filter((u) => !filtros.instituicao || (u.tipo || '').trim() === filtros.instituicao)
-        .forEach((u) => (u.cursos || []).forEach((c) => {
-            if (c?.nome) chaves.add(modalidadeDaCategoria(c.categoria).chave);
-        }));
+    unidadesDaInstituicao().forEach((u) => cursosValidos(u).forEach((c) => {
+        chaves.add(modalidadeDaCategoria(c.categoria).chave);
+    }));
     return [...chaves].sort((a, b) => ordemDaModalidade(a) - ordemDaModalidade(b));
 }
 
-function mostrarBloco(grupo) {
-    grupo.closest('.filtro-bloco').hidden = !grupo.children.length;
+function cursosDisponiveis() {
+    const nomes = nomesDistintos(unidadesDaInstituicao().flatMap(cursosValidos));
+    return [...nomes.entries()]
+        .map(([valor, rotulo]) => ({ valor, rotulo }))
+        .sort((a, b) => a.rotulo.localeCompare(b.rotulo, 'pt-BR'));
+}
+
+function regioesDisponiveis() {
+    return [...new Set(unidadesCache.map((u) => (u.regiao || '').trim()).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+}
+
+function aplicarFiltro(mudanca) {
+    Object.assign(filtros, mudanca, { pagina: 1 });
+    montarFiltros();
+    renderizarUnidades();
 }
 
 function montarFiltros() {
-    const grupoProximidade = document.getElementById('chips-proximidade');
-    const grupoInstituicao = document.getElementById('chips-instituicao');
-    const grupoModalidade = document.getElementById('chips-modalidade');
-
-    // Só faz sentido oferecer o filtro de perto quando dá para medir distância.
-    grupoProximidade.innerHTML = '';
-    if (avaliarProximidade) {
-        grupoProximidade.appendChild(criarChip({
-            rotulo: '📍 Perto de você',
-            ativo: filtros.perto,
-            destaque: true,
-            aoClicar: () => { filtros.perto = !filtros.perto; montarFiltros(); renderizarUnidades(); }
-        }));
-    }
-
-    // Com um tipo só (hoje, todas Etec) o filtro não separa nada.
+    // Com um tipo só o filtro não separa nada.
+    const grupoInstituicao = elemento('chips-instituicao');
     const instituicoes = instituicoesDisponiveis();
     grupoInstituicao.innerHTML = '';
     if (instituicoes.length > 1) {
@@ -102,83 +144,200 @@ function montarFiltros() {
             .forEach(({ valor, rotulo }) => grupoInstituicao.appendChild(criarChip({
                 rotulo,
                 ativo: filtros.instituicao === valor,
-                aoClicar: () => { filtros.instituicao = valor; montarFiltros(); renderizarUnidades(); }
+                aoClicar: () => aplicarFiltro({ instituicao: valor })
             })));
     }
+    elemento('divisor-instituicao').hidden = instituicoes.length <= 1;
+
+    // trocou de instituição e a escolha anterior não existe nela: volta para "todos"
+    const cursos = cursosDisponiveis();
+    if (filtros.curso && !cursos.some((c) => c.valor === filtros.curso)) filtros.curso = '';
+    preencherSelect(elemento('filtro-curso'), [{ valor: '', rotulo: 'Todos os cursos' }, ...cursos], filtros.curso);
 
     const modalidades = modalidadesDisponiveis();
-    // trocou de instituição e o tipo marcado não existe nela: volta para "todos"
     if (filtros.modalidade && !modalidades.includes(filtros.modalidade)) filtros.modalidade = '';
-    grupoModalidade.innerHTML = '';
-    [{ valor: '', rotulo: 'Todos os tipos' }, ...modalidades.map((c) => ({ valor: c, rotulo: rotuloDaModalidade(c) }))]
-        .forEach(({ valor, rotulo }) => grupoModalidade.appendChild(criarChip({
-            rotulo,
-            ativo: filtros.modalidade === valor,
-            aoClicar: () => { filtros.modalidade = valor; montarFiltros(); renderizarUnidades(); }
-        })));
+    preencherSelect(elemento('filtro-modalidade'), [
+        { valor: '', rotulo: 'Todas as modalidades' },
+        ...modalidades.map((m) => ({ valor: m, rotulo: rotuloDaModalidade(m) }))
+    ], filtros.modalidade);
 
-    [grupoProximidade, grupoInstituicao, grupoModalidade].forEach(mostrarBloco);
+    const regioes = regioesDisponiveis();
+    const seletorRegiao = elemento('filtro-regiao');
+    preencherSelect(seletorRegiao, [
+        { valor: '', rotulo: 'Todas as regiões' },
+        ...regioes.map((r) => ({ valor: r, rotulo: r }))
+    ], filtros.regiao);
+    seletorRegiao.hidden = !regioes.length;
+
+    // "Perto de você" só existe quando dá para medir distância.
+    const grupoProximidade = elemento('chips-proximidade');
+    grupoProximidade.innerHTML = '';
+    if (avaliarProximidade) {
+        grupoProximidade.appendChild(criarChip({
+            rotulo: 'Perto de você',
+            ativo: filtros.perto,
+            destaque: true,
+            aoClicar: () => aplicarFiltro({ perto: !filtros.perto })
+        }));
+    }
+
+    preencherSelect(elemento('ordenar-unidades'), [
+        { valor: 'az', rotulo: 'A a Z' },
+        { valor: 'cursos', rotulo: 'Mais cursos' },
+        ...(avaliarProximidade ? [{ valor: 'perto', rotulo: 'Mais perto de você' }] : [])
+    ], filtros.ordem);
 }
 
 // ------------------------------------------------------------------
 // Lista
 // ------------------------------------------------------------------
-function renderizarUnidades() {
-    const campoBusca = document.getElementById('busca-cursos');
-    const container = document.getElementById('grid-unidades');
-    const contagem = document.getElementById('contagem-resultados');
-    const termo = normalizar(campoBusca.value);
+function filtrarUnidades(termo, proximidades) {
     const modalidades = filtros.modalidade ? new Set([filtros.modalidade]) : null;
+
+    return unidadesCache.flatMap((unidade) => {
+        if (filtros.instituicao && tipoDaUnidade(unidade) !== filtros.instituicao) return [];
+        if (filtros.perto && !estaPerto(proximidades?.get(unidade.id))) return [];
+        if (filtros.regiao && (unidade.regiao || '').trim() !== filtros.regiao) return [];
+
+        const cursos = cursosValidos(unidade)
+            .filter((c) => !modalidades || modalidades.has(modalidadeDaCategoria(c.categoria).chave));
+        if (modalidades && !cursos.length) return [];
+        if (filtros.curso && !cursos.some((c) => normalizar(c.nome) === filtros.curso)) return [];
+
+        if (termo) {
+            const alvo = normalizar([
+                unidade.nome, unidade.municipio, unidade.regiao, unidade.tipo,
+                ...cursos.map((c) => c.nome)
+            ].filter(Boolean).join(' '));
+            if (!alvo.includes(termo)) return [];
+        }
+
+        return [{ unidade, cursos, total: nomesDistintos(cursosValidos(unidade)).size }];
+    });
+}
+
+// Os cursos que a pessoa está procurando (filtro ou busca) vêm primeiro,
+// para o card já mostrar por que aquela unidade apareceu.
+function cursosEmDestaque(cursos, termo) {
+    const nomes = [...nomesDistintos(cursos).entries()];
+    const peso = ([chave]) => (chave === filtros.curso ? 0 : (termo && chave.includes(termo) ? 1 : 2));
+    return nomes
+        .map((item, indice) => ({ item, indice, peso: peso(item) }))
+        .sort((a, b) => a.peso - b.peso || a.indice - b.indice)
+        .slice(0, CURSOS_EM_DESTAQUE)
+        .map(({ item }) => item[1]);
+}
+
+function ordenar(itens, proximidades) {
+    const porNome = (a, b) => (a.unidade.nome || '').localeCompare(b.unidade.nome || '', 'pt-BR');
+    if (filtros.ordem === 'perto' && proximidades) {
+        return itens.sort((a, b) =>
+            proximidades.get(a.unidade.id).ordem - proximidades.get(b.unidade.id).ordem || porNome(a, b));
+    }
+    if (filtros.ordem === 'cursos') return itens.sort((a, b) => b.total - a.total || porNome(a, b));
+    return itens.sort(porNome);
+}
+
+function renderizarUnidades() {
+    const container = elemento('grid-unidades');
+    const contagem = elemento('contagem-resultados');
+    const rodape = elemento('paginacao-rodape');
+    const termo = normalizar(elemento('busca-cursos').value);
 
     const proximidades = avaliarProximidade
         ? new Map(unidadesCache.map((u) => [u.id, avaliarProximidade(u)]))
         : null;
 
-    let filtradas = unidadesCache.filter((u) => {
-        if (filtros.instituicao && (u.tipo || '').trim() !== filtros.instituicao) return false;
-        if (filtros.perto && !estaPerto(proximidades?.get(u.id))) return false;
+    const itens = ordenar(filtrarUnidades(termo, proximidades), proximidades);
 
-        const cursos = modalidades
-            ? (u.cursos || []).filter((c) => c?.nome && modalidades.has(modalidadeDaCategoria(c.categoria).chave))
-            : (u.cursos || []);
-        if (modalidades && !cursos.length) return false;
+    const texto = itens.length === 1 ? '1 instituição encontrada' : `${itens.length} instituições encontradas`;
+    const complemento = filtros.perto && localizacao ? ` · perto de ${localizacao.cidade}` : '';
+    contagem.innerHTML = `${ICONE_INSTITUICOES}<span>${escapeHtml(texto + complemento)}</span>`;
 
-        if (!termo) return true;
-        const alvo = normalizar([
-            u.nome, u.municipio, u.regiao, u.tipo,
-            ...cursos.map((c) => c.nome)
-        ].filter(Boolean).join(' '));
-        return alvo.includes(termo);
-    });
-
-    if (proximidades) {
-        filtradas = [...filtradas].sort((a, b) =>
-            proximidades.get(a.id).ordem - proximidades.get(b.id).ordem
-            || (a.nome || '').localeCompare(b.nome || '', 'pt-BR'));
-    }
-
-    const plural = filtradas.length === 1 ? '' : 's';
-    const complemento = filtros.perto
-        ? ` · perto de ${localizacao.cidade}`
-        : (localizacao ? ` · mais perto de ${localizacao.cidade} primeiro` : '');
-    contagem.textContent = `${filtradas.length} unidade${plural} encontrada${plural}${complemento}`;
-
-    if (!filtradas.length) {
+    if (!itens.length) {
         container.innerHTML = `<p class="sem-resultados">${filtros.perto
-            ? 'Nenhuma unidade perto de você com esses filtros. Tente desligar o filtro "Perto de você".'
-            : 'Nenhuma unidade encontrada para essa busca.'}</p>`;
+            ? 'Nenhuma instituição perto de você com esses filtros. Tente desligar o filtro "Perto de você".'
+            : 'Nenhuma instituição encontrada para essa busca.'}</p>`;
+        renderizarPaginacao([rodape], 1, 1, () => {});
         return;
     }
 
-    container.innerHTML = filtradas.map((u) => renderizarCardUnidade(u, {
-        destaque: proximidades ? textoDistancia(proximidades.get(u.id)) : '',
-        termoCurso: termo,
-        modalidades
-    })).join('');
+    const totalPaginas = Math.ceil(itens.length / UNIDADES_POR_PAGINA);
+    filtros.pagina = Math.min(filtros.pagina, totalPaginas);
+    const inicio = (filtros.pagina - 1) * UNIDADES_POR_PAGINA;
+
+    container.innerHTML = itens.slice(inicio, inicio + UNIDADES_POR_PAGINA)
+        .map(({ unidade, cursos, total }) => renderizarCardInstituicao(unidade, {
+            destaque: proximidades ? textoDistancia(proximidades.get(unidade.id)) : '',
+            cursosDestaque: cursosEmDestaque(cursos, termo),
+            totalCursos: total
+        })).join('');
+
+    renderizarPaginacao([rodape], filtros.pagina, totalPaginas, (pagina) => {
+        filtros.pagina = pagina;
+        renderizarUnidades();
+        document.querySelector('.filtros-cursos')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+}
+
+// ------------------------------------------------------------------
+// Painel "Ver instituição": todos os cursos da unidade, sem sair da lista
+// ------------------------------------------------------------------
+function abrirPainel(idUnidade) {
+    const unidade = unidadesCache.find((u) => u.id === idUnidade);
+    if (!unidade) return;
+
+    const tipo = tipoDaUnidade(unidade);
+    // várias regiões levam o nome da própria cidade-sede; aí não repete
+    const regiao = normalizar(unidade.regiao) === normalizar(unidade.municipio) ? '' : unidade.regiao;
+    const local = [unidade.municipio ? `${unidade.municipio} - SP` : '', regiao].filter(Boolean).join(' · ');
+    const distancia = avaliarProximidade ? textoDistancia(avaliarProximidade(unidade)) : '';
+    const total = nomesDistintos(cursosValidos(unidade)).size;
+    const termo = filtros.curso || normalizar(elemento('busca-cursos').value);
+
+    elemento('painel-unidade-conteudo').innerHTML = `
+        <div class="painel-unidade-topo">
+            <img class="card-instituicao-logo" src="${logoDaUnidade(unidade)}" alt="" onerror="this.onerror=null;this.src='${LOGO_FALLBACK}';">
+            <div class="painel-unidade-identidade">
+                <h2 id="painel-unidade-titulo">${escapeHtml(unidade.nome)}</h2>
+                ${local ? `<p class="painel-unidade-local">${escapeHtml(local)}</p>` : ''}
+                <div class="card-instituicao-selos">
+                    ${tipo ? `<span class="selo-instituicao">${escapeHtml(tipo)}</span>` : ''}
+                    ${distancia ? `<span class="selo-instituicao selo-instituicao--perto">${escapeHtml(distancia)}</span>` : ''}
+                </div>
+            </div>
+            <button type="button" class="painel-unidade-fechar" data-fechar-painel aria-label="Fechar">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
+            </button>
+        </div>
+        <p class="painel-unidade-resumo">
+            <strong>${total}</strong> ${total === 1 ? 'curso disponível' : 'cursos disponíveis'}.
+            Clique em um curso para ver o que se aprende nele.
+        </p>
+        <div class="painel-unidade-cursos">
+            ${renderizarCursosPorCategoria(unidade, { termoCurso: termo })
+                || '<p class="sem-cursos">Nenhum curso cadastrado ainda.</p>'}
+        </div>`;
+
+    elemento('painel-unidade').showModal();
+}
+
+function ligarPainel() {
+    const painel = elemento('painel-unidade');
+
+    elemento('grid-unidades').addEventListener('click', (evento) => {
+        const botao = evento.target.closest('.btn-ver-instituicao');
+        if (botao) abrirPainel(botao.dataset.unidade);
+    });
+
+    // clique fora do conteúdo (no fundo escurecido) ou no X fecha
+    painel.addEventListener('click', (evento) => {
+        if (evento.target === painel || evento.target.closest('[data-fechar-painel]')) painel.close();
+    });
 }
 
 // A lista aparece logo em ordem alfabética; se a pessoa estiver logada e
-// der para saber a cidade dela, reordena do mais perto para o mais longe.
+// der para saber a cidade dela, passa a ordenar do mais perto para o mais longe.
 async function ordenarPelaLocalizacao() {
     await auth.authStateReady();
     const usuario = auth.currentUser;
@@ -190,32 +349,37 @@ async function ordenarPelaLocalizacao() {
 
     const regioes = await carregarRegioesSP().catch(() => null);
     avaliarProximidade = criarAvaliadorProximidade(localizacao, regioes);
+    filtros.ordem = 'perto';
     montarFiltros();
     renderizarUnidades();
 }
 
 async function carregarUnidades() {
-    const container = document.getElementById('grid-unidades');
+    const container = elemento('grid-unidades');
     try {
         const snap = await getDocs(collection(db, 'instituicoes'));
-        unidadesCache = snap.docs
-            .map((d) => ({ id: d.id, ...d.data() }))
-            .sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'));
+        unidadesCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
         montarFiltros();
         renderizarUnidades();
         ordenarPelaLocalizacao().catch((erro) => console.error('Erro ao ordenar por proximidade:', erro));
     } catch (err) {
-        console.error('Erro ao carregar unidades ETEC:', err);
-        container.innerHTML = '<p class="sem-resultados">Não foi possível carregar os cursos agora. Tente novamente mais tarde.</p>';
+        console.error('Erro ao carregar instituições:', err);
+        container.innerHTML = '<p class="sem-resultados">Não foi possível carregar as instituições agora. Tente novamente mais tarde.</p>';
     }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     // Links das recomendações chegam como instituicoes.html?curso=Nome do Curso
     const cursoNaUrl = new URLSearchParams(window.location.search).get('curso');
-    const campoBusca = document.getElementById('busca-cursos');
+    const campoBusca = elemento('busca-cursos');
     if (cursoNaUrl) campoBusca.value = cursoNaUrl;
 
+    campoBusca.addEventListener('input', () => { filtros.pagina = 1; renderizarUnidades(); });
+    elemento('filtro-curso').addEventListener('change', (e) => aplicarFiltro({ curso: e.target.value }));
+    elemento('filtro-modalidade').addEventListener('change', (e) => aplicarFiltro({ modalidade: e.target.value }));
+    elemento('filtro-regiao').addEventListener('change', (e) => aplicarFiltro({ regiao: e.target.value }));
+    elemento('ordenar-unidades').addEventListener('change', (e) => aplicarFiltro({ ordem: e.target.value }));
+    ligarPainel();
+
     carregarUnidades();
-    campoBusca.addEventListener('input', renderizarUnidades);
 });

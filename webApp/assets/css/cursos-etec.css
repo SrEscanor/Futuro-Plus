@@ -863,3 +863,472 @@
 .btn-meus-resultados:hover {
     background: var(--blue-dark);
 }
+
+/* =========================================================
+   Lista de instituições (instituicoes.html)
+   Topo claro com ilustração, filtros em uma linha, cards com
+   resumo e painel com a lista completa de cursos.
+   ========================================================= */
+
+.inst-cabecalho {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: 168px;
+    margin: -28px 0 14px;
+}
+
+.inst-cabecalho-texto {
+    position: relative;
+    z-index: 1;
+    max-width: 58%;
+    padding: 22px 0 10px;
+}
+
+.inst-voltar {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--blue-dark);
+    text-decoration: none;
+}
+
+.inst-voltar:hover {
+    text-decoration: underline;
+}
+
+.inst-cabecalho h1 {
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 34px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    color: var(--ink);
+}
+
+.inst-cabecalho p {
+    margin-top: 8px;
+    font-size: 16px;
+    color: var(--ink-soft);
+}
+
+/* A ilustração tem fundo lilás claro, um tom diferente do fundo da página;
+   as máscaras apagam a borda esquerda e a de baixo para ela se dissolver no
+   fundo em vez de aparecer como um retângulo colado. */
+.inst-ilustracao {
+    position: absolute;
+    top: 0;
+    right: -1%;
+    width: 56%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 62% 58%;
+    pointer-events: none;
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 42%), linear-gradient(to top, transparent 0%, #000 34%);
+    -webkit-mask-composite: source-in;
+    mask-image: linear-gradient(to right, transparent 0%, #000 42%), linear-gradient(to top, transparent 0%, #000 34%);
+    mask-composite: intersect;
+}
+
+/* ---- Filtros em linha ---- */
+.inst-filtros-linha {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.inst-filtros-linha .chip-filtro {
+    padding: 9px 20px;
+    font-size: 13.5px;
+    font-weight: 600;
+}
+
+.inst-filtros-divisor {
+    width: 1px;
+    height: 26px;
+    margin: 0 6px;
+    background: var(--line);
+}
+
+.inst-filtros-divisor[hidden] {
+    display: none;
+}
+
+.select-filtro,
+.inst-ordenar select {
+    appearance: none;
+    -webkit-appearance: none;
+    max-width: 240px;
+    padding: 9px 38px 9px 18px;
+    border-radius: 99px;
+    border: 1.5px solid var(--line);
+    background-color: var(--surface);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2216%22 height=%2216%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%233b5bdb%22 stroke-width=%222.4%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M6 9l6 6 6-6%22/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--ink);
+    text-overflow: ellipsis;
+    cursor: pointer;
+    transition: border-color 0.15s;
+}
+
+.select-filtro:hover,
+.inst-ordenar select:hover {
+    border-color: var(--blue);
+}
+
+.select-filtro:focus-visible,
+.inst-ordenar select:focus-visible {
+    outline: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 4px var(--blue-soft);
+}
+
+.select-filtro[hidden] {
+    display: none;
+}
+
+.inst-resultado-linha {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px 16px;
+    margin-top: 8px;
+}
+
+.inst-resultado-linha .contagem-resultados {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+    white-space: normal;
+}
+
+.inst-resultado-linha .contagem-resultados svg {
+    flex-shrink: 0;
+    color: var(--blue);
+}
+
+.inst-ordenar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+}
+
+.inst-ordenar select {
+    font-weight: 600;
+}
+
+/* ---- Cards ---- */
+.grid-instituicoes {
+    grid-template-columns: repeat(auto-fill, minmax(min(270px, 100%), 1fr));
+    padding-bottom: 8px;
+}
+
+.card-instituicao {
+    gap: 0;
+    padding: 22px 20px 18px;
+    border: 1px solid var(--line);
+}
+
+.card-instituicao-topo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 54px;
+}
+
+/* a marca da unidade aparece inteira e grande, sem moldura */
+.card-instituicao-logo {
+    flex-shrink: 0;
+    width: auto;
+    height: 46px;
+    max-width: 104px;
+    object-fit: contain;
+}
+
+.card-instituicao-divisor {
+    flex-shrink: 0;
+    align-self: stretch;
+    width: 1px;
+    background: var(--line);
+}
+
+.card-instituicao .nome-unidade {
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.card-instituicao-info {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--line);
+}
+
+.card-instituicao-local {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+}
+
+.card-instituicao-local svg {
+    flex-shrink: 0;
+    color: var(--ink);
+}
+
+.card-instituicao-selos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.selo-instituicao {
+    padding: 3px 12px;
+    border-radius: 99px;
+    background: var(--blue-soft);
+    color: var(--blue-dark);
+    font-size: 12.5px;
+    font-weight: 600;
+}
+
+.selo-instituicao--perto {
+    background: var(--green-soft);
+    color: var(--green-dark);
+}
+
+.card-instituicao-cursos {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px 0 16px;
+}
+
+.card-instituicao-total {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.card-instituicao-total svg {
+    flex-shrink: 0;
+    color: var(--blue-dark);
+}
+
+.card-instituicao-destaques > span {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.card-instituicao-destaques ul {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding-left: 18px;
+    font-size: 13.5px;
+    line-height: 1.4;
+    color: var(--ink-soft);
+}
+
+.card-instituicao-destaques li::marker {
+    color: var(--blue);
+}
+
+.btn-ver-instituicao {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 16px;
+    border-radius: 99px;
+    border: 1.5px solid var(--blue);
+    background: var(--surface);
+    color: var(--blue-dark);
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.btn-ver-instituicao:hover {
+    background: var(--blue);
+    color: #fff;
+}
+
+/* ---- Painel "Ver instituição" ---- */
+.painel-unidade {
+    width: min(640px, calc(100vw - 28px));
+    max-height: min(84vh, 760px);
+    margin: auto;
+    padding: 0;
+    border: none;
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: 0 30px 70px -20px rgba(15, 20, 45, 0.55);
+    overflow: hidden;
+}
+
+.painel-unidade::backdrop {
+    background: rgba(15, 20, 45, 0.55);
+}
+
+.painel-unidade-conteudo {
+    display: flex;
+    flex-direction: column;
+    max-height: min(84vh, 760px);
+    padding: 22px 22px 20px;
+}
+
+.painel-unidade-topo {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.painel-unidade-identidade {
+    flex: 1;
+    min-width: 0;
+}
+
+.painel-unidade-identidade h2 {
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 1.25;
+    color: var(--ink);
+}
+
+.painel-unidade-local {
+    margin: 4px 0 8px;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+}
+
+.painel-unidade-fechar {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 50%;
+    background: var(--bg);
+    color: var(--ink-soft);
+    cursor: pointer;
+}
+
+.painel-unidade-fechar:hover {
+    background: var(--blue-soft);
+    color: var(--blue-dark);
+}
+
+.painel-unidade-resumo {
+    margin: 16px 0 12px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+    font-size: 13.5px;
+    color: var(--ink-soft);
+}
+
+.painel-unidade-resumo strong {
+    color: var(--ink);
+}
+
+.painel-unidade-cursos {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.painel-unidade-cursos .tag-curso {
+    white-space: normal;
+}
+
+@media (max-width: 900px) {
+    .inst-cabecalho-texto {
+        max-width: 70%;
+    }
+
+    .inst-ilustracao {
+        width: 64%;
+        opacity: 0.75;
+    }
+}
+
+@media (max-width: 640px) {
+    .inst-cabecalho {
+        min-height: 0;
+        margin-top: -18px;
+    }
+
+    .inst-cabecalho-texto {
+        max-width: 100%;
+        padding: 16px 0 8px;
+    }
+
+    .inst-cabecalho h1 {
+        font-size: 26px;
+    }
+
+    .inst-cabecalho p {
+        font-size: 14.5px;
+    }
+
+    .inst-ilustracao {
+        width: 90%;
+        opacity: 0.32;
+    }
+
+    .inst-filtros-divisor {
+        display: none;
+    }
+
+    /* com menos de 16px o iPhone dá zoom na página ao abrir o seletor */
+    .select-filtro,
+    .inst-ordenar select {
+        flex: 1 1 100%;
+        min-width: 0;
+        max-width: 100%;
+        font-size: 16px;
+    }
+
+    .inst-ordenar {
+        flex: 1 1 100%;
+        white-space: nowrap;
+    }
+
+    .inst-ordenar select {
+        flex: 1 1 auto;
+    }
+}
