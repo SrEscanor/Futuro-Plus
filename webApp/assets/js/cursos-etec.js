@@ -20,12 +20,11 @@ import {
 import { formatarDistancia } from './geocodificacao.js';
 import { renderizarPaginacao } from './paginacao.js';
 
-// Até esta distância a unidade entra no filtro "Perto de você" mesmo estando
-// em outra cidade (ex.: quem mora na divisa).
-const RAIO_PERTO_KM = 30;
-const UNIDADES_POR_PAGINA = 12;
+// 4 colunas × 4 linhas em tela larga
+const UNIDADES_POR_PAGINA = 16;
 const CURSOS_EM_DESTAQUE = 3;
 
+const ICONE_LOCAL = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>';
 const ICONE_INSTITUICOES = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2 2 7v2h20V7L12 2zM4 11v7h3v-7H4zm6.500 0v7h3v-7h-3zM17 11v7h3v-7h-3zM2 20v2h20v-2H2z"/></svg>';
 
 function textoDistancia({ nivel, km }) {
@@ -39,18 +38,12 @@ function textoDistancia({ nivel, km }) {
     return '';
 }
 
-function estaPerto(proximidade) {
-    if (!proximidade) return false;
-    return proximidade.nivel <= PROXIMIDADE.REGIAO
-        || (proximidade.km != null && proximidade.km <= RAIO_PERTO_KM);
-}
-
 let unidadesCache = [];
 let avaliarProximidade = null;
 let localizacao = null;
 
 // curso guarda o nome normalizado; os demais, o valor como está no cadastro.
-const filtros = { instituicao: '', modalidade: '', curso: '', regiao: '', perto: false, ordem: 'az', pagina: 1 };
+const filtros = { instituicao: '', modalidade: '', curso: '', regiao: '', ordem: 'az', pagina: 1 };
 
 function elemento(id) {
     return document.getElementById(id);
@@ -78,12 +71,10 @@ function nomesDistintos(cursos) {
 // ------------------------------------------------------------------
 // Filtros
 // ------------------------------------------------------------------
-function criarChip({ rotulo, ativo, destaque = false, aoClicar }) {
+function criarChip({ rotulo, ativo, aoClicar }) {
     const botao = document.createElement('button');
     botao.type = 'button';
-    botao.className = 'chip-filtro'
-        + (ativo ? ' chip-filtro--ativo' : '')
-        + (destaque ? ' chip-filtro--destaque' : '');
+    botao.className = 'chip-filtro' + (ativo ? ' chip-filtro--ativo' : '');
     botao.setAttribute('aria-pressed', String(ativo));
     botao.textContent = rotulo;
     botao.addEventListener('click', aoClicar);
@@ -169,18 +160,6 @@ function montarFiltros() {
     ], filtros.regiao);
     seletorRegiao.hidden = !regioes.length;
 
-    // "Perto de você" só existe quando dá para medir distância.
-    const grupoProximidade = elemento('chips-proximidade');
-    grupoProximidade.innerHTML = '';
-    if (avaliarProximidade) {
-        grupoProximidade.appendChild(criarChip({
-            rotulo: 'Perto de você',
-            ativo: filtros.perto,
-            destaque: true,
-            aoClicar: () => aplicarFiltro({ perto: !filtros.perto })
-        }));
-    }
-
     preencherSelect(elemento('ordenar-unidades'), [
         { valor: 'az', rotulo: 'A a Z' },
         { valor: 'cursos', rotulo: 'Mais cursos' },
@@ -191,12 +170,11 @@ function montarFiltros() {
 // ------------------------------------------------------------------
 // Lista
 // ------------------------------------------------------------------
-function filtrarUnidades(termo, proximidades) {
+function filtrarUnidades(termo) {
     const modalidades = filtros.modalidade ? new Set([filtros.modalidade]) : null;
 
     return unidadesCache.flatMap((unidade) => {
         if (filtros.instituicao && tipoDaUnidade(unidade) !== filtros.instituicao) return [];
-        if (filtros.perto && !estaPerto(proximidades?.get(unidade.id))) return [];
         if (filtros.regiao && (unidade.regiao || '').trim() !== filtros.regiao) return [];
 
         const cursos = cursosValidos(unidade)
@@ -248,16 +226,16 @@ function renderizarUnidades() {
         ? new Map(unidadesCache.map((u) => [u.id, avaliarProximidade(u)]))
         : null;
 
-    const itens = ordenar(filtrarUnidades(termo, proximidades), proximidades);
+    const itens = ordenar(filtrarUnidades(termo), proximidades);
 
     const texto = itens.length === 1 ? '1 instituição encontrada' : `${itens.length} instituições encontradas`;
-    const complemento = filtros.perto && localizacao ? ` · perto de ${localizacao.cidade}` : '';
+    const complemento = filtros.ordem === 'perto' && localizacao
+        ? ` · as mais perto de ${localizacao.cidade} primeiro`
+        : '';
     contagem.innerHTML = `${ICONE_INSTITUICOES}<span>${escapeHtml(texto + complemento)}</span>`;
 
     if (!itens.length) {
-        container.innerHTML = `<p class="sem-resultados">${filtros.perto
-            ? 'Nenhuma instituição perto de você com esses filtros. Tente desligar o filtro "Perto de você".'
-            : 'Nenhuma instituição encontrada para essa busca.'}</p>`;
+        container.innerHTML = '<p class="sem-resultados">Nenhuma instituição encontrada para essa busca.</p>';
         renderizarPaginacao([rodape], 1, 1, () => {});
         return;
     }
@@ -336,16 +314,34 @@ function ligarPainel() {
     });
 }
 
+// Sem saber onde a pessoa mora não dá para ordenar por distância; em vez de
+// um botão que não faria nada, a página diz o que falta para isso funcionar.
+function mostrarDicaProximidade(motivo) {
+    const textos = {
+        login: 'Quer ver primeiro as instituições perto de você? <a href="login.html">Entre na sua conta</a> ou <a href="cadastro.html">cadastre-se</a>.',
+        cep: 'Informe seu CEP no <a href="perfil.html">perfil</a> para ver primeiro as instituições perto de você.'
+    };
+    const dica = elemento('dica-proximidade');
+    dica.innerHTML = `${ICONE_LOCAL}<span>${textos[motivo]}</span>`;
+    dica.hidden = false;
+}
+
 // A lista aparece logo em ordem alfabética; se a pessoa estiver logada e
 // der para saber a cidade dela, passa a ordenar do mais perto para o mais longe.
 async function ordenarPelaLocalizacao() {
     await auth.authStateReady();
     const usuario = auth.currentUser;
-    if (!usuario) return;
+    if (!usuario) {
+        mostrarDicaProximidade('login');
+        return;
+    }
 
     const snap = await getDoc(doc(db, 'usuarios', usuario.uid));
     localizacao = await resolverLocalizacaoUsuario(usuario.uid, snap.exists() ? snap.data() : null);
-    if (!localizacao) return;
+    if (!localizacao) {
+        mostrarDicaProximidade('cep');
+        return;
+    }
 
     const regioes = await carregarRegioesSP().catch(() => null);
     avaliarProximidade = criarAvaliadorProximidade(localizacao, regioes);

@@ -870,19 +870,32 @@
    resumo e painel com a lista completa de cursos.
    ========================================================= */
 
+/* Faixa do topo no mesmo lilás do fundo da ilustração, de ponta a ponta, que
+   se dissolve no fundo da página embaixo — assim a imagem faz parte do topo
+   em vez de aparecer como um retângulo de outro tom. */
 .inst-cabecalho {
+    background: linear-gradient(to bottom, #eaebfd 0%, #eaebfd 58%, var(--bg) 100%);
+    overflow: hidden;
+}
+
+.inst-cabecalho-conteudo {
     position: relative;
     display: flex;
     align-items: center;
-    min-height: 168px;
-    margin: -28px 0 14px;
+    width: 98%;
+    min-height: 196px;
+    margin: 0 auto;
+}
+
+.inst-cabecalho + .main {
+    margin-top: 14px;
 }
 
 .inst-cabecalho-texto {
     position: relative;
     z-index: 1;
     max-width: 58%;
-    padding: 22px 0 10px;
+    padding: 24px 0 26px;
 }
 
 .inst-voltar {
@@ -915,21 +928,20 @@
     color: var(--ink-soft);
 }
 
-/* A ilustração tem fundo lilás claro, um tom diferente do fundo da página;
-   as máscaras apagam a borda esquerda e a de baixo para ela se dissolver no
-   fundo em vez de aparecer como um retângulo colado. */
+/* Encosta na borda direita da faixa; as máscaras apagam a borda esquerda
+   (nuvens e morros cortados) e a de baixo, onde a faixa clareia. */
 .inst-ilustracao {
     position: absolute;
     top: 0;
-    right: -1%;
-    width: 56%;
+    right: -1.1%;
+    width: 58%;
     height: 100%;
     object-fit: cover;
     object-position: 62% 58%;
     pointer-events: none;
-    -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 42%), linear-gradient(to top, transparent 0%, #000 34%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 36%), linear-gradient(to top, transparent 0%, #000 30%);
     -webkit-mask-composite: source-in;
-    mask-image: linear-gradient(to right, transparent 0%, #000 42%), linear-gradient(to top, transparent 0%, #000 34%);
+    mask-image: linear-gradient(to right, transparent 0%, #000 36%), linear-gradient(to top, transparent 0%, #000 30%);
     mask-composite: intersect;
 }
 
@@ -1033,29 +1045,67 @@
 
 /* ---- Cards ---- */
 .grid-instituicoes {
-    grid-template-columns: repeat(auto-fill, minmax(min(270px, 100%), 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
+    gap: 22px;
     padding-bottom: 8px;
+}
+
+/* quatro colunas fixas no desktop: com 16 por página fecha 4 × 4 */
+@media (min-width: 1280px) {
+    .grid-instituicoes {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+/* em notebook as quatro colunas ficam estreitas: o nome vai para baixo do
+   logo (em vez de ao lado), senão quebrava em quatro linhas */
+@media (min-width: 1280px) and (max-width: 1499px) {
+    .grid-instituicoes {
+        gap: 16px;
+    }
+
+    .grid-instituicoes .card-instituicao {
+        padding: 22px 18px 20px;
+    }
+
+    .grid-instituicoes .card-instituicao-topo {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .grid-instituicoes .card-instituicao-divisor {
+        display: none;
+    }
+
+    .grid-instituicoes .card-instituicao-logo {
+        height: 50px;
+    }
+
+    .grid-instituicoes .nome-unidade {
+        font-size: 16.5px;
+    }
 }
 
 .card-instituicao {
     gap: 0;
-    padding: 22px 20px 18px;
+    padding: 26px 24px 22px;
     border: 1px solid var(--line);
 }
 
 .card-instituicao-topo {
     display: flex;
     align-items: center;
-    gap: 14px;
-    min-height: 54px;
+    gap: 16px;
+    min-height: 64px;
 }
 
 /* a marca da unidade aparece inteira e grande, sem moldura */
 .card-instituicao-logo {
     flex-shrink: 0;
     width: auto;
-    height: 46px;
-    max-width: 104px;
+    height: 58px;
+    max-width: 128px;
     object-fit: contain;
 }
 
@@ -1068,25 +1118,54 @@
 
 .card-instituicao .nome-unidade {
     font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
-    font-size: 16px;
+    font-size: 17.5px;
     font-weight: 600;
     line-height: 1.3;
+    /* quebra entre palavras; "anywhere" partia nomes no meio em card estreito */
+    overflow-wrap: break-word;
+}
+
+/* ---- Convite para ver as instituições mais próximas ---- */
+.inst-dica-proximidade {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    padding: 10px 16px;
+    border-radius: var(--radius-md);
+    background: var(--green-soft);
+    border: 1px solid rgba(46, 204, 113, 0.35);
+    font-size: 13.5px;
+    color: var(--green-dark);
+}
+
+.inst-dica-proximidade[hidden] {
+    display: none;
+}
+
+.inst-dica-proximidade svg {
+    flex-shrink: 0;
+}
+
+.inst-dica-proximidade a {
+    font-weight: 700;
+    color: var(--green-dark);
 }
 
 .card-instituicao-info {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    margin-top: 16px;
-    padding-bottom: 14px;
+    gap: 12px;
+    margin-top: 18px;
+    padding-bottom: 16px;
     border-bottom: 1px solid var(--line);
 }
 
 .card-instituicao-local {
     display: flex;
     align-items: center;
-    gap: 7px;
-    font-size: 13.5px;
+    gap: 8px;
+    font-size: 14.5px;
     color: var(--ink-soft);
 }
 
@@ -1102,11 +1181,11 @@
 }
 
 .selo-instituicao {
-    padding: 3px 12px;
+    padding: 4px 14px;
     border-radius: 99px;
     background: var(--blue-soft);
     color: var(--blue-dark);
-    font-size: 12.5px;
+    font-size: 13px;
     font-weight: 600;
 }
 
@@ -1119,15 +1198,15 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    padding: 14px 0 16px;
+    gap: 14px;
+    padding: 16px 0 20px;
 }
 
 .card-instituicao-total {
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 13.5px;
+    font-size: 15px;
     font-weight: 600;
     color: var(--ink);
 }
@@ -1139,8 +1218,8 @@
 
 .card-instituicao-destaques > span {
     display: block;
-    margin-bottom: 6px;
-    font-size: 13px;
+    margin-bottom: 8px;
+    font-size: 14px;
     font-weight: 600;
     color: var(--ink);
 }
@@ -1148,9 +1227,9 @@
 .card-instituicao-destaques ul {
     display: flex;
     flex-direction: column;
-    gap: 5px;
-    padding-left: 18px;
-    font-size: 13.5px;
+    gap: 7px;
+    padding-left: 20px;
+    font-size: 14.5px;
     line-height: 1.4;
     color: var(--ink-soft);
 }
@@ -1165,13 +1244,13 @@
     justify-content: center;
     gap: 8px;
     width: 100%;
-    padding: 10px 16px;
+    padding: 12px 16px;
     border-radius: 99px;
     border: 1.5px solid var(--blue);
     background: var(--surface);
     color: var(--blue-dark);
     font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
-    font-size: 13.5px;
+    font-size: 14.5px;
     font-weight: 600;
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
@@ -1287,14 +1366,14 @@
 }
 
 @media (max-width: 640px) {
-    .inst-cabecalho {
+    .inst-cabecalho-conteudo {
+        width: 92%;
         min-height: 0;
-        margin-top: -18px;
     }
 
     .inst-cabecalho-texto {
         max-width: 100%;
-        padding: 16px 0 8px;
+        padding: 18px 0 22px;
     }
 
     .inst-cabecalho h1 {

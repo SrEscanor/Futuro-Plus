@@ -101,8 +101,8 @@
         </div>
     </nav>
 
-    <div class="main instituicoes-main">
-        <header class="inst-cabecalho">
+    <header class="inst-cabecalho">
+        <div class="inst-cabecalho-conteudo">
             <img class="inst-ilustracao" src="/cps-instituicoes.webp" alt="" aria-hidden="true">
             <div class="inst-cabecalho-texto">
                 <a class="inst-voltar" href="cursos.html">
@@ -112,8 +112,10 @@
                 <h1>Instituições de ensino</h1>
                 <p>Encontre unidades e conheça os cursos disponíveis.</p>
             </div>
-        </header>
+        </div>
+    </header>
 
+    <div class="main instituicoes-main">
         <section id="meus-resultados" class="meus-resultados" hidden></section>
 
         <div class="filtros-cursos">
@@ -132,8 +134,9 @@
                 <select class="select-filtro" id="filtro-curso" aria-label="Filtrar por curso"></select>
                 <select class="select-filtro" id="filtro-modalidade" aria-label="Filtrar por modalidade"></select>
                 <select class="select-filtro" id="filtro-regiao" aria-label="Filtrar por região"></select>
-                <div class="grupo-chips" id="chips-proximidade"></div>
             </div>
+
+            <p class="inst-dica-proximidade" id="dica-proximidade" hidden></p>
 
             <div class="inst-resultado-linha">
                 <div class="contagem-resultados" id="contagem-resultados"></div>
