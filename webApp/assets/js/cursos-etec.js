@@ -62,12 +62,20 @@ function instituicoesDisponiveis() {
         .sort((a, b) => a.localeCompare(b, 'pt-BR'));
 }
 
+// Só os tipos que existem na instituição escolhida: com "Etec" marcado não
+// faz sentido oferecer "Superior", nem "Médio + Técnico" com "Fatec".
 function modalidadesDisponiveis() {
     const chaves = new Set();
-    unidadesCache.forEach((u) => (u.cursos || []).forEach((c) => {
-        if (c?.nome) chaves.add(modalidadeDaCategoria(c.categoria).chave);
-    }));
+    unidadesCache
+        .filter((u) => !filtros.instituicao || (u.tipo || '').trim() === filtros.instituicao)
+        .forEach((u) => (u.cursos || []).forEach((c) => {
+            if (c?.nome) chaves.add(modalidadeDaCategoria(c.categoria).chave);
+        }));
     return [...chaves].sort((a, b) => ordemDaModalidade(a) - ordemDaModalidade(b));
+}
+
+function mostrarBloco(grupo) {
+    grupo.closest('.filtro-bloco').hidden = !grupo.children.length;
 }
 
 function montarFiltros() {
@@ -99,6 +107,8 @@ function montarFiltros() {
     }
 
     const modalidades = modalidadesDisponiveis();
+    // trocou de instituição e o tipo marcado não existe nela: volta para "todos"
+    if (filtros.modalidade && !modalidades.includes(filtros.modalidade)) filtros.modalidade = '';
     grupoModalidade.innerHTML = '';
     [{ valor: '', rotulo: 'Todos os tipos' }, ...modalidades.map((c) => ({ valor: c, rotulo: rotuloDaModalidade(c) }))]
         .forEach(({ valor, rotulo }) => grupoModalidade.appendChild(criarChip({
@@ -106,6 +116,8 @@ function montarFiltros() {
             ativo: filtros.modalidade === valor,
             aoClicar: () => { filtros.modalidade = valor; montarFiltros(); renderizarUnidades(); }
         })));
+
+    [grupoProximidade, grupoInstituicao, grupoModalidade].forEach(mostrarBloco);
 }
 
 // ------------------------------------------------------------------

@@ -135,9 +135,18 @@
 
             <!-- os filtros são montados a partir do que existe no cadastro -->
             <div class="grupos-chips">
-                <div class="grupo-chips" id="chips-proximidade"></div>
-                <div class="grupo-chips" id="chips-instituicao"></div>
-                <div class="grupo-chips" id="chips-modalidade"></div>
+                <div class="filtro-bloco" role="group" aria-labelledby="legenda-proximidade" hidden>
+                    <span class="filtro-legenda" id="legenda-proximidade">Localização</span>
+                    <div class="grupo-chips" id="chips-proximidade"></div>
+                </div>
+                <div class="filtro-bloco" role="group" aria-labelledby="legenda-instituicao" hidden>
+                    <span class="filtro-legenda" id="legenda-instituicao">Instituição</span>
+                    <div class="grupo-chips" id="chips-instituicao"></div>
+                </div>
+                <div class="filtro-bloco" role="group" aria-labelledby="legenda-modalidade" hidden>
+                    <span class="filtro-legenda" id="legenda-modalidade">Tipo de curso</span>
+                    <div class="grupo-chips" id="chips-modalidade"></div>
+                </div>
             </div>
 
             <div class="contagem-resultados" id="contagem-resultados"></div>

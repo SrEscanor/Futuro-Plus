@@ -39,9 +39,13 @@ const MODALIDADES = [
     { chave: 'medio', rotulo: 'Médio + Técnico', combina: (c) => c.includes('ensino medio') && !c.includes('superior') },
     { chave: 'tecnico', rotulo: 'Técnico', combina: (c) => c.includes('tecnicos') && c.includes('presencial') && !c.includes('semipresencial') },
     { chave: 'especializacao', rotulo: 'Especialização', combina: (c) => c.includes('especializacao') },
-    { chave: 'ead', rotulo: 'EaD / Online', combina: (c) => c.includes('online') || c.includes('ead') || c.includes('distancia') },
+    { chave: 'ead', rotulo: 'EaD / Online', combina: (c) => !c.includes('superior') && (c.includes('online') || c.includes('ead') || c.includes('distancia')) },
     { chave: 'semipresencial', rotulo: 'Semipresencial', combina: (c) => c.includes('semipresencial') },
-    { chave: 'ams', rotulo: 'Médio + Superior (AMS)', combina: (c) => c.includes('superior') },
+    // AMS é a articulação do médio-técnico da Etec com o superior da Fatec;
+    // precisa vir antes de "superior", senão os cursos superiores de
+    // tecnologia das Fatecs (presenciais e EaD) apareciam todos como AMS.
+    { chave: 'ams', rotulo: 'Médio + Superior (AMS)', combina: (c) => c.includes('superior') && (c.includes('articulacao') || c.includes('medio') || /\bams\b/.test(c)) },
+    { chave: 'superior', rotulo: 'Superior', combina: (c) => c.includes('superior') },
     { chave: 'outros', rotulo: 'Outros', combina: () => true }
 ];
 
