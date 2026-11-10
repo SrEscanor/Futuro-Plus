@@ -1620,12 +1620,26 @@ a.btn-saiba {
 
     display: flex;
     flex-direction: column;
-    border-right: 1px solid var(--line);
     box-shadow: none;
 
     transform: translateX(-100%);
     visibility: hidden;
     transition: transform 0.3s ease-in-out, visibility 0.3s;
+}
+
+/* Linha divisória em degradê: sutil nas pontas, um pouco mais forte no meio,
+   em vez de uma borda sólida de ponta a ponta. */
+.menu-panel::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(to bottom,
+            transparent 0%,
+            rgba(78, 110, 232, 0.3) 50%,
+            transparent 100%);
 }
 
 .menu-panel.aberto {
