@@ -40,6 +40,16 @@ function escapeHtml(str) {
     }[c]));
 }
 
+// "Sem valor" pro tipo do campo: usado para não contar como "editado à mão"
+// um campo que sempre esteve vazio (ex: lista nunca preenchida comparada
+// com um campo que nunca existiu no Firestore).
+function valorVazio(v) {
+    if (v == null || v === '' || v === false) return true;
+    if (Array.isArray(v)) return v.length === 0;
+    if (typeof v === 'object') return Object.values(v).every(valorVazio);
+    return false;
+}
+
 function urlSegura(url) {
     return /^https?:\/\//i.test(url || '') ? url : '';
 }
@@ -571,8 +581,13 @@ async function salvarInstituicao(event) {
 
     // Guarda QUAIS campos foram mexidos à mão nesse painel, e quem mexeu —
     // mesmo selo que já existe no catálogo de cursos.
-    const mexidos = Object.keys(dados).filter((campo) =>
-        campo !== 'atualizadoEm' && JSON.stringify(dados[campo]) !== JSON.stringify(existente?.[campo] ?? ''));
+    const mexidos = Object.keys(dados).filter((campo) => {
+        if (campo === 'atualizadoEm') return false;
+        const novo = dados[campo];
+        const velho = existente?.[campo];
+        if (valorVazio(novo) && valorVazio(velho)) return false;
+        return JSON.stringify(novo) !== JSON.stringify(velho);
+    });
     dados.camposEditados = [...new Set([...(existente?.camposEditados || []), ...mexidos])];
     dados.editadoManualmente = dados.camposEditados.length > 0;
     dados.atualizadoPor = auth.currentUser?.email || '';
