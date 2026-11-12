@@ -874,7 +874,7 @@
    se dissolve no fundo da página embaixo — assim a imagem faz parte do topo
    em vez de aparecer como um retângulo de outro tom. */
 .inst-cabecalho {
-    background: linear-gradient(to bottom, #eaebfd 0%, #eaebfd 58%, var(--bg) 100%);
+    background: linear-gradient(to bottom, #edeffc 0%, #edeffc 58%, var(--bg) 100%);
     overflow: hidden;
 }
 
@@ -935,9 +935,12 @@
     top: 0;
     right: -1.1%;
     width: 58%;
+    /* a imagem tem 1024 px de largura: acima disso ela seria esticada e
+       perderia nitidez */
+    max-width: 1024px;
     height: 100%;
     object-fit: cover;
-    object-position: 62% 58%;
+    object-position: 50% 62%;
     pointer-events: none;
     -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 36%), linear-gradient(to top, transparent 0%, #000 30%);
     -webkit-mask-composite: source-in;
