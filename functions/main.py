@@ -420,3 +420,98 @@ def coletar_demanda(req: https_fn.Request) -> https_fn.Response:
     except Exception as e:
         print(f"Erro ao coletar demanda: {e}")
         return https_fn.Response(json.dumps({"erro": f"Erro interno: {str(e)}"}), status=500, headers=cabecalho_json)
+
+
+# Capas da página do curso: uma por eixo tecnológico e, se quiser, uma só de
+# um curso. Formatos que o navegador mostra direto; o painel já manda a imagem
+# reduzida e em WebP, então 4 MB é folga.
+TIPOS_DE_CAPA = {"image/webp": "webp", "image/jpeg": "jpg", "image/png": "png"}
+TAMANHO_MAXIMO_CAPA = 4 * 1024 * 1024
+
+
+@https_fn.on_request(
+    cors=options.CorsOptions(cors_origins="*", cors_methods=["get", "post"]),
+    region=options.SupportedRegion.SOUTHAMERICA_EAST1,
+    max_instances=3,
+    memory=options.MemoryOption.MB_256,
+)
+def enviar_capa(req: https_fn.Request) -> https_fn.Response:
+    """Guarda no Storage a imagem de capa enviada pelo painel Admin · Cursos e
+    devolve o endereço público dela.
+
+    alvo "eixo": a capa vale para todos os cursos do eixo, e o endereço fica
+    em configuracoes/capas (lido pela página do curso). acao "remover" tira a
+    imagem do eixo, que volta para a capa desenhada.
+    alvo "curso": só devolve o endereço; quem grava no curso é o formulário
+    do painel, ao salvar."""
+    if req.method == "OPTIONS":
+        return https_fn.Response(status=204)
+
+    cabecalho_json = {"Content-Type": "application/json"}
+
+    def responder(dados, status=200):
+        return https_fn.Response(json.dumps(dados), status=status, headers=cabecalho_json)
+
+    try:
+        db = firestore.client()
+        _, erro = _exigir_admin(req, db)
+        if erro:
+            return erro
+
+        dados = req.get_json(silent=True) or {}
+        alvo = (dados.get("alvo") or "").strip()
+        identificador = re.sub(r"[^a-z0-9-]", "", (dados.get("id") or "").strip().lower())[:120]
+        if alvo not in ("eixo", "curso") or not identificador:
+            return responder({"erro": "Informe 'alvo' (eixo ou curso) e 'id'."}, 400)
+
+        bucket = storage.bucket("futuroplus-bce54.firebasestorage.app")
+        pasta = f"capas/{alvo}s"
+        registro = db.collection("configuracoes").document("capas")
+
+        if dados.get("acao") == "remover":
+            if alvo != "eixo":
+                return responder({"erro": "Só a capa de um eixo é removida por aqui."}, 400)
+            for extensao in TIPOS_DE_CAPA.values():
+                try:
+                    bucket.blob(f"{pasta}/{identificador}.{extensao}").delete()
+                except Exception:
+                    pass  # não existia nesse formato
+            registro.set({"eixos": {identificador: firestore.DELETE_FIELD}}, merge=True)
+            return responder({"removida": True})
+
+        tipo = (dados.get("tipo") or "").strip().lower()
+        if tipo not in TIPOS_DE_CAPA:
+            return responder({"erro": "Envie uma imagem WebP, JPG ou PNG."}, 400)
+
+        import base64
+        import binascii
+        try:
+            conteudo = base64.b64decode(dados.get("imagem") or "", validate=True)
+        except (binascii.Error, ValueError):
+            return responder({"erro": "A imagem chegou corrompida. Tente enviar de novo."}, 400)
+        if not conteudo:
+            return responder({"erro": "Nenhuma imagem recebida."}, 400)
+        if len(conteudo) > TAMANHO_MAXIMO_CAPA:
+            return responder({"erro": "A imagem passa de 4 MB."}, 413)
+
+        blob = bucket.blob(f"{pasta}/{identificador}.{TIPOS_DE_CAPA[tipo]}")
+        blob.cache_control = "public, max-age=86400"
+        blob.upload_from_string(conteudo, content_type=tipo)
+        blob.make_public()
+
+        # O arquivo mantém o nome ao ser trocado; o "?v=" faz o navegador
+        # buscar a versão nova em vez de mostrar a antiga guardada.
+        agora = datetime.now(timezone.utc)
+        url = f"{blob.public_url}?v={int(agora.timestamp())}"
+
+        if alvo == "eixo":
+            registro.set(
+                {"eixos": {identificador: {"url": url, "atualizadoEm": agora.isoformat()}}},
+                merge=True,
+            )
+
+        return responder({"url": url})
+
+    except Exception as e:
+        print(f"Erro ao enviar capa: {e}")
+        return responder({"erro": f"Erro interno: {str(e)}"}, 500)

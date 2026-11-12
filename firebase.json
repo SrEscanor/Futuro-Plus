@@ -9,7 +9,8 @@
         "firebase-debug.log",
         "firebase-debug.*.log",
         "*.local",
-        "venv"
+        "venv",
+        "testes"
       ],
       "python_version": "3.10"
     }

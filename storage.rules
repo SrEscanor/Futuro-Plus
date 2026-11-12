@@ -26,6 +26,14 @@ service firebase.storage {
       allow write: if false;
     }
 
+    // Capas da página do curso (uma por eixo e, se houver, a de um curso
+    // só): enviadas pelo painel admin através da Cloud Function enviar_capa,
+    // que confere se quem envia é administrador. Leitura pública.
+    match /capas/{caminho=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     match /{caminho=**} {
       allow read, write: if false;
     }

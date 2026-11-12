@@ -1430,3 +1430,126 @@ tbody tr:hover {
 .fonte-nota .btn-link {
     font-size: inherit;
 }
+
+/* ---- Capas dos eixos ---- */
+/* ocupa a linha inteira: são 12 eixos lado a lado */
+.fonte-card--larga {
+    grid-column: 1 / -1;
+}
+
+.capa-recomendacao {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    border-left: 4px solid var(--blue);
+    background: var(--blue-soft);
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+}
+
+.capa-recomendacao strong {
+    font-size: 14px;
+    color: var(--ink);
+}
+
+.lista-capas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(270px, 100%), 1fr));
+    gap: 12px;
+}
+
+.capa-eixo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+}
+
+/* mesma proporção da capa na página do curso */
+.capa-eixo-miniatura {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 112px;
+    aspect-ratio: 16 / 5;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--bg);
+    color: #fff;
+}
+
+.capa-eixo-miniatura--desenhada {
+    background: linear-gradient(110deg, var(--capa-escura), var(--capa-clara));
+}
+
+.capa-eixo-miniatura img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.capa-eixo-miniatura svg {
+    height: 62%;
+    aspect-ratio: 1;
+}
+
+.capa-eixo-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.capa-eixo-info strong {
+    font-size: 13px;
+    line-height: 1.3;
+    color: var(--ink);
+}
+
+.capa-eixo-info > span {
+    font-size: 11.5px;
+    color: var(--ink-soft);
+}
+
+.capa-eixo-acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 12px;
+    margin-top: 2px;
+}
+
+.btn-link--perigo {
+    color: var(--red);
+}
+
+/* campo de texto com um botão ao lado (capa de um curso) */
+.campo-com-botao {
+    display: flex;
+    gap: 8px;
+}
+
+.campo-com-botao input {
+    flex: 1;
+    min-width: 0;
+}
+
+.campo-com-botao .btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.campo .status-importacao {
+    margin: 8px 0 0;
+}
+
+@media (max-width: 640px) {
+    .campo-com-botao {
+        flex-direction: column;
+    }
+}

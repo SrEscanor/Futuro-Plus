@@ -1,13 +1,16 @@
 // Capa padronizada de cada eixo tecnológico, usada no topo da página do curso.
 //
 // Todo eixo tem uma capa desenhada: mesma composição, com a cor e o ícone do
-// eixo. Para trocar o desenho por uma foto ou ilustração, basta colocar a
-// imagem em assets/images/eixos/ com o nome do eixo (ver LEIA-ME.txt naquela
-// pasta) — ela é encontrada sozinha, sem mexer em código.
+// eixo. No painel Admin · Cursos dá para enviar uma imagem por eixo, que
+// passa a valer no lugar do desenho para todos os cursos daquele eixo; o
+// endereço de cada uma fica em configuracoes/capas.
+import { db } from './firebase-config.js';
+import { doc, getDoc } from 'firebase/firestore';
 
-const fotos = import.meta.glob('../images/eixos/*.{webp,jpg,jpeg,png,avif}', {
-    eager: true, query: '?url', import: 'default'
-});
+// Tamanho que o painel recomenda para as imagens. A capa aparece larga e
+// baixa (de 2,5 a 5 vezes mais larga que alta, conforme a tela) e a imagem é
+// cortada para caber, então o assunto principal precisa estar no centro.
+export const CAPA_RECOMENDADA = { largura: 1600, altura: 500 };
 
 // "Informação e Comunicação" -> "informacao-e-comunicacao"
 export function slugDoEixo(eixo) {
@@ -19,10 +22,20 @@ export function slugDoEixo(eixo) {
         .replace(/^-+|-+$/g, '');
 }
 
-const fotoPorSlug = new Map(Object.entries(fotos).map(([caminho, url]) => {
-    const arquivo = caminho.split('/').pop().replace(/\.[^.]+$/, '');
-    return [slugDoEixo(arquivo), url];
-}));
+// Imagens enviadas pelo painel: { slug do eixo: endereço }. Sem conexão ou
+// sem nenhuma imagem enviada, devolve {} e a página usa as capas desenhadas.
+export async function carregarFotosDosEixos() {
+    try {
+        const snap = await getDoc(doc(db, 'configuracoes', 'capas'));
+        const eixos = snap.exists() ? (snap.data().eixos || {}) : {};
+        return Object.fromEntries(Object.entries(eixos)
+            .filter(([, capa]) => capa?.url)
+            .map(([slug, capa]) => [slug, capa.url]));
+    } catch (erro) {
+        console.warn('Não foi possível carregar as capas dos eixos:', erro);
+        return {};
+    }
+}
 
 // cores: do lado escuro (onde fica o nome do eixo, em branco) para o claro.
 // icone: traços num quadro de 24 x 24.
@@ -82,10 +95,11 @@ const EIXOS = {
     }
 };
 
-// Devolve { slug, foto, cores, icone }. "foto" é null enquanto não houver
-// imagem do eixo na pasta.
-export function capaDoEixo(eixo) {
+// fotos: o que carregarFotosDosEixos() devolveu.
+// Devolve { slug, foto, cores, icone }; "foto" é null enquanto ninguém enviou
+// uma imagem para o eixo.
+export function capaDoEixo(eixo, fotos = {}) {
     const slug = slugDoEixo(eixo);
     const desenho = EIXOS[slug] || PADRAO;
-    return { slug, foto: fotoPorSlug.get(slug) || null, ...desenho };
+    return { slug, foto: fotos[slug] || null, ...desenho };
 }

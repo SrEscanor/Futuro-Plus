@@ -7,6 +7,8 @@ import {
 } from './importacao-csv.js';
 import { lerMatrizDoPdf, destaquesDaMatriz, duracaoDaMatriz } from './matriz-curricular.js';
 import { resumoDaDemanda } from './demanda-curso.js';
+import { capaDoEixo, carregarFotosDosEixos } from './capas-eixos.js';
+import { enviarCapa, removerCapaDoEixo } from './enviar-capa.js';
 
 const CURSOS_COLLECTION = 'cursos';
 const INSTITUICOES_COLLECTION = 'instituicoes';
@@ -49,6 +51,8 @@ let matrizesEmEdicao = [];
 let filtroIncompletos = false;
 let filtroEditados = false;
 let filtroSemMatriz = false;
+// imagens já enviadas para cada eixo: { slug: endereço }
+let fotosDosEixos = {};
 
 function escapeHtml(str) {
     return String(str ?? '').replace(/[&<>"']/g, (c) => ({
@@ -63,6 +67,12 @@ function normalizar(texto) {
         .replace(/[̀-ͯ]/g, '')
         .replace(/[^a-z0-9]+/g, ' ')
         .trim();
+}
+
+// As mensagens de erro do servidor já vêm com ponto; aqui elas entram no meio
+// de uma frase.
+function semPontoFinal(texto) {
+    return String(texto ?? '').replace(/\.+$/, '');
 }
 
 function faltando(curso) {
@@ -147,6 +157,7 @@ function renderizarTabela() {
 
     renderizarAlerta();
     renderizarSituacaoDasMatrizes();
+    renderizarCapasDosEixos();
 
     const linhas = cursosCache
         .filter((c) => !filtroIncompletos || faltando(c).length)
@@ -466,7 +477,7 @@ async function atualizarDemanda(refazer) {
                 if (!(tarefa.site in semPar)) semPar[tarefa.site] = resumo.semPar || [];
             } catch (err) {
                 console.error(`Erro ao coletar a demanda de ${rotulo}:`, err);
-                erros.push(`${rotulo}: ${String(err.message).replace(/\.$/, '')}`);
+                erros.push(`${rotulo}: ${semPontoFinal(err.message)}`);
             }
         }
 
@@ -556,6 +567,102 @@ async function receberPdfDaMatriz(arquivo) {
 }
 
 // ========================================================
+// Capas dos eixos
+// ========================================================
+
+function eixosDoCatalogo() {
+    const eixos = new Set();
+    cursosCache.forEach((curso) => (curso.eixos || []).forEach((eixo) => eixo && eixos.add(eixo)));
+    return [...eixos].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+}
+
+function renderizarCapasDosEixos() {
+    const lista = document.getElementById('lista-capas');
+    const eixos = eixosDoCatalogo();
+    if (!eixos.length) {
+        lista.innerHTML = '<p class="lista-vazia">Os eixos aparecem aqui depois que o catálogo for importado.</p>';
+        return;
+    }
+
+    lista.innerHTML = eixos.map((eixo) => {
+        const capa = capaDoEixo(eixo, fotosDosEixos);
+        const miniatura = capa.foto
+            ? `<img src="${escapeHtml(capa.foto)}" alt="" loading="lazy">`
+            : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${capa.icone}</svg>`;
+        return `
+        <div class="capa-eixo" data-eixo="${escapeHtml(capa.slug)}">
+            <div class="capa-eixo-miniatura${capa.foto ? '' : ' capa-eixo-miniatura--desenhada'}"
+                style="--capa-escura:${capa.cores[0]};--capa-clara:${capa.cores[1]}">${miniatura}</div>
+            <div class="capa-eixo-info">
+                <strong>${escapeHtml(eixo)}</strong>
+                <span>${capa.foto ? 'Imagem enviada' : 'Capa desenhada'}</span>
+                <div class="capa-eixo-acoes">
+                    <button type="button" class="btn-link" data-enviar-capa="${escapeHtml(capa.slug)}"
+                        data-nome="${escapeHtml(eixo)}">${capa.foto ? 'Trocar imagem' : 'Enviar imagem'}</button>
+                    ${capa.foto ? `<button type="button" class="btn-link btn-link--perigo"
+                        data-remover-capa="${escapeHtml(capa.slug)}" data-nome="${escapeHtml(eixo)}">Remover</button>` : ''}
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// eixo para o qual o seletor de arquivo foi aberto
+let eixoEmEnvio = null;
+
+async function receberCapaDoEixo(arquivo) {
+    if (!eixoEmEnvio) return;
+    const { slug, nome } = eixoEmEnvio;
+    eixoEmEnvio = null;
+
+    mostrarStatus('status-capas', `Enviando a capa de ${nome}...`);
+    try {
+        const { url, aviso } = await enviarCapa({ alvo: 'eixo', id: slug, arquivo });
+        fotosDosEixos = { ...fotosDosEixos, [slug]: url };
+        renderizarCapasDosEixos();
+        mostrarStatus('status-capas', `Capa de ${nome} publicada: já vale para os cursos do eixo.${aviso ? ` ${aviso}` : ''}`,
+            aviso ? '' : 'ok');
+    } catch (err) {
+        console.error('Erro ao enviar a capa do eixo:', err);
+        mostrarStatus('status-capas', `Não foi possível enviar a capa de ${nome}: ${semPontoFinal(err.message)}.`, 'erro');
+    }
+}
+
+async function removerCapa(slug, nome) {
+    if (!confirm(`Remover a imagem de "${nome}"? Os cursos do eixo voltam a usar a capa desenhada.`)) return;
+
+    mostrarStatus('status-capas', `Removendo a capa de ${nome}...`);
+    try {
+        await removerCapaDoEixo(slug);
+        const { [slug]: _removida, ...restantes } = fotosDosEixos;
+        fotosDosEixos = restantes;
+        renderizarCapasDosEixos();
+        mostrarStatus('status-capas', `Imagem de ${nome} removida. O eixo voltou para a capa desenhada.`, 'ok');
+    } catch (err) {
+        console.error('Erro ao remover a capa do eixo:', err);
+        mostrarStatus('status-capas', `Não foi possível remover a capa de ${nome}: ${semPontoFinal(err.message)}.`, 'erro');
+    }
+}
+
+// Capa de um curso só: sobe a imagem e deixa o endereço no campo; quem grava
+// no curso é o "Salvar curso".
+async function receberCapaDoCurso(arquivo) {
+    if (!editandoId) return;
+    mostrarStatus('status-capa-curso', 'Enviando a imagem...');
+    try {
+        const { url, aviso } = await enviarCapa({ alvo: 'curso', id: editandoId, arquivo });
+        document.getElementById('f-imagem').value = url;
+        mostrarStatus('status-capa-curso',
+            `Imagem enviada. Clique em "Salvar curso" para ela passar a valer.${aviso ? ` ${aviso}` : ''}`,
+            aviso ? '' : 'ok');
+    } catch (err) {
+        console.error('Erro ao enviar a capa do curso:', err);
+        mostrarStatus('status-capa-curso', `Não foi possível enviar a imagem: ${semPontoFinal(err.message)}.`, 'erro');
+    }
+}
+
+// ========================================================
 // Formulário
 // ========================================================
 
@@ -576,6 +683,7 @@ function abrirFormulario(curso) {
     document.getElementById('f-atuacao').value = curso.atuacao || '';
     document.getElementById('f-onde-trabalhar').value = curso.ondeTrabalhar || '';
     mostrarStatus('status-matriz', '');
+    mostrarStatus('status-capa-curso', '');
     renderizarMatrizesDoFormulario();
     document.getElementById('modal-form').classList.add('aberto');
 }
@@ -664,6 +772,10 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('admin-app').style.display = 'block';
             await carregarCursos();
             carregarSituacaoDaDemanda();
+            carregarFotosDosEixos().then((fotos) => {
+                fotosDosEixos = fotos;
+                renderizarCapasDosEixos();
+            });
         } catch (err) {
             console.error('Erro ao verificar acesso de administrador:', err);
             document.getElementById('admin-app').style.display = 'none';
@@ -681,6 +793,32 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     ligarZonaDeArquivo({
         zona: 'zona-matriz', botao: 'btn-enviar-matriz', input: 'input-matriz-pdf', aoReceber: receberPdfDaMatriz
+    });
+
+    // capas: um seletor de arquivo só, aberto para o eixo do botão clicado
+    const inputCapaEixo = document.getElementById('input-capa-eixo');
+    document.getElementById('lista-capas').addEventListener('click', (e) => {
+        const enviar = e.target.closest('[data-enviar-capa]');
+        if (enviar) {
+            eixoEmEnvio = { slug: enviar.dataset.enviarCapa, nome: enviar.dataset.nome };
+            inputCapaEixo.click();
+            return;
+        }
+        const remover = e.target.closest('[data-remover-capa]');
+        if (remover) removerCapa(remover.dataset.removerCapa, remover.dataset.nome);
+    });
+    inputCapaEixo.addEventListener('change', (e) => {
+        const arquivo = e.target.files[0];
+        e.target.value = '';
+        if (arquivo) receberCapaDoEixo(arquivo);
+    });
+
+    const inputCapaCurso = document.getElementById('input-capa-curso');
+    document.getElementById('btn-enviar-capa-curso').addEventListener('click', () => inputCapaCurso.click());
+    inputCapaCurso.addEventListener('change', (e) => {
+        const arquivo = e.target.files[0];
+        e.target.value = '';
+        if (arquivo) receberCapaDoCurso(arquivo);
     });
 
     document.getElementById('btn-atualizar-demanda').addEventListener('click', () => atualizarDemanda(false));

@@ -154,6 +154,35 @@
                             sem matriz</button>
                     </div>
                 </section>
+
+                <section class="fonte-card fonte-card--larga" aria-labelledby="fonte-capas-titulo">
+                    <div class="fonte-cabecalho">
+                        <span class="fonte-icone" aria-hidden="true">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="5" width="18" height="14" rx="2" />
+                                <path d="m3 16 5-5 4 4 3-3 6 6" />
+                                <path d="M15.5 9.5h.01" />
+                            </svg>
+                        </span>
+                        <div>
+                            <h2 id="fonte-capas-titulo">Capas dos eixos</h2>
+                            <p>A imagem do topo da página de cada curso. Uma por eixo: vale para todos os cursos
+                                dele. Sem imagem enviada, o eixo usa a capa desenhada, com a cor e o ícone dele.</p>
+                        </div>
+                    </div>
+
+                    <div class="capa-recomendacao">
+                        <strong>Tamanho recomendado: 1600 × 500 px</strong>
+                        <span>Bem mais larga do que alta, em JPG, PNG ou WebP. A imagem é cortada para caber em
+                            cada tela: deixe o assunto principal no centro e nada importante no canto de baixo à
+                            esquerda, onde aparece o nome do eixo. Imagens maiores são reduzidas sozinhas.</span>
+                    </div>
+
+                    <div class="lista-capas" id="lista-capas"></div>
+                    <input type="file" id="input-capa-eixo" accept="image/png,image/jpeg,image/webp" hidden>
+                    <div id="status-capas" class="status-importacao" role="status"></div>
+                </section>
             </div>
 
             <div class="toolbar">
@@ -261,10 +290,18 @@
                     <div class="secao-form">
                         <h3>Material do curso</h3>
                         <div class="campo">
-                            <label for="f-imagem">Imagem de capa (link)</label>
-                            <input type="url" id="f-imagem" placeholder="https://...">
-                            <small class="campo-dica">Foto que aparece no topo da página do curso. Sem ela, a
-                                página usa uma capa azul com o nome do eixo.</small>
+                            <label for="f-imagem">Imagem de capa só deste curso</label>
+                            <div class="campo-com-botao">
+                                <input type="url" id="f-imagem" placeholder="Envie uma imagem ou cole um link https://...">
+                                <button type="button" id="btn-enviar-capa-curso" class="btn btn-secundario">Enviar
+                                    imagem</button>
+                                <input type="file" id="input-capa-curso" accept="image/png,image/jpeg,image/webp"
+                                    hidden>
+                            </div>
+                            <div id="status-capa-curso" class="status-importacao" role="status"></div>
+                            <small class="campo-dica">Opcional. Deixe vazio para o curso usar a capa do eixo dele
+                                (quadro "Capas dos eixos"). <strong>Tamanho recomendado: 1600 × 500 px</strong>, com
+                                o assunto principal no centro. Vale ao salvar o curso.</small>
                         </div>
                         <div class="campo">
                             <label for="f-plano-curso">Link do Plano de Curso (PDF)</label>

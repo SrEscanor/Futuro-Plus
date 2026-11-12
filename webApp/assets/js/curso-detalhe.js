@@ -10,7 +10,7 @@ import {
 import { formatarDistancia } from './geocodificacao.js';
 import { resumoDaDemanda } from './demanda-curso.js';
 import { destaquesDaMatriz, duracaoDaMatriz } from './matriz-curricular.js';
-import { capaDoEixo } from './capas-eixos.js';
+import { capaDoEixo, carregarFotosDosEixos } from './capas-eixos.js';
 
 // O conteúdo vem do catálogo oficial do Centro Paula Souza. O que o Painel
 // Admin já importou e editou fica no Firestore e tem prioridade; para os
@@ -21,7 +21,7 @@ const CATALOGO_OFICIAL = '/dados/catalogo-cursos.json';
 
 // O que a página está mostrando: guardado para redesenhar quando a pessoa
 // troca de matriz ou quando a distância até as unidades fica pronta.
-const estado = { curso: null, unidades: [], avaliar: null, matriz: 0 };
+const estado = { curso: null, unidades: [], avaliar: null, matriz: 0, fotosDosEixos: {} };
 
 async function buscarNoCatalogoOficial(id) {
     const resposta = await fetch(CATALOGO_OFICIAL);
@@ -84,11 +84,11 @@ function capaDesenhada(eixo, capa) {
         </div>`;
 }
 
-// A capa vem, nesta ordem: da imagem cadastrada no curso, da imagem do eixo
-// (pasta assets/images/eixos) ou do desenho padrão do eixo.
+// A capa vem, nesta ordem: da imagem cadastrada no curso, da imagem enviada
+// para o eixo (painel Admin · Cursos) ou do desenho padrão do eixo.
 function capa(curso) {
     const eixo = (curso.eixos || [])[0] || '';
-    const doEixo = capaDoEixo(eixo);
+    const doEixo = capaDoEixo(eixo, estado.fotosDosEixos);
     const desenhada = capaDesenhada(eixo, doEixo);
     const foto = curso.imagemUrl || doEixo.foto;
     if (!foto) return desenhada;
@@ -502,6 +502,14 @@ async function carregar() {
 
     try {
         const id = slugificar(identificador);
+        // As capas dos eixos carregam junto com o curso. Se chegarem depois
+        // de a página estar montada, ela é redesenhada com a imagem certa.
+        const fotos = carregarFotosDosEixos().then((mapa) => {
+            estado.fotosDosEixos = mapa;
+            if (estado.curso && Object.keys(mapa).length) {
+                renderizar(estado.curso, estado.unidades, estado.avaliar);
+            }
+        });
         const snap = await getDoc(doc(db, CURSOS_COLLECTION, id)).catch(() => null);
         const curso = snap?.exists() ? snap.data() : await buscarNoCatalogoOficial(id);
 
@@ -515,6 +523,8 @@ async function carregar() {
 
         // O conteúdo do curso aparece na hora; a lista de unidades entra
         // quando o cadastro (bem maior) terminar de carregar.
+        // espera as capas só um instante: o texto do curso não fica preso a elas
+        await Promise.race([fotos, new Promise((resolve) => setTimeout(resolve, 1200))]);
         mostrarPlanoDeCurso(curso);
         renderizar(curso, null, null);
 
