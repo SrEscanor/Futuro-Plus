@@ -34,6 +34,16 @@ function escapeHtml(str) {
     }[c]));
 }
 
+// "Sem valor" pro tipo do campo: usado para não contar como "editado à mão"
+// um campo que sempre esteve vazio (ex: checkbox nunca marcado comparado
+// com um campo que nunca existiu no Firestore).
+function valorVazio(v) {
+    if (v == null || v === '' || v === false) return true;
+    if (Array.isArray(v)) return v.length === 0;
+    if (typeof v === 'object') return Object.values(v).every(valorVazio);
+    return false;
+}
+
 function normalizar(texto) {
     return (texto || '')
         .toLowerCase()
@@ -128,7 +138,7 @@ function renderizarTabela() {
                 <strong>${escapeHtml(c.nome)}</strong>
                 ${pendencias.length ? `<div class="pendencia">falta ${escapeHtml(pendencias.join(', '))}</div>` : ''}
                 ${c.provaAptidao ? '<div class="pendencia pendencia--info">tem prova de aptidão</div>' : ''}
-                ${(c.camposEditados || []).length ? `<div class="pendencia pendencia--manual">✏️ editado à mão: ${escapeHtml(c.camposEditados.map((x) => ROTULO_CAMPO[x] || x).join(', '))}</div>` : ''}
+                ${(c.camposEditados || []).length ? `<div class="pendencia pendencia--manual" title="${escapeHtml(c.atualizadoEm ? new Date(c.atualizadoEm).toLocaleString('pt-BR') : '')}">✏️ editado à mão por ${escapeHtml(c.atualizadoPor || '—')}: ${escapeHtml(c.camposEditados.map((x) => ROTULO_CAMPO[x] || x).join(', '))}</div>` : ''}
             </td>
             <td>${escapeHtml((c.eixos || []).join(', '))}</td>
             <td>${escapeHtml(c.duracao || '—')}</td>
@@ -469,10 +479,20 @@ async function salvarCurso(evento) {
     // Guarda QUAIS campos você mexeu, e não só que o curso foi editado: é
     // isso que permite revisar depois, na importação, só o que conflita.
     const antes = cursosCache.find((c) => c.id === editandoId) || {};
-    const mexidos = Object.keys(dados).filter((campo) =>
-        campo !== 'atualizadoEm' && JSON.stringify(dados[campo]) !== JSON.stringify(antes[campo] ?? ''));
+    const mexidos = Object.keys(dados).filter((campo) => {
+        if (campo === 'atualizadoEm') return false;
+        const novo = dados[campo];
+        const velho = antes[campo];
+        // Campo nunca preenchido (undefined no Firestore) e valor novo "vazio"
+        // pro seu tipo (false, null, '', []) não é uma mudança de verdade —
+        // sem isso, salvar sem mexer em nada já marcava prova de aptidão e
+        // carga horária como editados à mão.
+        if (valorVazio(novo) && valorVazio(velho)) return false;
+        return JSON.stringify(novo) !== JSON.stringify(velho);
+    });
     dados.camposEditados = [...new Set([...(antes.camposEditados || []), ...mexidos])];
     dados.editadoManualmente = dados.camposEditados.length > 0;
+    dados.atualizadoPor = auth.currentUser?.email || '';
 
     try {
         await setDoc(doc(db, CURSOS_COLLECTION, editandoId), dados, { merge: true });

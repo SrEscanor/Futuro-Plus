@@ -385,6 +385,28 @@ function atualizarBarraSelecao() {
     checkTodas.indeterminate = !marcadaTodas && visiveis.some((e) => selecionadas.has(e.id));
 }
 
+// Rótulos exibidos no selo "editado à mão" — mesmo padrão usado no
+// catálogo de cursos.
+const ROTULO_CAMPO = {
+    codigo: 'código',
+    nome: 'nome',
+    tipo: 'tipo',
+    historico: 'histórico',
+    cnpj: 'CNPJ',
+    regiao: 'região',
+    municipio: 'município',
+    endereco: 'endereço',
+    telefone: 'telefone',
+    discagemAbreviada: 'discagem abreviada',
+    aniversarioCidade: 'aniversário da cidade',
+    site: 'site',
+    logotipoUrl: 'logotipo',
+    direcao: 'direção',
+    redesSociais: 'redes sociais',
+    documentos: 'documentos',
+    cursos: 'cursos oferecidos'
+};
+
 function renderizarTabela() {
     const corpo = document.getElementById('tabela-instituicoes-corpo');
 
@@ -415,6 +437,7 @@ function renderizarTabela() {
                     <span>
                         ${e.tipo ? `<span class="tag-tipo">${escapeHtml(e.tipo)}</span>` : ''}
                         ${escapeHtml(e.nome)}
+                        ${(e.camposEditados || []).length ? `<div class="pendencia pendencia--manual" title="${escapeHtml(e.atualizadoEm ? new Date(e.atualizadoEm).toLocaleString('pt-BR') : '')}">✏️ editado à mão por ${escapeHtml(e.atualizadoPor || '—')}: ${escapeHtml(e.camposEditados.map((x) => ROTULO_CAMPO[x] || x).join(', '))}</div>` : ''}
                     </span>
                 </div>
             </td>
@@ -545,6 +568,14 @@ async function salvarInstituicao(event) {
 
     const id = editandoId || sanitizarId(codigo);
     const existente = instituicoesCache.find((e) => e.id === id);
+
+    // Guarda QUAIS campos foram mexidos à mão nesse painel, e quem mexeu —
+    // mesmo selo que já existe no catálogo de cursos.
+    const mexidos = Object.keys(dados).filter((campo) =>
+        campo !== 'atualizadoEm' && JSON.stringify(dados[campo]) !== JSON.stringify(existente?.[campo] ?? ''));
+    dados.camposEditados = [...new Set([...(existente?.camposEditados || []), ...mexidos])];
+    dados.editadoManualmente = dados.camposEditados.length > 0;
+    dados.atualizadoPor = auth.currentUser?.email || '';
 
     const textoCoordenadas = document.getElementById('f-coordenadas').value.trim();
     const coordenadas = lerCoordenadas(textoCoordenadas);
