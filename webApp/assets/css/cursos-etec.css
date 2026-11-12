@@ -312,6 +312,13 @@
     padding-bottom: 40px;
 }
 
+/* quatro colunas fixas no desktop: com 16 por página fecha 4 × 4, igual Instituições */
+@media (min-width: 1280px) {
+    .grid-cursos {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
 .card-curso-catalogo {
     min-width: 0;
     background: var(--surface);

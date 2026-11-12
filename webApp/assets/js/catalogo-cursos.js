@@ -5,7 +5,7 @@ import { renderizarPaginacao } from './paginacao.js';
 
 const CURSOS_COLLECTION = 'cursos';
 const CATALOGO_OFICIAL = '/dados/catalogo-cursos.json';
-const CURSOS_POR_PAGINA = 24;
+const CURSOS_POR_PAGINA = 16;
 
 let cursosCache = [];
 const filtros = { nivel: '', eixo: '', busca: '', pagina: 1 };
