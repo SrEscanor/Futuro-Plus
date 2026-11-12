@@ -28,6 +28,22 @@ const CONFIGS = {
         ]
     },
     cursos: {
+        chaveVisto: 'futuroplus_tour_cursos_catalogo_visto',
+        guarda: '.filtros-cursos',
+        passos: [
+            {
+                seletor: '.filtros-cursos',
+                titulo: 'Busque e filtre',
+                texto: 'Digite o nome de um curso ou eixo tecnológico, ou use os filtros de instituição e eixo pra achar rapidinho.'
+            },
+            {
+                seletor: '#grid-cursos .card-curso-catalogo',
+                titulo: 'Cursos do catálogo',
+                texto: 'Cada card é um curso — vermelho é técnico (Etec), azul é superior (Fatec). Clique pra ver os detalhes e quais instituições oferecem.'
+            }
+        ]
+    },
+    instituicoes: {
         chaveVisto: 'futuroplus_tour_cursos_visto',
         guarda: '.filtros-cursos',
         passos: [
@@ -78,7 +94,8 @@ const CONFIGS = {
 };
 
 function paginaAtual() {
-    if (document.getElementById('grid-unidades') && document.querySelector('.filtros-cursos')) return 'cursos';
+    if (document.getElementById('grid-cursos')) return 'cursos';
+    if (document.getElementById('grid-unidades') && document.querySelector('.filtros-cursos')) return 'instituicoes';
     if (document.querySelector('.teste-card')) return 'testes';
     if (document.getElementById('mural-quadros')) return 'mural';
     if (document.getElementById('perfil-visualizacao')) return 'perfil';

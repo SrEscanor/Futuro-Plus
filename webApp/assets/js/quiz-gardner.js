@@ -146,18 +146,12 @@ const questions = [
 // PONTUAÇÃO
 // ============================================================
 
-let scores = {
-    logica: 0,
-    interpessoal: 0,
-    espacial: 0,
-    corporal: 0,
-    linguistica: 0,
-    intrapessoal: 0,
-    musical: 0,
-    naturalista: 0
-};
-
 let currentQuestionIndex = 0;
+
+// respostasEscolhidas[i] = categoria escolhida na pergunta i. Guardar assim
+// (em vez de só somar pontos) permite voltar e trocar uma resposta sem
+// contar ponto em dobro pra categoria antiga.
+let respostasEscolhidas = [];
 
 
 // ============================================================
@@ -170,6 +164,7 @@ const progressText = document.getElementById("progress");
 const progressFill = document.getElementById("progress-fill");
 const quizContainer = document.getElementById("quiz-container");
 const resultContainer = document.getElementById("result-container");
+const btnVoltar = document.getElementById("quiz-voltar");
 
 
 // ============================================================
@@ -193,10 +188,16 @@ function loadQuestion() {
         progressFill.style.width = `${porcentagem}%`;
     }
 
+    const escolhaAnterior = respostasEscolhidas[currentQuestionIndex];
+
     q.options.forEach(option => {
         const btn = document.createElement("button");
 
         btn.textContent = option.text;
+
+        if (option.category === escolhaAnterior) {
+            btn.classList.add("selecionada");
+        }
 
         btn.onclick = () => {
             // no celular o botão continua "focado" depois do toque, e o
@@ -207,6 +208,25 @@ function loadQuestion() {
 
         optionsContainer.appendChild(btn);
     });
+
+    if (btnVoltar) {
+        btnVoltar.style.visibility = currentQuestionIndex === 0 ? "hidden" : "visible";
+    }
+}
+
+
+// ============================================================
+// VOLTAR PARA A PERGUNTA ANTERIOR
+// ============================================================
+
+function voltarPergunta() {
+    if (currentQuestionIndex === 0) return;
+    currentQuestionIndex--;
+    loadQuestion();
+}
+
+if (btnVoltar) {
+    btnVoltar.addEventListener("click", voltarPergunta);
 }
 
 
@@ -216,10 +236,7 @@ function loadQuestion() {
 
 function selectOption(category) {
 
-    // Soma um ponto para a categoria escolhida
-    if (scores.hasOwnProperty(category)) {
-        scores[category]++;
-    }
+    respostasEscolhidas[currentQuestionIndex] = category;
 
     currentQuestionIndex++;
 
@@ -243,6 +260,27 @@ function showResult() {
 
     quizContainer.style.display = "none";
     resultContainer.style.display = "block";
+
+    // --------------------------------------------------------
+    // Somar as respostas escolhidas por categoria
+    // --------------------------------------------------------
+
+    const scores = {
+        logica: 0,
+        interpessoal: 0,
+        espacial: 0,
+        corporal: 0,
+        linguistica: 0,
+        intrapessoal: 0,
+        musical: 0,
+        naturalista: 0
+    };
+
+    respostasEscolhidas.forEach(category => {
+        if (scores.hasOwnProperty(category)) {
+            scores[category]++;
+        }
+    });
 
     // --------------------------------------------------------
     // Descobrir quantas perguntas existem para cada categoria

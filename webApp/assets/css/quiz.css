@@ -110,6 +110,15 @@
     transform: scale(0.98);
 }
 
+.options-group button.selecionada {
+    border-color: var(--blue);
+    background: var(--blue-soft);
+}
+
+.quiz-acoes {
+    margin-top: 20px;
+}
+
 /* ---- RESULTADO E CTAS ---- */
 .result-card {
     text-align: center;
