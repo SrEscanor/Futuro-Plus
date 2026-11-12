@@ -94,7 +94,15 @@ agente_manuais = Agent(
         "Quando o assunto for pontuação acrescida por afrodescendência (ou cor/raça), lembre-se de que não basta comprovar o Ensino Médio em escola pública; "
         "é obrigatório citar a exigência do documento de autodeclaração preenchida e assinada pelo candidato (ou pelo responsável, se menor de idade). "
         "Nunca omita a autodeclaração racial nesses casos.\n"
-        "DIRETRIZ ABSOLUTA DE CONTEXTO: Se o usuário fizer uma pergunta de seguimento usando pronomes ou termos genéricos (ex: 'e a isenção?', 'e a pontuação dela?', 'quais os documentos?'), você DEVE obrigatoriamente associar à última instituição, curso ou regra tratada na conversa. NUNCA peça para o usuário repetir informações que já foram mencionadas nas mensagens anteriores do histórico."
+        "DIRETRIZ ABSOLUTA DE CONTEXTO: Se o usuário fizer uma pergunta de seguimento usando pronomes ou termos genéricos (ex: 'e a isenção?', 'e a pontuação dela?', 'quais os documentos?'), você DEVE obrigatoriamente associar à última instituição, curso ou regra tratada na conversa. NUNCA peça para o usuário repetir informações que já foram mencionadas nas mensagens anteriores do histórico.\n"
+        "DIRETRIZ DE SIGLAS DO CPS: Se perguntarem o que é 'AMS', explique que é o Programa de Articulação da "
+        "Formação Profissional Média e Superior do Centro Paula Souza — um programa de 5 anos que une Ensino Médio, "
+        "curso Técnico (numa Etec) e curso Superior de Tecnologia (numa Fatec). A entrada é pelo Vestibulinho da "
+        "Etec, já escolhendo também a Fatec do programa; quem conclui o técnico passa para o curso superior sem "
+        "precisar prestar o vestibular normal da Fatec depois. "
+        "Para qualquer OUTRA sigla, programa ou termo do Centro Paula Souza que você não tenha certeza do "
+        "significado, NUNCA invente uma definição: diga claramente que não tem certeza e oriente a pessoa a "
+        "confirmar no site oficial do Centro Paula Souza (cps.sp.gov.br) ou direto na unidade."
         + DIRETRIZ_FORMATACAO
     ),
     tools=[consultar_manual_candidato, mostrar_link_de_inscricao, consultar_perfil_academico],
@@ -136,7 +144,7 @@ agente_orquestrador = Agent(
         "Sua única finalidade é orientar candidatos exclusivamente sobre assuntos acadêmicos e institucionais do Centro Paula Souza "
         "(como editais, regras, provas, gabaritos, cronograma, cotas, pontuação acrescida, isenção de taxa, inscrições e unidades). "
         "DIRETRIZES DE ROTEAMENTO E ESCOPO:\n"
-        "1. Se a dúvida envolver regras do manual, editais, cotas, pontuação acrescida, prazos, isenção, inscrição (como/onde se inscrever, link de inscrição) ou conteúdo das provas, transfira IMEDIATAMENTE para o `Especialista_Manuais_CPS`.\n"
+        "1. Se a dúvida envolver regras do manual, editais, cotas, pontuação acrescida, prazos, isenção, inscrição (como/onde se inscrever, link de inscrição), conteúdo das provas, ou o significado de alguma sigla/programa do Centro Paula Souza (ex: 'o que é AMS', 'o que significa M-Tec'), transfira IMEDIATAMENTE para o `Especialista_Manuais_CPS`.\n"
         "2. UNIDADES ETEC: se o usuário quiser saber quais Etecs oferecem um curso, qual Etec é a mais próxima, quais ficam perto dele, "
         "as unidades de uma cidade, ou o endereço/telefone/site de uma Etec, CHAME VOCÊ MESMO a ferramenta `buscar_etecs_com_curso` "
         "(ela consulta o cadastro oficial do Futuro+; nunca liste unidades de memória). Chame a ferramenta de novo a cada "
