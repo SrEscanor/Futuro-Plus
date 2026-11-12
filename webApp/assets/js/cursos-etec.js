@@ -219,6 +219,7 @@ function ordenar(itens, proximidades) {
 function renderizarUnidades() {
     const container = elemento('grid-unidades');
     const contagem = elemento('contagem-resultados');
+    const topo = elemento('paginacao-topo');
     const rodape = elemento('paginacao-rodape');
     const termo = normalizar(elemento('busca-cursos').value);
 
@@ -236,7 +237,7 @@ function renderizarUnidades() {
 
     if (!itens.length) {
         container.innerHTML = '<p class="sem-resultados">Nenhuma instituição encontrada para essa busca.</p>';
-        renderizarPaginacao([rodape], 1, 1, () => {});
+        renderizarPaginacao([topo, rodape], 1, 1, () => {});
         return;
     }
 
@@ -251,7 +252,7 @@ function renderizarUnidades() {
             totalCursos: total
         })).join('');
 
-    renderizarPaginacao([rodape], filtros.pagina, totalPaginas, (pagina) => {
+    renderizarPaginacao([topo, rodape], filtros.pagina, totalPaginas, (pagina) => {
         filtros.pagina = pagina;
         renderizarUnidades();
         document.querySelector('.filtros-cursos')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
