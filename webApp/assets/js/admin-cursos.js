@@ -2,9 +2,25 @@ import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { collection, doc, getDoc, getDocs, setDoc, writeBatch } from 'firebase/firestore';
 import { parseCsvLine } from './csv.js';
+import {
+    escritasDoPlano, ligarZonaDeArquivo, planejarImportacao, revisarImportacao, valorVazio
+} from './importacao-csv.js';
+import { lerMatrizDoPdf, destaquesDaMatriz, duracaoDaMatriz } from './matriz-curricular.js';
+import { resumoDaDemanda } from './demanda-curso.js';
 
 const CURSOS_COLLECTION = 'cursos';
 const INSTITUICOES_COLLECTION = 'instituicoes';
+
+// Função que busca a demanda nos sites do vestibular — mesmo padrão de troca
+// localhost/produção usado nas outras chamadas.
+const DEMANDA_URL = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+    ? 'http://127.0.0.1:5001/futuroplus-bce54/southamerica-east1/coletar_demanda'
+    : 'https://southamerica-east1-futuroplus-bce54.cloudfunctions.net/coletar_demanda';
+
+// O gráfico da página do curso mostra um ponto por ano; para comparar anos
+// iguais, vale sempre o 1º semestre (o 2º não oferece os cursos integrados
+// ao ensino médio).
+const ANOS_DE_DEMANDA = 5;
 
 // Campos que a página pública usa; servem para dizer se um curso está completo.
 // O CSV da Fatec (cursos superiores) não publica carga horária, só duração
@@ -16,6 +32,10 @@ const CAMPOS_ESPERADOS = [
     ['cargaHoraria', 'carga horária']
 ];
 
+// Campos que o painel grava mas que não vêm do catálogo oficial: mexer neles
+// não é "corrigir o catálogo à mão", então não entram na lista de editados.
+const CAMPOS_FORA_DO_CATALOGO = ['atualizadoEm', 'matrizes', 'imagemUrl'];
+
 function camposEsperadosPara(curso) {
     return curso.nivel === 'superior'
         ? CAMPOS_ESPERADOS.filter(([campo]) => campo !== 'cargaHoraria')
@@ -25,23 +45,15 @@ function camposEsperadosPara(curso) {
 let cursosCache = [];
 let unidadesPorCurso = new Map();
 let editandoId = null;
+let matrizesEmEdicao = [];
 let filtroIncompletos = false;
 let filtroEditados = false;
+let filtroSemMatriz = false;
 
 function escapeHtml(str) {
     return String(str ?? '').replace(/[&<>"']/g, (c) => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     }[c]));
-}
-
-// "Sem valor" pro tipo do campo: usado para não contar como "editado à mão"
-// um campo que sempre esteve vazio (ex: checkbox nunca marcado comparado
-// com um campo que nunca existiu no Firestore).
-function valorVazio(v) {
-    if (v == null || v === '' || v === false) return true;
-    if (Array.isArray(v)) return v.length === 0;
-    if (typeof v === 'object') return Object.values(v).every(valorVazio);
-    return false;
 }
 
 function normalizar(texto) {
@@ -55,6 +67,13 @@ function normalizar(texto) {
 
 function faltando(curso) {
     return camposEsperadosPara(curso).filter(([campo]) => !curso[campo]).map(([, rotulo]) => rotulo);
+}
+
+function mostrarStatus(id, texto, tipo = '') {
+    const status = document.getElementById(id);
+    status.textContent = texto;
+    status.className = `status-importacao${tipo ? ` status-importacao--${tipo}` : ''}`;
+    status.style.display = texto ? 'block' : 'none';
 }
 
 // ========================================================
@@ -108,22 +127,38 @@ function renderizarAlerta() {
         filtroIncompletos ? 'Mostrar todos' : 'Mostrar só esses';
 }
 
+function renderizarSituacaoDasMatrizes() {
+    const comMatriz = cursosCache.filter((c) => (c.matrizes || []).length).length;
+    document.getElementById('matriz-situacao').innerHTML = cursosCache.length
+        ? `<div><strong>${comMatriz} de ${cursosCache.length}</strong> cursos têm matriz cadastrada.</div>`
+        : 'Importe o catálogo primeiro.';
+}
+
+function celulaDemanda(curso) {
+    const resumo = resumoDaDemanda(curso.demanda);
+    if (!resumo) return '—';
+    return `<strong>${escapeHtml(resumo.porVagaTexto)}</strong> por vaga
+        <div class="celula-nota">${escapeHtml(resumo.nivel.rotulo)} · ${escapeHtml(String(resumo.ano))}</div>`;
+}
+
 function renderizarTabela() {
     const filtro = normalizar(document.getElementById('busca-curso').value);
     const corpo = document.getElementById('tabela-cursos-corpo');
 
     renderizarAlerta();
+    renderizarSituacaoDasMatrizes();
 
     const linhas = cursosCache
         .filter((c) => !filtroIncompletos || faltando(c).length)
         .filter((c) => !filtroEditados || (c.camposEditados || []).length)
+        .filter((c) => !filtroSemMatriz || !(c.matrizes || []).length)
         .filter((c) => !filtro || normalizar([
             c.nome, (c.eixos || []).join(' '), (c.modalidades || []).join(' ')
         ].join(' ')).includes(filtro));
 
     if (!linhas.length) {
         corpo.innerHTML = `<tr><td colspan="7" class="tabela-vazia">
-            ${cursosCache.length ? 'Nenhum curso encontrado.' : 'Nenhum curso importado ainda. Clique em "Importar catálogo oficial".'}
+            ${cursosCache.length ? 'Nenhum curso encontrado.' : 'Nenhum curso importado ainda. Envie o CSV do catálogo no primeiro quadro acima.'}
         </td></tr>`;
         return;
     }
@@ -131,6 +166,7 @@ function renderizarTabela() {
     corpo.innerHTML = linhas.map((c) => {
         const pendencias = faltando(c);
         const unidades = unidadesPorCurso.get(normalizar(c.nome)) || 0;
+        const matrizes = (c.matrizes || []).length;
         return `
         <tr>
             <td>
@@ -138,14 +174,14 @@ function renderizarTabela() {
                 <strong>${escapeHtml(c.nome)}</strong>
                 ${pendencias.length ? `<div class="pendencia">falta ${escapeHtml(pendencias.join(', '))}</div>` : ''}
                 ${c.provaAptidao ? '<div class="pendencia pendencia--info">tem prova de aptidão</div>' : ''}
+                ${c.preRequisitos ? `<div class="pendencia pendencia--info" title="${escapeHtml(c.preRequisitos)}">exige formação anterior</div>` : ''}
+                ${matrizes ? `<div class="pendencia pendencia--info">${matrizes === 1 ? 'matriz cadastrada' : `${matrizes} matrizes cadastradas`}</div>` : ''}
                 ${(c.camposEditados || []).length ? `<div class="pendencia pendencia--manual" title="${escapeHtml(c.atualizadoEm ? new Date(c.atualizadoEm).toLocaleString('pt-BR') : '')}">✏️ editado à mão por ${escapeHtml(c.atualizadoPor || '—')}: ${escapeHtml(c.camposEditados.map((x) => ROTULO_CAMPO[x] || x).join(', '))}</div>` : ''}
             </td>
             <td>${escapeHtml((c.eixos || []).join(', '))}</td>
             <td>${escapeHtml(c.duracao || '—')}</td>
             <td>${c.cargaHoraria ? `${c.cargaHoraria} h` : '—'}</td>
-            <td class="col-prerequisito" title="${escapeHtml(c.preRequisitos || '')}">
-                ${c.preRequisitos ? escapeHtml(c.preRequisitos.slice(0, 60)) + (c.preRequisitos.length > 60 ? '…' : '') : '—'}
-            </td>
+            <td>${celulaDemanda(c)}</td>
             <td>${unidades}</td>
             <td class="col-acoes">
                 <button type="button" class="btn-icone" data-acao="editar" data-id="${escapeHtml(c.id)}" title="Editar">✏️</button>
@@ -156,57 +192,8 @@ function renderizarTabela() {
 }
 
 // ========================================================
-// Importação do catálogo oficial
+// Importação do catálogo oficial (CSV)
 // ========================================================
-
-// Grava os cursos na coleção, venham eles do arquivo embutido ou de um CSV.
-// Regra que vale para os dois caminhos: curso novo entra inteiro; curso que
-// já existe só recebe os campos que ainda estão vazios, para não desfazer o
-// que foi corrigido à mão no painel.
-// Campos editados à mão que o catálogo mudaria. São eles que entram na tela
-// de revisão antes de qualquer substituição.
-export function detectarConflitos(catalogo, existentes) {
-    const conflitos = [];
-    catalogo.forEach((curso) => {
-        const atual = existentes.get(curso.slug);
-        if (!atual?.camposEditados?.length) return;
-
-        atual.camposEditados.forEach((campo) => {
-            const oficial = curso[campo];
-            const vazioNaFonte = Array.isArray(oficial) ? !oficial.length : (oficial === '' || oficial == null);
-            if (vazioNaFonte) return;
-            if (JSON.stringify(atual[campo]) === JSON.stringify(oficial)) return;
-
-            conflitos.push({ slug: curso.slug, nome: curso.nome, campo, meu: atual[campo], oficial });
-        });
-    });
-    return conflitos;
-}
-
-// ignorar: conjunto de "slug:campo" que a revisão decidiu manter como está.
-export function camposParaGravar(curso, atual, sobrescrever, ignorar = new Set()) {
-    const dados = { ...curso };
-    delete dados.slug;
-
-    if (!atual) return dados;
-
-    Object.keys(dados).forEach((campo) => {
-        if (ignorar.has(`${curso.slug}:${campo}`)) { delete dados[campo]; return; }
-        const valor = dados[campo];
-        const vazioNaFonte = Array.isArray(valor) ? !valor.length : (valor === '' || valor == null);
-
-        // O que o catálogo não publica (duração e carga horária de várias
-        // especializações, por exemplo) nunca apaga o que você preencheu.
-        if (vazioNaFonte) delete dados[campo];
-        // O resto depende da escolha na tela: por padrão o oficial corrige o
-        // que estiver diferente, inclusive um preenchimento manual errado.
-        else if (!sobrescrever && atual[campo]) delete dados[campo];
-        // Nada mudou: não vale uma escrita.
-        else if (JSON.stringify(atual[campo]) === JSON.stringify(valor)) delete dados[campo];
-    });
-
-    return dados;
-}
 
 const ROTULO_CAMPO = {
     duracao: 'duração',
@@ -218,123 +205,56 @@ const ROTULO_CAMPO = {
     atuacao: 'o que o profissional faz',
     ondeTrabalhar: 'onde se trabalha',
     provaAptidao: 'prova de aptidão',
+    planoCursoUrl: 'plano de curso',
+    nivel: 'nível',
     nome: 'nome'
 };
 
-// Mostra, antes de substituir, cada campo que você editou e que o catálogo
-// mudaria. Devolve o conjunto de "slug:campo" a manter como está.
-function revisarConflitos(conflitos) {
-    return new Promise((resolve) => {
-        const lista = document.getElementById('lista-conflitos');
-        document.getElementById('revisao-resumo').textContent =
-            `${conflitos.length} campo(s) que você editou à mão têm valor diferente no catálogo. `
-            + 'Desmarque os que você quer manter do seu jeito.';
-
-        lista.innerHTML = conflitos.map((c, i) => `
-            <div class="conflito">
-                <label class="conflito-topo">
-                    <input type="checkbox" data-indice="${i}" checked>
-                    <span><strong>${escapeHtml(c.nome)}</strong> · ${escapeHtml(ROTULO_CAMPO[c.campo] || c.campo)}</span>
-                </label>
-                <div class="conflito-valores">
-                    <div class="conflito-valor">
-                        <span class="conflito-rotulo">seu</span>
-                        ${escapeHtml(String(Array.isArray(c.meu) ? c.meu.join(', ') : c.meu ?? '')).slice(0, 400) || '<em>vazio</em>'}
-                    </div>
-                    <div class="conflito-valor conflito-valor--oficial">
-                        <span class="conflito-rotulo">catálogo</span>
-                        ${escapeHtml(String(Array.isArray(c.oficial) ? c.oficial.join(', ') : c.oficial)).slice(0, 400)}
-                    </div>
-                </div>
-            </div>`).join('');
-
-        const modal = document.getElementById('modal-revisao');
-        modal.classList.add('aberto');
-
-        const marcar = (valor) => lista.querySelectorAll('input[type="checkbox"]')
-            .forEach((c) => { c.checked = valor; });
-
-        const fechar = (ignorar) => {
-            modal.classList.remove('aberto');
-            botaoAplicar.removeEventListener('click', aoAplicar);
-            botaoCancelar.removeEventListener('click', aoCancelar);
-            botaoTodosMeus.removeEventListener('click', aoManterTudo);
-            resolve(ignorar);
-        };
-
-        const botaoAplicar = document.getElementById('btn-aplicar-revisao');
-        const botaoCancelar = document.getElementById('btn-cancelar-revisao');
-        const botaoTodosMeus = document.getElementById('btn-manter-meus');
-
-        const aoAplicar = () => {
-            const ignorar = new Set();
-            lista.querySelectorAll('input[type="checkbox"]').forEach((caixa) => {
-                if (!caixa.checked) {
-                    const c = conflitos[Number(caixa.dataset.indice)];
-                    ignorar.add(`${c.slug}:${c.campo}`);
-                }
-            });
-            fechar(ignorar);
-        };
-        const aoCancelar = () => fechar(null);
-        const aoManterTudo = () => { marcar(false); aoAplicar(); };
-
-        botaoAplicar.addEventListener('click', aoAplicar);
-        botaoCancelar.addEventListener('click', aoCancelar);
-        botaoTodosMeus.addEventListener('click', aoManterTudo);
-    });
-}
-
-async function gravarCatalogo(catalogo, status, prefixo) {
-    const sobrescrever = document.getElementById('chk-sobrescrever').checked;
+// O que o arquivo deixa em branco (a duração de várias especializações, por
+// exemplo) nunca apaga o que já estava preenchido; o resto passa pela janela
+// de revisão antes de qualquer gravação.
+async function gravarCatalogo(catalogo, descricaoDoArquivo) {
     const existentes = new Map(cursosCache.map((c) => [c.id, c]));
-    let novos = 0;
-    let atualizados = 0;
-    let ignorar = new Set();
+    const itens = catalogo.map((curso) => {
+        const dados = { ...curso };
+        delete dados.slug;
+        return { id: curso.slug, nome: curso.nome, dados };
+    });
+    const plano = planejarImportacao(itens, existentes);
 
-    if (sobrescrever) {
-        const conflitos = detectarConflitos(catalogo, existentes);
-        if (conflitos.length) {
-            status.textContent = 'Revise os campos editados à mão antes de substituir...';
-            const decisao = await revisarConflitos(conflitos);
-            if (decisao === null) {
-                status.textContent = 'Importação cancelada. Nada foi alterado.';
-                return;
-            }
-            ignorar = decisao;
-        }
+    mostrarStatus('status-importacao', 'Arquivo lido. Revise na janela o que vai mudar...');
+    const manter = await revisarImportacao(plano, {
+        descricao: descricaoDoArquivo,
+        rotulos: ROTULO_CAMPO,
+        termos: { novos: 'curso(s) novo(s)', iguais: 'curso(s) igual(is)' }
+    });
+    if (manter === null) {
+        mostrarStatus('status-importacao', 'Importação cancelada. Nada foi alterado.');
+        return;
     }
 
+    const escritas = [...escritasDoPlano(plano, manter, existentes).entries()]
+        .filter(([, dados]) => Object.keys(dados).length);
+    const agora = new Date().toISOString();
+
     const TAMANHO_LOTE = 400;
-    for (let i = 0; i < catalogo.length; i += TAMANHO_LOTE) {
+    for (let i = 0; i < escritas.length; i += TAMANHO_LOTE) {
         const batch = writeBatch(db);
-        let escritasNoLote = 0;
-
-        catalogo.slice(i, i + TAMANHO_LOTE).forEach((curso) => {
-            const atual = existentes.get(curso.slug);
-            const dados = camposParaGravar(curso, atual, sobrescrever, ignorar);
-            if (!Object.keys(dados).length) return;
-
-            if (atual) atualizados += 1;
-            else novos += 1;
-
-            batch.set(
-                doc(db, CURSOS_COLLECTION, curso.slug),
-                { ...dados, atualizadoEm: new Date().toISOString() },
-                { merge: true }
-            );
-            escritasNoLote += 1;
+        escritas.slice(i, i + TAMANHO_LOTE).forEach(([id, dados]) => {
+            batch.set(doc(db, CURSOS_COLLECTION, id), { ...dados, atualizadoEm: agora }, { merge: true });
         });
-
-        if (escritasNoLote) await batch.commit();
-        status.textContent = `Gravando... ${Math.min(i + TAMANHO_LOTE, catalogo.length)} de ${catalogo.length}`;
+        await batch.commit();
+        mostrarStatus('status-importacao', `Gravando... ${Math.min(i + TAMANHO_LOTE, escritas.length)} de ${escritas.length}`);
     }
 
     await carregarCursos();
-    status.textContent = `${prefixo} ${novos} curso(s) novo(s), ${atualizados} atualizado(s). `
-        + (sobrescrever
-            ? `O catálogo corrigiu os campos que ele publica${ignorar.size ? `, menos ${ignorar.size} que você escolheu manter` : ''}.`
-            : 'Só foram preenchidos campos que estavam vazios.');
+
+    const substituidas = plano.substituir.length - manter.size;
+    mostrarStatus('status-importacao',
+        `Importação concluída: ${plano.novos.length} curso(s) novo(s), `
+        + `${plano.preencher.length} campo(s) preenchido(s), ${substituidas} informação(ões) substituída(s)`
+        + (manter.size ? ` e ${manter.size} mantida(s) como estava(m).` : '.'),
+        'ok');
 }
 
 // ---- CSV exportado do site do CPS -------------------------------------
@@ -420,17 +340,218 @@ function lerCatalogoCsv(texto, nivel = 'tecnico') {
 }
 
 async function importarCsvDoCatalogo(arquivo) {
-    const status = document.getElementById('status-importacao');
-    status.style.display = 'block';
-    status.textContent = `Lendo ${arquivo.name}...`;
+    mostrarStatus('status-importacao', `Lendo ${arquivo.name}...`);
 
     try {
-        const nivel = document.getElementById('select-nivel-csv').value;
+        const nivel = document.querySelector('input[name="nivel-csv"]:checked').value;
         const cursos = lerCatalogoCsv(await arquivo.text(), nivel);
-        await gravarCatalogo(cursos, status, `CSV lido: ${cursos.length} curso(s).`);
+        const catalogo = nivel === 'superior' ? 'cursos superiores (Fatec)' : 'cursos técnicos (Etec)';
+        await gravarCatalogo(cursos, `${arquivo.name} · ${cursos.length} ${catalogo}`);
     } catch (err) {
         console.error('Erro ao importar o CSV de cursos:', err);
-        status.textContent = 'Erro ao ler o CSV: ' + err.message;
+        mostrarStatus('status-importacao', 'Erro ao ler o CSV: ' + err.message, 'erro');
+    }
+}
+
+// ========================================================
+// Demanda do vestibular
+// ========================================================
+
+let situacaoDaDemanda = null;
+
+async function chamarDemanda(corpo) {
+    const usuario = auth.currentUser;
+    if (!usuario) throw new Error('faça login de novo');
+
+    const resposta = await fetch(DEMANDA_URL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + await usuario.getIdToken()
+        },
+        body: JSON.stringify(corpo)
+    });
+    const dados = await resposta.json().catch(() => ({}));
+    if (!resposta.ok) throw new Error(dados.erro || `erro ${resposta.status}`);
+    return dados;
+}
+
+const NOME_DO_SITE = { etec: 'Etec', fatec: 'Fatec' };
+
+// "20261" -> "2026"; só o 1º semestre entra, então o ano basta.
+function anosAlvo(disponiveis) {
+    return (disponiveis || []).filter((s) => s.endsWith('1')).slice(0, ANOS_DE_DEMANDA);
+}
+
+function renderizarSituacaoDaDemanda() {
+    const alvo = document.getElementById('demanda-situacao');
+    if (!situacaoDaDemanda) {
+        alvo.textContent = 'Não consegui falar com a função que busca a demanda. '
+            + 'Se ela ainda não foi publicada, faça o deploy das funções (coletar_demanda).';
+        return;
+    }
+
+    alvo.innerHTML = Object.keys(NOME_DO_SITE).map((site) => {
+        const coletados = situacaoDaDemanda.coletados?.[site] || {};
+        const anos = Object.keys(coletados).filter((s) => s.endsWith('1')).sort();
+        if (!anos.length) {
+            return `<div><strong>${NOME_DO_SITE[site]}:</strong> nada coletado ainda.</div>`;
+        }
+        const ultima = anos.map((s) => coletados[s].coletadoEm).filter(Boolean).sort().pop();
+        return `<div><strong>${NOME_DO_SITE[site]}:</strong> ${anos.map((s) => s.slice(0, 4)).join(', ')}
+            ${ultima ? `<span class="celula-nota">última coleta em ${new Date(ultima).toLocaleDateString('pt-BR')}</span>` : ''}</div>`;
+    }).join('');
+}
+
+async function carregarSituacaoDaDemanda() {
+    try {
+        situacaoDaDemanda = await chamarDemanda({ acao: 'situacao' });
+    } catch (err) {
+        console.warn('Não foi possível consultar a situação da demanda:', err);
+        situacaoDaDemanda = null;
+    }
+    renderizarSituacaoDaDemanda();
+}
+
+function renderizarSemPar(semParPorSite) {
+    const alvo = document.getElementById('demanda-sem-par');
+    const blocos = Object.entries(semParPorSite).filter(([, lista]) => lista.length);
+    alvo.hidden = !blocos.length;
+    alvo.innerHTML = blocos.map(([site, lista]) => `
+        <details>
+            <summary>${lista.length} curso(s) do site da ${NOME_DO_SITE[site]} que não achei no catálogo</summary>
+            <p>Aparecem no vestibular mas não têm página no Futuro+ com o mesmo nome. Se algum for um curso do
+            catálogo escrito de outro jeito, me avise o nome para o casamento ser ajustado.</p>
+            <ul>${lista.map((item) => `<li>${escapeHtml(item.curso)}
+                <span class="celula-nota">${item.inscritos} inscritos · ${item.vagas} vagas</span></li>`).join('')}</ul>
+        </details>`).join('');
+}
+
+// refazer: coleta de novo até os anos que já estavam gravados (útil depois de
+// incluir cursos no catálogo, para os anos antigos passarem a casar com eles).
+async function atualizarDemanda(refazer) {
+    const botoes = ['btn-atualizar-demanda', 'btn-refazer-demanda'].map((id) => document.getElementById(id));
+    botoes.forEach((b) => { b.disabled = true; });
+    document.getElementById('demanda-sem-par').hidden = true;
+
+    try {
+        mostrarStatus('status-demanda', 'Consultando os sites do vestibular...');
+        situacaoDaDemanda = await chamarDemanda({ acao: 'situacao' });
+
+        const tarefas = [];
+        Object.keys(NOME_DO_SITE).forEach((site) => {
+            const alvos = anosAlvo(situacaoDaDemanda.disponiveis?.[site]);
+            const coletados = situacaoDaDemanda.coletados?.[site] || {};
+            alvos.forEach((semestre, indice) => {
+                // O ano mais novo é sempre buscado de novo: é o que muda.
+                if (refazer || indice === 0 || !coletados[semestre]) tarefas.push({ site, semestre });
+            });
+        });
+
+        if (!tarefas.length) {
+            mostrarStatus('status-demanda', 'Os sites não listaram nenhum semestre para coletar.', 'erro');
+            return;
+        }
+
+        const semPar = {};
+        const erros = [];
+        let cursosAtualizados = 0;
+        for (const [indice, tarefa] of tarefas.entries()) {
+            const rotulo = `${NOME_DO_SITE[tarefa.site]} ${tarefa.semestre.slice(0, 4)}`;
+            mostrarStatus('status-demanda', `Coletando ${rotulo}... (${indice + 1} de ${tarefas.length})`);
+            try {
+                const resumo = await chamarDemanda({ acao: 'coletar', ...tarefa });
+                cursosAtualizados = Math.max(cursosAtualizados, resumo.cursos || 0);
+                // a lista para revisão é a do ano mais novo de cada site
+                if (!(tarefa.site in semPar)) semPar[tarefa.site] = resumo.semPar || [];
+            } catch (err) {
+                console.error(`Erro ao coletar a demanda de ${rotulo}:`, err);
+                erros.push(`${rotulo}: ${String(err.message).replace(/\.$/, '')}`);
+            }
+        }
+
+        await Promise.all([carregarCursos(), carregarSituacaoDaDemanda()]);
+        renderizarSemPar(semPar);
+
+        const comDemanda = cursosCache.filter((c) => c.demanda?.historico?.length).length;
+        if (erros.length === tarefas.length) {
+            mostrarStatus('status-demanda', `A coleta falhou. ${erros[0]}`, 'erro');
+        } else {
+            mostrarStatus('status-demanda',
+                `Demanda atualizada: ${comDemanda} curso(s) do catálogo têm números.`
+                + (erros.length ? ` ${erros.length} coleta(s) falharam: ${erros.join('; ')}.` : ''),
+                erros.length ? '' : 'ok');
+        }
+    } catch (err) {
+        console.error('Erro ao atualizar a demanda:', err);
+        mostrarStatus('status-demanda', 'Não foi possível atualizar a demanda: ' + err.message, 'erro');
+    } finally {
+        botoes.forEach((b) => { b.disabled = false; });
+    }
+}
+
+// ========================================================
+// Matriz curricular (dentro do formulário do curso)
+// ========================================================
+
+function renderizarMatrizesDoFormulario() {
+    const lista = document.getElementById('lista-matrizes');
+    if (!matrizesEmEdicao.length) {
+        lista.innerHTML = '<p class="lista-vazia">Nenhuma matriz cadastrada para este curso.</p>';
+        return;
+    }
+
+    lista.innerHTML = matrizesEmEdicao.map((matriz, indice) => {
+        const tecnicas = matriz.componentes.filter((c) => c.grupo === 'tecnica').length;
+        return `
+        <div class="matriz-item">
+            <div class="matriz-item-topo">
+                <div>
+                    <strong>${escapeHtml(matriz.titulo)}</strong>
+                    <span>${escapeHtml(duracaoDaMatriz(matriz))} · ${Number(matriz.cargaHoraria || 0).toLocaleString('pt-BR')} horas
+                        · ${tecnicas} disciplina(s) técnica(s)</span>
+                </div>
+                <button type="button" class="btn-remover" data-remover-matriz="${indice}">Remover</button>
+            </div>
+            <label for="matriz-destaques-${indice}">Etiquetas na página do curso (separe por vírgula)</label>
+            <input type="text" id="matriz-destaques-${indice}" data-destaques="${indice}"
+                value="${escapeHtml((matriz.destaques || []).join(', '))}">
+        </div>`;
+    }).join('');
+}
+
+// As etiquetas são editáveis: o que está digitado vale mais que o cálculo.
+function lerDestaquesDigitados() {
+    document.querySelectorAll('#lista-matrizes [data-destaques]').forEach((campo) => {
+        const matriz = matrizesEmEdicao[Number(campo.dataset.destaques)];
+        if (matriz) matriz.destaques = campo.value.split(',').map((d) => d.trim()).filter(Boolean);
+    });
+}
+
+async function receberPdfDaMatriz(arquivo) {
+    mostrarStatus('status-matriz', `Lendo ${arquivo.name}...`);
+    try {
+        const { matriz, texto } = await lerMatrizDoPdf(arquivo);
+        matriz.destaques = destaquesDaMatriz(matriz);
+
+        lerDestaquesDigitados();
+        const existente = matrizesEmEdicao.findIndex((m) => m.titulo === matriz.titulo);
+        if (existente >= 0) matrizesEmEdicao[existente] = matriz;
+        else matrizesEmEdicao.push(matriz);
+        renderizarMatrizesDoFormulario();
+
+        const curso = cursosCache.find((c) => c.id === editandoId);
+        const citaOCurso = curso && normalizar(texto).includes(normalizar(curso.nome));
+        const tecnicas = matriz.componentes.filter((c) => c.grupo === 'tecnica').length;
+        mostrarStatus('status-matriz',
+            `${existente >= 0 ? 'Matriz substituída' : 'Matriz lida'}: ${tecnicas} disciplina(s) técnica(s), `
+            + `${duracaoDaMatriz(matriz)}, ${Number(matriz.cargaHoraria).toLocaleString('pt-BR')} horas.`
+            + (citaOCurso ? '' : ` Atenção: o PDF não cita "${curso?.nome || 'este curso'}" — confira se é a matriz certa.`)
+            + ' Clique em "Salvar curso" para gravar.',
+            citaOCurso ? 'ok' : '');
+    } catch (err) {
+        console.error('Erro ao ler a matriz:', err);
+        mostrarStatus('status-matriz', 'Não consegui ler este PDF: ' + err.message, 'erro');
     }
 }
 
@@ -440,28 +561,36 @@ async function importarCsvDoCatalogo(arquivo) {
 
 function abrirFormulario(curso) {
     editandoId = curso.id;
+    // cópia: remover uma matriz e cancelar não pode mexer na tabela
+    matrizesEmEdicao = JSON.parse(JSON.stringify(curso.matrizes || []));
+
     document.getElementById('form-titulo').textContent = curso.nome;
     document.getElementById('f-duracao').value = curso.duracao || '';
     document.getElementById('f-carga').value = curso.cargaHoraria || '';
     document.getElementById('f-eixos').value = (curso.eixos || []).join(', ');
     document.getElementById('f-prerequisitos').value = curso.preRequisitos || '';
     document.getElementById('f-aptidao').checked = curso.provaAptidao === true;
+    document.getElementById('f-imagem').value = curso.imagemUrl || '';
     document.getElementById('f-plano-curso').value = curso.planoCursoUrl || '';
     document.getElementById('f-descricao').value = curso.descricao || '';
     document.getElementById('f-atuacao').value = curso.atuacao || '';
     document.getElementById('f-onde-trabalhar').value = curso.ondeTrabalhar || '';
+    mostrarStatus('status-matriz', '');
+    renderizarMatrizesDoFormulario();
     document.getElementById('modal-form').classList.add('aberto');
 }
 
 function fecharFormulario() {
     document.getElementById('modal-form').classList.remove('aberto');
     editandoId = null;
+    matrizesEmEdicao = [];
 }
 
 async function salvarCurso(evento) {
     evento.preventDefault();
     if (!editandoId) return;
 
+    lerDestaquesDigitados();
     const carga = document.getElementById('f-carga').value.trim();
     const dados = {
         duracao: document.getElementById('f-duracao').value.trim(),
@@ -469,10 +598,12 @@ async function salvarCurso(evento) {
         eixos: document.getElementById('f-eixos').value.split(',').map((e) => e.trim()).filter(Boolean),
         preRequisitos: document.getElementById('f-prerequisitos').value.trim(),
         provaAptidao: document.getElementById('f-aptidao').checked,
+        imagemUrl: document.getElementById('f-imagem').value.trim(),
         planoCursoUrl: document.getElementById('f-plano-curso').value.trim(),
         descricao: document.getElementById('f-descricao').value.trim(),
         atuacao: document.getElementById('f-atuacao').value.trim(),
         ondeTrabalhar: document.getElementById('f-onde-trabalhar').value.trim(),
+        matrizes: matrizesEmEdicao,
         atualizadoEm: new Date().toISOString()
     };
 
@@ -480,7 +611,7 @@ async function salvarCurso(evento) {
     // isso que permite revisar depois, na importação, só o que conflita.
     const antes = cursosCache.find((c) => c.id === editandoId) || {};
     const mexidos = Object.keys(dados).filter((campo) => {
-        if (campo === 'atualizadoEm') return false;
+        if (CAMPOS_FORA_DO_CATALOGO.includes(campo)) return false;
         const novo = dados[campo];
         const velho = antes[campo];
         // Campo nunca preenchido (undefined no Firestore) e valor novo "vazio"
@@ -508,6 +639,12 @@ async function salvarCurso(evento) {
 // Início
 // ========================================================
 
+function alternarFiltro(botao, ligado, textoLigado, textoDesligado) {
+    botao.classList.toggle('btn-primario', ligado);
+    botao.classList.toggle('btn-secundario', !ligado);
+    botao.textContent = ligado ? textoLigado : textoDesligado;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     onAuthStateChanged(auth, async (user) => {
         if (!user) {
@@ -526,6 +663,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('admin-email').textContent = user.email || '';
             document.getElementById('admin-app').style.display = 'block';
             await carregarCursos();
+            carregarSituacaoDaDemanda();
         } catch (err) {
             console.error('Erro ao verificar acesso de administrador:', err);
             document.getElementById('admin-app').style.display = 'none';
@@ -538,13 +676,16 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = 'login.html';
     });
 
-    const inputCsv = document.getElementById('input-csv-cursos');
-    document.getElementById('btn-importar-csv').addEventListener('click', () => inputCsv.click());
-    inputCsv.addEventListener('change', async (e) => {
-        const arquivo = e.target.files[0];
-        e.target.value = '';
-        if (arquivo) await importarCsvDoCatalogo(arquivo);
+    ligarZonaDeArquivo({
+        zona: 'zona-csv', botao: 'btn-importar-csv', input: 'input-csv-cursos', aoReceber: importarCsvDoCatalogo
     });
+    ligarZonaDeArquivo({
+        zona: 'zona-matriz', botao: 'btn-enviar-matriz', input: 'input-matriz-pdf', aoReceber: receberPdfDaMatriz
+    });
+
+    document.getElementById('btn-atualizar-demanda').addEventListener('click', () => atualizarDemanda(false));
+    document.getElementById('btn-refazer-demanda').addEventListener('click', () => atualizarDemanda(true));
+
     document.getElementById('busca-curso').addEventListener('input', renderizarTabela);
     document.getElementById('btn-filtrar-incompletos').addEventListener('click', () => {
         filtroIncompletos = !filtroIncompletos;
@@ -553,10 +694,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('btn-filtrar-editados').addEventListener('click', (e) => {
         filtroEditados = !filtroEditados;
-        e.target.classList.toggle('btn-primario', filtroEditados);
-        e.target.classList.toggle('btn-secundario', !filtroEditados);
-        e.target.textContent = filtroEditados ? '✏️ Mostrando os editados' : '✏️ Editados à mão';
+        alternarFiltro(e.target, filtroEditados, '✏️ Mostrando os editados', '✏️ Editados à mão');
         renderizarTabela();
+    });
+
+    document.getElementById('btn-filtrar-sem-matriz').addEventListener('click', (e) => {
+        filtroSemMatriz = !filtroSemMatriz;
+        alternarFiltro(e.target, filtroSemMatriz, 'Mostrando os sem matriz', 'Mostrar cursos sem matriz');
+        renderizarTabela();
+        if (filtroSemMatriz) document.querySelector('.tabela-container').scrollIntoView({ behavior: 'smooth' });
     });
 
     document.getElementById('tabela-cursos-corpo').addEventListener('click', (e) => {
@@ -564,6 +710,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!botao) return;
         const curso = cursosCache.find((c) => c.id === botao.dataset.id);
         if (curso) abrirFormulario(curso);
+    });
+
+    document.getElementById('lista-matrizes').addEventListener('click', (e) => {
+        const botao = e.target.closest('[data-remover-matriz]');
+        if (!botao) return;
+        lerDestaquesDigitados();
+        matrizesEmEdicao.splice(Number(botao.dataset.removerMatriz), 1);
+        renderizarMatrizesDoFormulario();
+        mostrarStatus('status-matriz', 'Matriz removida. Clique em "Salvar curso" para gravar.');
     });
 
     document.getElementById('btn-fechar-form').addEventListener('click', fecharFormulario);

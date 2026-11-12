@@ -441,8 +441,8 @@
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    margin: 18px 0;
+    gap: 8px 16px;
+    margin: 22px 0;
 }
 
 .paginacao:empty {
@@ -450,11 +450,23 @@
     margin: 0;
 }
 
+.pagina-botoes {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
 .pagina-botao {
-    min-width: 36px;
-    height: 36px;
-    padding: 0 10px;
-    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-width: 38px;
+    height: 38px;
+    padding: 0 11px;
+    border-radius: 12px;
     border: 1.5px solid var(--line);
     background: var(--surface);
     color: var(--ink-soft);
@@ -465,21 +477,101 @@
     transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 
-.pagina-botao:hover {
+.pagina-botao:hover:not(:disabled) {
     border-color: var(--blue);
     color: var(--blue-dark);
 }
 
 .pagina-botao--ativo,
-.pagina-botao--ativo:hover {
+.pagina-botao--ativo:hover:not(:disabled) {
     background: var(--blue);
     border-color: var(--blue);
     color: #fff;
+    box-shadow: 0 6px 14px -6px rgba(78, 110, 232, 0.7);
+}
+
+.pagina-botao--seta {
+    padding: 0 14px;
+    color: var(--blue-dark);
+}
+
+.pagina-botao:disabled {
+    opacity: 0.4;
+    cursor: default;
 }
 
 .pagina-reticencias {
     color: var(--ink-soft);
-    padding: 0 4px;
+    padding: 0 2px;
+}
+
+/* embaixo, o número ativo já diz onde a pessoa está */
+.pagina-resumo {
+    display: none;
+    font-size: 13px;
+    color: var(--ink-soft);
+}
+
+.pagina-resumo strong {
+    color: var(--ink);
+}
+
+/* No topo a paginação vira uma barra discreta: "Página 2 de 7" de um lado,
+   os números do outro, sem moldura em cada botão. */
+.paginacao--topo {
+    justify-content: space-between;
+    margin: 0 0 16px;
+    padding: 7px 8px 7px 18px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--surface);
+}
+
+.paginacao--topo .pagina-resumo {
+    display: block;
+}
+
+.paginacao--topo .pagina-botoes {
+    gap: 2px;
+}
+
+.paginacao--topo .pagina-botao {
+    min-width: 34px;
+    height: 34px;
+    padding: 0 9px;
+    border-color: transparent;
+    border-radius: 10px;
+    background: transparent;
+}
+
+.paginacao--topo .pagina-botao:hover:not(:disabled) {
+    border-color: transparent;
+    background: var(--blue-soft);
+}
+
+.paginacao--topo .pagina-botao--ativo,
+.paginacao--topo .pagina-botao--ativo:hover:not(:disabled) {
+    background: var(--blue);
+    color: #fff;
+    box-shadow: none;
+}
+
+.paginacao--topo .pagina-seta-texto {
+    display: none;
+}
+
+@media (max-width: 640px) {
+    .pagina-seta-texto {
+        display: none;
+    }
+
+    .pagina-botao--seta {
+        padding: 0 11px;
+    }
+
+    .paginacao--topo {
+        padding: 6px 6px 6px 14px;
+    }
 }
 
 @media (max-width: 640px) {
@@ -504,158 +596,168 @@
 .voltar-cursos {
     display: inline-block;
     margin-bottom: 14px;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--blue-dark);
-    text-decoration: none;
-}
-
-.curso-layout {
-    display: flex;
-    align-items: flex-start;
-    gap: 24px;
-}
-
-.curso-detalhe {
-    background: var(--surface);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-card);
-    padding: 26px;
-    max-width: 780px;
-    width: 100%;
-    margin-bottom: 40px;
-}
-
-/* Painel do Plano de Curso: só aparece quando o curso tem o PDF cadastrado
-   no Painel Admin (ver f-plano-curso em admin-cursos.html). */
-.curso-plano-pdf {
-    flex: 1;
-    min-width: 0;
-    position: sticky;
-    top: 20px;
-    background: var(--surface);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-card);
-    padding: 16px;
-    margin-bottom: 40px;
-}
-
-.curso-plano-pdf-cabecalho {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-
-.curso-plano-pdf-cabecalho h2 {
-    font-size: 15px;
-    color: var(--ink);
-}
-
-.curso-plano-pdf-cabecalho a {
-    font-size: 12.5px;
+    font-size: 13.5px;
     font-weight: 700;
     color: var(--blue-dark);
     text-decoration: none;
-    white-space: nowrap;
 }
 
-.curso-plano-pdf-cabecalho a:hover {
+.voltar-cursos:hover {
     text-decoration: underline;
 }
 
-.curso-plano-pdf iframe {
-    width: 100%;
-    height: 75vh;
-    min-height: 420px;
-    border: 1px solid var(--line);
-    border-radius: 10px;
+.curso-main {
+    max-width: 1500px;
 }
 
-/* Abaixo de 1024px o painel do PDF não cabe do lado: empilha embaixo do
-   conteúdo do curso, e o "sticky" vira um estorvo em vez de ajuda. */
-@media (max-width: 1024px) {
-    .curso-layout {
-        flex-direction: column;
-    }
-
-    .curso-plano-pdf {
-        position: static;
-        width: 100%;
-    }
-
-    .curso-plano-pdf iframe {
-        height: 70vh;
-    }
+.curso-pagina {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-bottom: 18px;
 }
 
-.curso-cabecalho h1 {
+.curso-pagina .icone {
+    flex-shrink: 0;
+    color: var(--blue);
+}
+
+/* ---- topo: nome à esquerda, capa à direita ---- */
+.curso-topo {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    align-items: center;
+}
+
+.curso-topo h1 {
     font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
-    font-size: 26px;
+    font-size: 28px;
     font-weight: 800;
     letter-spacing: -0.02em;
-    line-height: 1.2;
+    line-height: 1.15;
     color: var(--ink);
 }
 
 .curso-modalidades {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
-    margin-top: 10px;
+    gap: 8px;
+    margin-top: 14px;
 }
 
 .tag-modalidade {
-    font-size: 11.5px;
-    font-weight: 700;
-    padding: 4px 10px;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 6px 13px;
     border-radius: 99px;
     background: var(--blue-soft);
     color: var(--blue-dark);
 }
 
-/* ficha com duração, carga horária e eixo */
+.curso-capa {
+    position: relative;
+    height: 140px;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: #25357e;
+}
+
+.curso-capa img,
+.curso-capa-fundo {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* capa desenhada: cada eixo entra com as suas duas cores */
+.curso-capa--padrao {
+    background: linear-gradient(110deg, var(--capa-escura, #25357e) 0%, var(--capa-clara, #4e6ee8) 100%);
+}
+
+.curso-capa-selo {
+    position: absolute;
+    top: 50%;
+    right: 7%;
+    display: grid;
+    place-items: center;
+    height: 66%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.16);
+    color: #fff;
+    transform: translateY(-50%);
+}
+
+.curso-capa-selo svg {
+    width: 54%;
+    height: 54%;
+}
+
+.curso-capa-eixo {
+    position: absolute;
+    left: 22px;
+    bottom: 20px;
+    max-width: 62%;
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.25;
+    color: #fff;
+}
+
+/* sobre uma foto, o nome do eixo precisa de um fundo escuro para ser lido */
+.curso-capa--foto .curso-capa-eixo {
+    left: 0;
+    bottom: 0;
+    max-width: none;
+    width: 100%;
+    padding: 34px 22px 16px;
+    background: linear-gradient(to top, rgba(15, 20, 45, 0.78), rgba(15, 20, 45, 0));
+}
+
+/* ---- ficha: duração, carga horária e eixo ---- */
 .curso-ficha {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin: 18px 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr));
+    gap: 14px;
 }
 
 .curso-ficha-item {
-    flex: 1;
-    min-width: 150px;
-    padding: 12px 14px;
-    border-radius: 14px;
-    background: var(--bg);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 20px;
+    border-radius: var(--radius-lg);
+    background: var(--surface);
     border: 1px solid var(--line);
 }
 
 .curso-ficha-rotulo {
     display: block;
-    font-size: 11px;
+    font-size: 11.5px;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.05em;
     color: var(--ink-soft);
     margin-bottom: 3px;
 }
 
 .curso-ficha-item strong {
     font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
-    font-size: 15px;
+    font-size: 17px;
+    line-height: 1.25;
     color: var(--ink);
 }
 
-/* avisos que mudam quem pode se inscrever */
+/* ---- avisos que mudam quem pode se inscrever ---- */
 .curso-aviso {
     display: flex;
     flex-direction: column;
     gap: 3px;
-    padding: 13px 16px;
-    border-radius: 14px;
-    margin-bottom: 12px;
+    padding: 14px 18px;
+    border-radius: 16px;
     font-size: 13.5px;
     line-height: 1.5;
 }
@@ -677,20 +779,50 @@
     color: var(--blue-dark);
 }
 
-.curso-bloco {
-    margin-top: 22px;
+/* ---- cartões ---- */
+.curso-grade {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+}
+
+.curso-cartao {
+    min-width: 0;
+    padding: 22px;
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-card);
+}
+
+.curso-cartao h2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.25;
+    color: var(--ink);
+}
+
+.curso-cartao > h2 {
+    margin-bottom: 14px;
+}
+
+.curso-textos {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
 }
 
 .curso-bloco h2 {
-    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--ink);
-    margin-bottom: 7px;
+    margin-bottom: 8px;
 }
 
 .curso-bloco p {
-    font-size: 14px;
+    font-size: 14.5px;
     line-height: 1.65;
     color: var(--ink-soft);
 }
@@ -699,15 +831,15 @@
     list-style: none;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 7px;
 }
 
 .curso-unidades li {
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
-    gap: 4px 10px;
-    padding: 10px 14px;
+    gap: 2px 12px;
+    padding: 9px 14px;
     border-radius: 12px;
     background: var(--bg);
     border: 1px solid var(--line);
@@ -731,33 +863,501 @@
     color: var(--green-dark);
 }
 
+.curso-ver-todas {
+    display: inline-block;
+    margin-top: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--blue-dark);
+    text-decoration: none;
+}
+
+.curso-ver-todas:hover {
+    text-decoration: underline;
+}
+
+.curso-nota {
+    margin-top: 14px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+}
+
 .curso-fonte {
-    margin-top: 24px;
     font-size: 11.5px;
     color: var(--ink-soft);
 }
 
-@media (max-width: 640px) {
-    .curso-detalhe {
-        padding: 20px 18px;
+/* ---- demanda do vestibular ---- */
+.curso-demanda-corpo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 20px 24px;
+}
+
+.curso-demanda-texto {
+    flex: 1 1 220px;
+    min-width: 0;
+}
+
+.curso-demanda-texto p {
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+}
+
+.curso-demanda-texto p strong {
+    color: var(--ink);
+}
+
+.demanda-selo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 14px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: var(--blue-soft);
+}
+
+.demanda-selo strong {
+    display: block;
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 14.5px;
+    color: var(--ink);
+}
+
+.demanda-selo span {
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: var(--ink-soft);
+}
+
+.demanda-numero {
+    flex: 0 1 200px;
+    text-align: center;
+}
+
+.demanda-numero strong {
+    display: block;
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 44px;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--ink);
+}
+
+.demanda-numero span {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+}
+
+.demanda-grafico {
+    flex: 1 1 210px;
+    max-width: 340px;
+    margin: 0;
+}
+
+.demanda-grafico figcaption {
+    margin-bottom: 8px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--ink-soft);
+}
+
+.demanda-colunas {
+    list-style: none;
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+    padding: 0;
+    margin: 0;
+}
+
+.demanda-coluna {
+    position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    border-radius: 8px;
+    outline: none;
+    cursor: default;
+}
+
+.demanda-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    width: 100%;
+    height: 132px;
+    border-bottom: 1.5px solid var(--line);
+}
+
+/* extremidade arredondada só em cima: a barra nasce da linha de base */
+.demanda-barra {
+    width: min(34px, 72%);
+    border-radius: 4px 4px 0 0;
+    background: #8094ee;
+    transition: background 0.15s;
+}
+
+.demanda-coluna--atual .demanda-barra,
+.demanda-coluna:hover .demanda-barra,
+.demanda-coluna:focus-visible .demanda-barra {
+    background: var(--blue-dark);
+}
+
+/* o valor fica sempre visível só no ano mais recente; nos outros aparece ao
+   passar o mouse ou focar */
+.demanda-valor {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink);
+    visibility: hidden;
+}
+
+.demanda-coluna--atual .demanda-valor,
+.demanda-coluna:hover .demanda-valor,
+.demanda-coluna:focus-visible .demanda-valor {
+    visibility: visible;
+}
+
+.demanda-ano {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-soft);
+}
+
+.demanda-coluna--atual .demanda-ano {
+    font-weight: 800;
+    color: var(--ink);
+}
+
+.demanda-coluna:focus-visible {
+    box-shadow: 0 0 0 2px var(--blue);
+}
+
+.demanda-dica {
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 6px);
+    z-index: 5;
+    transform: translateX(-50%);
+    width: max-content;
+    max-width: 220px;
+    padding: 8px 11px;
+    border-radius: 10px;
+    background: var(--ink);
+    color: #fff;
+    font-size: 11.5px;
+    line-height: 1.45;
+    text-align: center;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.12s;
+}
+
+.demanda-dica strong {
+    display: block;
+    font-size: 12.5px;
+}
+
+.demanda-coluna:hover .demanda-dica,
+.demanda-coluna:focus-visible .demanda-dica {
+    opacity: 1;
+}
+
+/* nas pontas a dica encosta na borda da coluna para não sair do cartão */
+.demanda-coluna:first-child .demanda-dica {
+    left: 0;
+    transform: none;
+}
+
+.demanda-coluna:last-child .demanda-dica {
+    left: auto;
+    right: 0;
+    transform: none;
+}
+
+.demanda-tabela {
+    margin-top: 16px;
+}
+
+.demanda-tabela summary {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--blue-dark);
+    cursor: pointer;
+}
+
+.demanda-tabela table,
+.matriz-etapa table {
+    width: 100%;
+    margin-top: 10px;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.demanda-tabela th,
+.demanda-tabela td,
+.matriz-etapa th,
+.matriz-etapa td {
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    color: var(--ink);
+}
+
+.demanda-tabela th,
+.matriz-etapa thead th {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-soft);
+}
+
+.demanda-tabela td:not(:first-child),
+.demanda-tabela th:not(:first-child),
+.matriz-etapa td:last-child,
+.matriz-etapa thead th:last-child {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---- matriz curricular ---- */
+.curso-cartao-topo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px 16px;
+    margin-bottom: 12px;
+}
+
+.btn-matriz-completa {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 15px;
+    border: none;
+    border-radius: 99px;
+    background: var(--blue-soft);
+    color: var(--blue-dark);
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.btn-matriz-completa .icone {
+    color: inherit;
+}
+
+.btn-matriz-completa:hover {
+    background: var(--blue);
+    color: #fff;
+}
+
+.matriz-abas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.matriz-aba {
+    padding: 7px 13px;
+    border: 1.5px solid var(--line);
+    border-radius: 99px;
+    background: var(--surface);
+    color: var(--ink-soft);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.matriz-aba--ativa {
+    border-color: var(--blue);
+    background: var(--blue);
+    color: #fff;
+}
+
+.curso-matriz-sub {
+    margin-bottom: 12px;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+}
+
+.curso-etiquetas {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0;
+    margin: 0;
+}
+
+.curso-etiquetas li {
+    padding: 8px 14px;
+    border-radius: 99px;
+    border: 1px solid #dfe4fb;
+    background: var(--blue-soft);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.curso-etiquetas .curso-etiqueta--mais {
+    border-style: dashed;
+    background: transparent;
+    font-weight: 500;
+    color: var(--ink-soft);
+}
+
+/* matriz completa, no painel que abre por cima da página */
+.matriz-dialogo {
+    width: min(720px, calc(100vw - 28px));
+}
+
+.matriz-etapas {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 16px;
+    padding-top: 16px;
+    padding-right: 4px;
+    border-top: 1px solid var(--line);
+    overflow-y: auto;
+}
+
+.matriz-etapa h3 {
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink);
+    text-transform: capitalize;
+}
+
+.matriz-etapa .matriz-grupo th {
+    padding-top: 12px;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--blue-dark);
+    border-bottom: none;
+}
+
+.matriz-tipo {
+    margin-left: 8px;
+    font-size: 11px;
+    color: var(--ink-soft);
+}
+
+/* ---- plano de curso em PDF: só aparece quando o curso tem o link
+   cadastrado no Painel Admin (ver f-plano-curso em admin-cursos.html) ---- */
+.curso-plano-pdf {
+    margin-bottom: 40px;
+}
+
+.curso-plano-pdf[hidden] {
+    display: none;
+}
+
+.curso-plano-pdf-cabecalho {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.curso-plano-pdf-cabecalho h2 {
+    font-size: 17px;
+}
+
+.curso-plano-pdf-cabecalho a {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--blue-dark);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.curso-plano-pdf-cabecalho a:hover {
+    text-decoration: underline;
+}
+
+.curso-plano-pdf iframe {
+    width: 100%;
+    height: 75vh;
+    min-height: 420px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+}
+
+@media (min-width: 900px) {
+    .curso-topo {
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+        gap: 28px;
     }
 
-    .curso-cabecalho h1 {
-        font-size: 22px;
+    .curso-topo h1 {
+        font-size: 36px;
+    }
+
+    .curso-capa {
+        height: 176px;
+    }
+
+    .curso-grade {
+        grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+        align-items: stretch;
+    }
+
+    .curso-grade--dados {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .curso-grade--unica {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .curso-cartao {
+        padding: 18px 16px;
     }
 
     .curso-unidade-km {
         margin-left: 0;
     }
+
+    .demanda-grafico {
+        max-width: none;
+    }
+
+    /* sem foto, a capa é só enfeite: no celular ocupa menos altura */
+    .curso-capa--padrao {
+        height: 104px;
+    }
 }
 
-.curso-ver-todas {
-    display: inline-block;
-    margin-top: 10px;
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--blue-dark);
-    text-decoration: none;
+@media (prefers-reduced-motion: reduce) {
+    .demanda-barra,
+    .demanda-dica,
+    .btn-matriz-completa {
+        transition: none;
+    }
 }
 
 /* =========================================================

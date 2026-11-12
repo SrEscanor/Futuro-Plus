@@ -34,32 +34,137 @@
     <main id="admin-app" style="display:none;">
         <div class="container-admin">
 
+            <!-- ---------- AS TRÊS FONTES DE DADOS DE UM CURSO ---------- -->
+            <div class="painel-fontes">
+
+                <section class="fonte-card" aria-labelledby="fonte-csv-titulo">
+                    <div class="fonte-cabecalho">
+                        <span class="fonte-icone" aria-hidden="true">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+                                <path d="M14 3v5h5M9 13h6M9 17h6" />
+                            </svg>
+                        </span>
+                        <div>
+                            <h2 id="fonte-csv-titulo">Catálogo de cursos</h2>
+                            <p>Descrição, eixo, duração e carga horária, do CSV oficial do CPS.</p>
+                        </div>
+                    </div>
+
+                    <ol class="fonte-passos">
+                        <li>
+                            <span class="fonte-passo-numero">1</span>
+                            <div>
+                                <strong>Baixe o CSV no site do CPS</strong>
+                                <span>Botão "Download CSV (Excel)" em
+                                    <a href="https://www.cps.sp.gov.br/cursos-etec/" target="_blank"
+                                        rel="noopener">cursos-etec</a> ou
+                                    <a href="https://www.cps.sp.gov.br/cursos-fatec/" target="_blank"
+                                        rel="noopener">cursos-fatec</a>.</span>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="fonte-passo-numero">2</span>
+                            <div>
+                                <strong>Diga de qual catálogo é o arquivo</strong>
+                                <div class="escolha-nivel" role="radiogroup" aria-label="Catálogo do arquivo">
+                                    <label class="escolha-nivel-opcao">
+                                        <input type="radio" name="nivel-csv" value="tecnico" checked>
+                                        <span>Cursos técnicos <small>Etec</small></span>
+                                    </label>
+                                    <label class="escolha-nivel-opcao">
+                                        <input type="radio" name="nivel-csv" value="superior">
+                                        <span>Cursos superiores <small>Fatec</small></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="fonte-passo-numero">3</span>
+                            <div>
+                                <strong>Envie o arquivo</strong>
+                                <div class="zona-arquivo" id="zona-csv">
+                                    <span>Arraste o CSV para cá ou</span>
+                                    <button type="button" id="btn-importar-csv" class="btn btn-primario">Escolher
+                                        arquivo</button>
+                                    <input type="file" id="input-csv-cursos" accept=".csv,text/csv" hidden>
+                                </div>
+                                <span>Nada é gravado na hora: antes você vê o que entra de novo e o que seria
+                                    substituído, e escolhe.</span>
+                            </div>
+                        </li>
+                    </ol>
+
+                    <div id="status-importacao" class="status-importacao" role="status"></div>
+                </section>
+
+                <section class="fonte-card" aria-labelledby="fonte-demanda-titulo">
+                    <div class="fonte-cabecalho">
+                        <span class="fonte-icone" aria-hidden="true">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
+                            </svg>
+                        </span>
+                        <div>
+                            <h2 id="fonte-demanda-titulo">Demanda do vestibular</h2>
+                            <p>Inscritos por vaga de cada curso, buscados nos sites do Vestibulinho (Etec) e do
+                                Vestibular (Fatec).</p>
+                        </div>
+                    </div>
+
+                    <div class="demanda-situacao" id="demanda-situacao">Consultando o que já foi coletado...</div>
+
+                    <div class="fonte-acoes">
+                        <button type="button" id="btn-atualizar-demanda" class="btn btn-primario">Atualizar
+                            demanda</button>
+                    </div>
+                    <p class="fonte-nota">Busca o 1º semestre dos últimos 5 anos: os anos que ainda faltam e, sempre,
+                        o mais recente. Leva cerca de um minuto por ano; não feche a página enquanto roda. Use duas
+                        vezes por ano, quando sair a demanda nova.</p>
+                    <p class="fonte-nota">Importou cursos novos no catálogo depois da última coleta?
+                        <button type="button" id="btn-refazer-demanda" class="btn-link">Buscar os 5 anos de
+                            novo</button>, para os anos antigos passarem a contar para esses cursos também.</p>
+
+                    <div id="status-demanda" class="status-importacao" role="status"></div>
+                    <div id="demanda-sem-par" class="demanda-sem-par" hidden></div>
+                </section>
+
+                <section class="fonte-card" aria-labelledby="fonte-matriz-titulo">
+                    <div class="fonte-cabecalho">
+                        <span class="fonte-icone" aria-hidden="true">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 3 2 8l10 5 10-5zM2 13l10 5 10-5M2 18l10 5 10-5" />
+                            </svg>
+                        </span>
+                        <div>
+                            <h2 id="fonte-matriz-titulo">Matriz curricular</h2>
+                            <p>As disciplinas de cada curso, lidas do PDF da matriz gerado pelo SIGA.</p>
+                        </div>
+                    </div>
+
+                    <div class="demanda-situacao" id="matriz-situacao"></div>
+                    <p class="fonte-nota">Cada curso recebe a sua: abra o curso no lápis (✏️) da tabela e envie o
+                        PDF na seção "Matriz curricular". As disciplinas técnicas com mais horas viram as etiquetas
+                        da página do curso.</p>
+                    <div class="fonte-acoes">
+                        <button type="button" id="btn-filtrar-sem-matriz" class="btn btn-secundario">Mostrar cursos
+                            sem matriz</button>
+                    </div>
+                </section>
+            </div>
+
             <div class="toolbar">
                 <div class="busca-area">
                     <input type="search" id="busca-curso" placeholder="Buscar curso, eixo ou modalidade...">
                 </div>
                 <div class="acoes-toolbar">
-                    <select id="select-nivel-csv" class="select-tipo-importacao" title="Nível dos cursos deste CSV">
-                        <option value="tecnico">CSV técnico (Etec)</option>
-                        <option value="superior">CSV superior (Fatec)</option>
-                    </select>
-                    <button type="button" id="btn-importar-csv" class="btn btn-secundario">⬆ Enviar CSV do CPS</button>
-                    <button type="button" id="btn-filtrar-editados" class="btn btn-secundario">✏️ Editados à mão</button>
-                    <input type="file" id="input-csv-cursos" accept=".csv,text/csv" style="display:none;">
+                    <button type="button" id="btn-filtrar-editados" class="btn btn-secundario">✏️ Editados à
+                        mão</button>
                 </div>
-                <label class="opcao-importacao" for="chk-sobrescrever">
-                    <input type="checkbox" id="chk-sobrescrever" checked>
-                    Deixar o catálogo corrigir o que já está preenchido
-                </label>
             </div>
-
-            <div id="status-importacao" class="status-importacao" style="display:none;"></div>
-
-            <p class="dica-toolbar">Para atualizar o catálogo, baixe o CSV em cps.sp.gov.br/cursos-etec (cursos
-                técnicos) ou cps.sp.gov.br/cursos-fatec (cursos superiores), ambos com o botão "Download CSV
-                (Excel)", escolha o nível certo ao lado e envie aqui. Com a opção acima marcada, o catálogo corrige
-                os campos que ele publica; o que ele deixa em branco (a duração de várias especializações, por
-                exemplo) continua como você preencheu. Desmarque para só preencher campos vazios.</p>
 
             <div id="alerta-incompletos" class="alerta-localizacao" style="display:none;">
                 <div id="alerta-incompletos-texto"></div>
@@ -74,7 +179,7 @@
                             <th>Eixo</th>
                             <th>Duração</th>
                             <th>Carga horária</th>
-                            <th>Pré-requisito</th>
+                            <th>Demanda</th>
                             <th>Unidades</th>
                             <th></th>
                         </tr>
@@ -90,6 +195,7 @@
         </div>
     </main>
 
+    <!-- ---------- MODAL: EDITAR CURSO ---------- -->
     <div id="modal-form" class="modal-overlay">
         <div class="modal">
             <div class="modal-cabecalho">
@@ -111,7 +217,7 @@
                             </div>
                             <div class="campo">
                                 <label for="f-carga">Carga horária (horas)</label>
-                                <input type="number" id="f-carga" min="0" step="10" placeholder="Ex: 400">
+                                <input type="number" id="f-carga" min="0" step="1" placeholder="Ex: 400">
                             </div>
                         </div>
 
@@ -138,7 +244,28 @@
                     </div>
 
                     <div class="secao-form">
+                        <h3>Matriz curricular</h3>
+                        <div id="lista-matrizes" class="lista-matrizes"></div>
+                        <div class="zona-arquivo zona-arquivo--compacta" id="zona-matriz">
+                            <span>Arraste o PDF da matriz (SIGA) para cá ou</span>
+                            <button type="button" id="btn-enviar-matriz" class="btn btn-secundario">Escolher
+                                PDF</button>
+                            <input type="file" id="input-matriz-pdf" accept="application/pdf,.pdf" hidden>
+                        </div>
+                        <div id="status-matriz" class="status-importacao" role="status"></div>
+                        <small class="campo-dica">Um curso pode ter mais de uma matriz (M-Tec, técnico modular…).
+                            O PDF não é guardado: só as disciplinas e as cargas horárias. Vale ao salvar o
+                            curso.</small>
+                    </div>
+
+                    <div class="secao-form">
                         <h3>Material do curso</h3>
+                        <div class="campo">
+                            <label for="f-imagem">Imagem de capa (link)</label>
+                            <input type="url" id="f-imagem" placeholder="https://...">
+                            <small class="campo-dica">Foto que aparece no topo da página do curso. Sem ela, a
+                                página usa uma capa azul com o nome do eixo.</small>
+                        </div>
                         <div class="campo">
                             <label for="f-plano-curso">Link do Plano de Curso (PDF)</label>
                             <input type="url" id="f-plano-curso" placeholder="https://...">
@@ -172,27 +299,6 @@
                     <button type="submit" class="btn btn-primario">Salvar curso</button>
                 </div>
             </form>
-        </div>
-    </div>
-
-    <!-- ---------- MODAL: REVISÃO ANTES DE SUBSTITUIR ---------- -->
-    <div id="modal-revisao" class="modal-overlay">
-        <div class="modal">
-            <div class="modal-cabecalho">
-                <h2>Revisar antes de substituir</h2>
-                <button type="button" id="btn-cancelar-revisao" class="btn-fechar-modal"
-                    aria-label="Cancelar">&times;</button>
-            </div>
-
-            <div class="modal-corpo">
-                <p id="revisao-resumo" class="dica-toolbar"></p>
-                <div id="lista-conflitos"></div>
-            </div>
-
-            <div class="modal-rodape">
-                <button type="button" id="btn-manter-meus" class="btn btn-secundario">Manter todos os meus</button>
-                <button type="button" id="btn-aplicar-revisao" class="btn btn-primario">Aplicar</button>
-            </div>
         </div>
     </div>
 

@@ -62,6 +62,13 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // Demanda do vestibular, por unidade e semestre: só a função
+    // coletar_demanda (Admin SDK) lê e escreve aqui. O que o site mostra é o
+    // resumo por curso, que a função grava em cursos/{id}.demanda.
+    match /demanda/{documento=**} {
+      allow read, write: if false;
+    }
+
     // Avisos que o admin manda (modal ao entrar e/ou sino no topo). Cada
     // notificação escolhe o público (conta, visitante ou todo mundo), então a
     // leitura é pública como o resto do conteúdo institucional — só admin

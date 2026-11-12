@@ -843,3 +843,590 @@ tbody tr:hover {
 .opcao-radio[hidden] {
     display: none !important;
 }
+
+/* =========================================================
+   Painel de cursos: as três fontes de dados (catálogo em CSV,
+   demanda do vestibular e matriz curricular)
+   ========================================================= */
+.painel-fontes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.fonte-card {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 20px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+}
+
+.fonte-cabecalho {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.fonte-icone {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: var(--blue-soft);
+    color: var(--blue-dark);
+}
+
+.fonte-cabecalho h2 {
+    font-size: 16px;
+    color: var(--ink);
+}
+
+.fonte-cabecalho p,
+.fonte-nota {
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+}
+
+.fonte-passos {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.fonte-passos li {
+    display: flex;
+    gap: 10px;
+}
+
+.fonte-passos li > div {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+    flex: 1;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+}
+
+.fonte-passos strong {
+    font-size: 13.5px;
+    color: var(--ink);
+}
+
+.fonte-passo-numero {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--blue);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.escolha-nivel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.escolha-nivel-opcao {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    cursor: pointer;
+}
+
+.escolha-nivel-opcao small {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--ink-soft);
+}
+
+.escolha-nivel-opcao input {
+    accent-color: var(--blue);
+}
+
+.escolha-nivel-opcao:has(input:checked) {
+    border-color: var(--blue);
+    background: var(--blue-soft);
+}
+
+.zona-arquivo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 18px 14px;
+    border: 2px dashed #c9cfee;
+    border-radius: var(--radius-md);
+    background: var(--bg);
+    font-size: 13px;
+    color: var(--ink-soft);
+    text-align: center;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.zona-arquivo--compacta {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+}
+
+.zona-arquivo--sobre {
+    border-color: var(--blue);
+    background: var(--blue-soft);
+    color: var(--blue-dark);
+}
+
+.fonte-acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.fonte-card .status-importacao,
+.secao-form .status-importacao {
+    margin-bottom: 0;
+}
+
+.secao-form .status-importacao {
+    margin-top: 8px;
+}
+
+.demanda-situacao {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ink);
+}
+
+.celula-nota {
+    display: block;
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--ink-soft);
+}
+
+.demanda-situacao .celula-nota,
+.demanda-sem-par .celula-nota {
+    display: inline;
+    margin-left: 6px;
+}
+
+.demanda-sem-par {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+}
+
+.demanda-sem-par summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--blue-dark);
+}
+
+.demanda-sem-par p {
+    margin: 8px 0;
+    line-height: 1.5;
+}
+
+.demanda-sem-par ul {
+    margin-left: 18px;
+    line-height: 1.6;
+}
+
+/* ---- matrizes dentro do formulário do curso ---- */
+.lista-matrizes {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.matriz-item {
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+}
+
+.matriz-item-topo {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.matriz-item-topo strong {
+    display: block;
+    font-size: 13.5px;
+    color: var(--ink);
+}
+
+.matriz-item-topo span {
+    font-size: 12px;
+    color: var(--ink-soft);
+}
+
+.matriz-item label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    margin-bottom: 5px;
+}
+
+.matriz-item input {
+    width: 100%;
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--line);
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--ink);
+    background: var(--surface);
+    outline: none;
+}
+
+.matriz-item input:focus {
+    border-color: var(--blue);
+}
+
+/* ---- prévia da importação do CSV ---- */
+.modal--largo {
+    max-width: 920px;
+}
+
+.previa-arquivo {
+    margin-top: 2px;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+}
+
+.previa-resumo {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.previa-numero {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--line);
+    background: var(--surface);
+}
+
+.previa-numero strong {
+    font-family: "Sora", "Segoe UI", Arial, sans-serif;
+    font-size: 24px;
+    line-height: 1.1;
+    color: var(--ink);
+}
+
+.previa-numero span {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.previa-numero small {
+    font-size: 11.5px;
+    color: var(--ink-soft);
+}
+
+.previa-numero--novo { border-left-color: var(--green); }
+.previa-numero--preencher { border-left-color: var(--blue); }
+.previa-numero--substituir { border-left-color: var(--gold); }
+
+.previa-numero--zero strong,
+.previa-numero--zero span {
+    color: var(--ink-soft);
+}
+
+.previa-secao {
+    margin-bottom: 18px;
+}
+
+.previa-secao-topo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 10px 20px;
+    margin-bottom: 12px;
+}
+
+.previa-secao-topo > div:first-child {
+    flex: 1 1 320px;
+}
+
+.previa-secao h3 {
+    font-size: 15px;
+    color: var(--ink);
+    margin-bottom: 4px;
+}
+
+.previa-secao p {
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+}
+
+.previa-atalhos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+}
+
+.btn-link {
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--blue-dark);
+    cursor: pointer;
+}
+
+.btn-link:hover {
+    text-decoration: underline;
+}
+
+.btn-link[hidden] {
+    display: none;
+}
+
+.previa-curso {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    margin-bottom: 10px;
+    overflow: hidden;
+}
+
+.previa-curso-nome {
+    padding: 9px 14px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.previa-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    cursor: pointer;
+}
+
+.previa-item + .previa-item {
+    border-top: 1px solid var(--line);
+}
+
+.previa-item > input {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    margin-top: 2px;
+    accent-color: var(--blue);
+    cursor: pointer;
+}
+
+.previa-item-corpo {
+    flex: 1;
+    min-width: 0;
+}
+
+.previa-campo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 7px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--ink-soft);
+}
+
+.previa-selo-manual {
+    padding: 2px 8px;
+    border-radius: 20px;
+    background: var(--gold-soft);
+    color: #8a5a05;
+    font-size: 10.5px;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.previa-valores {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.previa-valor {
+    max-height: 132px;
+    overflow-y: auto;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    overflow-wrap: anywhere;
+}
+
+.previa-valor--novo {
+    background: var(--blue-soft);
+    color: var(--blue-dark);
+}
+
+.previa-rotulo {
+    display: block;
+    margin-bottom: 3px;
+    font-size: 10.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+/* desmarcado: o valor de hoje é o que fica, então é ele que ganha destaque */
+.previa-item:has(> input:not(:checked)) .previa-valor--novo {
+    background: var(--bg);
+    color: var(--ink-soft);
+    text-decoration: line-through;
+}
+
+.previa-item:has(> input:not(:checked)) .previa-valor:not(.previa-valor--novo) {
+    background: var(--green-soft);
+    color: #1d6b49;
+}
+
+.previa-detalhes summary {
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--blue-dark);
+}
+
+.previa-lista-simples {
+    margin: 10px 0 0 18px;
+    max-height: 220px;
+    overflow-y: auto;
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: var(--ink-soft);
+}
+
+.previa-nada {
+    padding: 14px 16px;
+    border-radius: var(--radius-sm);
+    background: var(--green-soft);
+    color: #1d6b49;
+    font-size: 13.5px;
+}
+
+.previa-contagem {
+    margin-right: auto;
+    align-self: center;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+}
+
+@media (max-width: 640px) {
+    .previa-valores,
+    .escolha-nivel {
+        grid-template-columns: 1fr;
+    }
+
+    .modal-rodape {
+        flex-wrap: wrap;
+    }
+
+    .previa-contagem {
+        flex-basis: 100%;
+    }
+}
+
+/* ---- cartão de importação em uma faixa só (painel de unidades) ---- */
+.escolha-nivel--tres {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+@media (min-width: 900px) {
+    .fonte-card--linha .fonte-passos {
+        flex-direction: row;
+        gap: 28px;
+    }
+
+    .fonte-card--linha .fonte-passos li {
+        flex: 1;
+        min-width: 0;
+    }
+}
+
+@media (max-width: 640px) {
+    .escolha-nivel--tres {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ---- prévia: o que entra e o que sai de uma lista ---- */
+.previa-diferenca {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-bottom: 8px;
+    font-size: 12.5px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.previa-entra {
+    color: #1d6b49;
+}
+
+.previa-sai {
+    color: #a41c1c;
+}
+
+/* botão em forma de link dentro de uma frase */
+.fonte-nota .btn-link {
+    font-size: inherit;
+}

@@ -2,6 +2,9 @@ import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { localizarUnidade } from './geocodificacao.js';
 import { parseCsvLine } from './csv.js';
+import {
+    escritasDoPlano, ligarZonaDeArquivo, planejarImportacao, revisarImportacao
+} from './importacao-csv.js';
 import { logoPadraoPorTipo, LOGO_FALLBACK } from './card-unidade.js';
 import {
     collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, writeBatch
@@ -818,15 +821,15 @@ async function excluirInstituicao(id) {
     }
 }
 
-async function importarEmLotes(instituicoes) {
-    const TAMANHO_LOTE = 400;
-
-    // O próprio CSV do CPS às vezes repete um código entre uma unidade em
-    // funcionamento e uma "a implantar" que ainda não tem código definitivo
-    // (ex.: duas Fatecs com código "309"). Se as duas caíssem no mesmo id,
-    // a segunda sobrescreveria a primeira sem aviso. Aqui, ao achar um
-    // código repetido dentro do próprio arquivo, a partir da segunda
-    // ocorrência o id passa a vir do nome, para não colidir.
+// Dá um id a cada unidade do arquivo.
+//
+// O próprio CSV do CPS às vezes repete um código entre uma unidade em
+// funcionamento e uma "a implantar" que ainda não tem código definitivo
+// (ex.: duas Fatecs com código "309"). Se as duas caíssem no mesmo id,
+// a segunda sobrescreveria a primeira sem aviso. Aqui, ao achar um
+// código repetido dentro do próprio arquivo, a partir da segunda
+// ocorrência o id passa a vir do nome, para não colidir.
+function unidadesComId(instituicoes) {
     const idsUsados = new Set();
     const colisoes = [];
     const comId = instituicoes.map((instituicao) => {
@@ -838,20 +841,23 @@ async function importarEmLotes(instituicoes) {
         idsUsados.add(id);
         return { id, instituicao };
     });
+    return { comId, colisoes };
+}
 
-    for (let i = 0; i < comId.length; i += TAMANHO_LOTE) {
-        const lote = comId.slice(i, i + TAMANHO_LOTE);
+// escritas: Map(id -> campos a gravar), já decididas na janela de revisão.
+async function gravarEmLotes(escritas) {
+    const TAMANHO_LOTE = 400;
+    const lista = [...escritas.entries()].filter(([, dados]) => Object.keys(dados).length);
+    const agora = new Date().toISOString();
+
+    for (let i = 0; i < lista.length; i += TAMANHO_LOTE) {
         const batch = writeBatch(db);
-        for (const { id, instituicao } of lote) {
-            batch.set(doc(db, INSTITUICOES_COLLECTION, id), {
-                ...instituicao,
-                atualizadoEm: new Date().toISOString()
-            }, { merge: true });
-        }
+        lista.slice(i, i + TAMANHO_LOTE).forEach(([id, dados]) => {
+            batch.set(doc(db, INSTITUICOES_COLLECTION, id), { ...dados, atualizadoEm: agora }, { merge: true });
+        });
         await batch.commit();
     }
-
-    return colisoes;
+    return lista.length;
 }
 
 // ========================================================
@@ -1002,45 +1008,71 @@ function lerArquivoComoTexto(arquivo) {
     });
 }
 
-async function tratarImportacaoCsv(event) {
-    const arquivo = event.target.files[0];
-    event.target.value = '';
-    if (!arquivo) return;
-
+function mostrarStatusDaImportacao(texto, tipo = '') {
     const status = document.getElementById('status-importacao');
-    status.style.display = 'block';
-    status.textContent = 'Lendo arquivo...';
+    status.textContent = texto;
+    status.className = `status-importacao${tipo ? ` status-importacao--${tipo}` : ''}`;
+    status.style.display = texto ? 'block' : 'none';
+}
 
-    const tipoForcado = document.getElementById('select-tipo-importacao').value;
+// Nada é gravado direto: o arquivo é comparado com o cadastro e a janela de
+// revisão mostra as unidades novas, os campos vazios que seriam preenchidos
+// e cada informação que seria substituída.
+async function importarCsvDeUnidades(arquivo) {
+    mostrarStatusDaImportacao(`Lendo ${arquivo.name}...`);
+    const tipoForcado = document.querySelector('input[name="tipo-csv"]:checked').value;
 
     try {
         const texto = await lerArquivoComoTexto(arquivo);
         const instituicoes = csvParaInstituicoes(texto, tipoForcado);
 
         if (!instituicoes.length) {
-            status.textContent = 'Nenhuma unidade encontrada no arquivo. Verifique se é o CSV exportado corretamente.';
+            mostrarStatusDaImportacao(
+                'Nenhuma unidade encontrada no arquivo. Verifique se é o CSV de unidades exportado do CPS.', 'erro');
             return;
         }
 
-        const confirmar = confirm(
-            `Foram encontradas ${instituicoes.length} unidades no CSV${tipoForcado ? ` (importando todas como ${tipoForcado})` : ''}.\n` +
-            `Unidades com o mesmo código serão atualizadas; as demais serão criadas.\n\n` +
-            `Deseja importar agora?`
-        );
-        if (!confirmar) {
-            status.style.display = 'none';
+        const existentes = new Map(instituicoesCache.map((e) => [e.id, e]));
+        const { comId, colisoes } = unidadesComId(instituicoes);
+        const itens = comId.map(({ id, instituicao }) => {
+            const dados = { ...instituicao };
+            // Quando o nome não começa com "Etec" ou "Fatec" e ninguém escolheu
+            // o tipo do arquivo, o tipo lido é só um palpite: não vale trocar
+            // o que já está no cadastro por ele.
+            const tipoIncerto = !tipoForcado && !/^(etec|fatec)\b/i.test(instituicao.nome);
+            if (tipoIncerto && existentes.has(id)) delete dados.tipo;
+            return { id, nome: instituicao.nome, dados };
+        });
+
+        const plano = planejarImportacao(itens, existentes);
+        mostrarStatusDaImportacao('Arquivo lido. Revise na janela o que vai mudar...');
+        const manter = await revisarImportacao(plano, {
+            descricao: `${arquivo.name} · ${instituicoes.length} unidade(s)`
+                + (tipoForcado ? ` · todas como ${tipoForcado}` : ''),
+            rotulos: { ...ROTULO_CAMPO, logotipoZipUrl: 'pacote do logotipo' },
+            termos: { novos: 'unidade(s) nova(s)', iguais: 'unidade(s) igual(is)' }
+        });
+        if (manter === null) {
+            mostrarStatusDaImportacao('Importação cancelada. Nada foi alterado.');
             return;
         }
 
-        status.textContent = `Importando ${instituicoes.length} unidades...`;
-        const colisoes = await importarEmLotes(instituicoes);
-        status.textContent = colisoes.length
-            ? `Importação concluída: ${instituicoes.length} unidades processadas. ${colisoes.length} tinham código repetido no próprio CSV (ficaram com id pelo nome, para não sobrescrever a outra unidade): ${colisoes.join(', ')}.`
-            : `Importação concluída: ${instituicoes.length} unidades processadas.`;
+        mostrarStatusDaImportacao('Gravando...');
+        await gravarEmLotes(escritasDoPlano(plano, manter, existentes));
         await carregarInstituicoes();
+
+        const substituidas = plano.substituir.length - manter.size;
+        mostrarStatusDaImportacao(
+            `Importação concluída: ${plano.novos.length} unidade(s) nova(s), `
+            + `${plano.preencher.length} campo(s) preenchido(s), ${substituidas} informação(ões) substituída(s)`
+            + (manter.size ? ` e ${manter.size} mantida(s) como estava(m).` : '.')
+            + (colisoes.length
+                ? ` ${colisoes.length} tinham código repetido no próprio CSV (ficaram com id pelo nome, para não sobrescrever a outra unidade): ${colisoes.join(', ')}.`
+                : ''),
+            'ok');
     } catch (err) {
         console.error('Erro ao importar CSV:', err);
-        status.textContent = 'Erro ao importar o CSV: ' + err.message;
+        mostrarStatusDaImportacao('Erro ao importar o CSV: ' + err.message, 'erro');
     }
 }
 
@@ -1102,10 +1134,9 @@ document.addEventListener('DOMContentLoaded', () => {
         renderizarTabela();
     });
 
-    document.getElementById('btn-importar-csv').addEventListener('click', () => {
-        document.getElementById('input-csv').click();
+    ligarZonaDeArquivo({
+        zona: 'zona-csv', botao: 'btn-importar-csv', input: 'input-csv', aoReceber: importarCsvDeUnidades
     });
-    document.getElementById('input-csv').addEventListener('change', tratarImportacaoCsv);
     document.getElementById('btn-extrair-logos').addEventListener('click', extrairLogosPendentes);
     document.getElementById('btn-localizar-unidades').addEventListener('click', localizarUnidadesPendentes);
     document.getElementById('btn-definir-tipo').addEventListener('click', abrirModalTipo);

@@ -8,17 +8,19 @@
     <link rel="icon" href="./favicon.ico" sizes="48x48">
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="./apple-touch-icon.png">
-  <script type="module" crossorigin src="./assets/curso-Chu4aaAz.js"></script>
-  <link rel="modulepreload" crossorigin href="./assets/firebase-config-B6zsF72T.js">
+  <script type="module" crossorigin src="./assets/curso-BYtykxEp.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/firebase-config-BVis2Pi9.js">
+  <link rel="modulepreload" crossorigin href="./assets/preload-helper-PPVm8Dsz.js">
   <link rel="modulepreload" crossorigin href="./assets/conteudo-legal-padrao-DcxCgRAC.js">
-  <link rel="modulepreload" crossorigin href="./assets/resultado-teste-D4qcTXs5.js">
-  <link rel="modulepreload" crossorigin href="./assets/dashboard-lZlIHIN1.js">
+  <link rel="modulepreload" crossorigin href="./assets/resultado-teste-MujYfBC_.js">
+  <link rel="modulepreload" crossorigin href="./assets/dashboard-C2k9bNtH.js">
   <link rel="modulepreload" crossorigin href="./assets/card-unidade-C3eEs3Rs.js">
   <link rel="modulepreload" crossorigin href="./assets/categorias-teste-82RqXHiT.js">
   <link rel="modulepreload" crossorigin href="./assets/geocodificacao-Dyu2Eb0t.js">
-  <link rel="modulepreload" crossorigin href="./assets/recomendacao-cursos-DiHUfk4f.js">
+  <link rel="modulepreload" crossorigin href="./assets/recomendacao-cursos-DVwNSw8t.js">
+  <link rel="modulepreload" crossorigin href="./assets/demanda-curso-DyeAT6sC.js">
   <link rel="stylesheet" crossorigin href="./assets/dashboard-CeyuoW7O.css">
-  <link rel="stylesheet" crossorigin href="./assets/cursos-etec-CFWUamtt.css">
+  <link rel="stylesheet" crossorigin href="./assets/cursos-etec-e3Mb4nvL.css">
 </head>
 
 <body>
@@ -110,23 +112,26 @@
         </div>
     </nav>
 
-    <div class="main">
+    <div class="main curso-main">
         <a class="voltar-cursos" href="cursos.html">&larr; Todos os cursos</a>
 
-        <div class="curso-layout">
-            <article id="curso-detalhe" class="curso-detalhe">
-                <p class="carregando-cursos">Carregando curso...</p>
-            </article>
+        <article id="curso-detalhe" class="curso-pagina">
+            <p class="carregando-cursos">Carregando curso...</p>
+        </article>
 
-            <aside id="curso-plano-pdf" class="curso-plano-pdf" hidden>
-                <div class="curso-plano-pdf-cabecalho">
-                    <h2>Plano de Curso</h2>
-                    <a id="curso-plano-pdf-abrir" href="#" target="_blank" rel="noopener">Abrir em nova aba &#8599;</a>
-                </div>
-                <iframe id="curso-plano-pdf-iframe" title="Plano de Curso em PDF"></iframe>
-            </aside>
-        </div>
+        <section id="curso-plano-pdf" class="curso-cartao curso-plano-pdf" hidden>
+            <div class="curso-plano-pdf-cabecalho">
+                <h2>Plano de Curso</h2>
+                <a id="curso-plano-pdf-abrir" href="#" target="_blank" rel="noopener">Abrir em nova aba &#8599;</a>
+            </div>
+            <iframe id="curso-plano-pdf-iframe" title="Plano de Curso em PDF" loading="lazy"></iframe>
+        </section>
     </div>
+
+    <!-- Matriz curricular completa: abre pelo botão "Ver matriz completa" -->
+    <dialog class="painel-unidade matriz-dialogo" id="dialogo-matriz" aria-labelledby="dialogo-matriz-titulo">
+        <div class="painel-unidade-conteudo" id="dialogo-matriz-conteudo"></div>
+    </dialog>
 
     <!-- Botão Flutuante do Chat -->
     <button id="chatbot-toggle" class="chat-btn-blue" aria-label="Abrir assistente inteligente">

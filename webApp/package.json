@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "dependencies": {
     "firebase": "^12.14.0",
+    "pdfjs-dist": "^6.5.438",
     "tesseract.js": "^7.0.0"
   },
   "devDependencies": {

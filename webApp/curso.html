@@ -101,23 +101,26 @@
         </div>
     </nav>
 
-    <div class="main">
+    <div class="main curso-main">
         <a class="voltar-cursos" href="cursos.html">&larr; Todos os cursos</a>
 
-        <div class="curso-layout">
-            <article id="curso-detalhe" class="curso-detalhe">
-                <p class="carregando-cursos">Carregando curso...</p>
-            </article>
+        <article id="curso-detalhe" class="curso-pagina">
+            <p class="carregando-cursos">Carregando curso...</p>
+        </article>
 
-            <aside id="curso-plano-pdf" class="curso-plano-pdf" hidden>
-                <div class="curso-plano-pdf-cabecalho">
-                    <h2>Plano de Curso</h2>
-                    <a id="curso-plano-pdf-abrir" href="#" target="_blank" rel="noopener">Abrir em nova aba &#8599;</a>
-                </div>
-                <iframe id="curso-plano-pdf-iframe" title="Plano de Curso em PDF"></iframe>
-            </aside>
-        </div>
+        <section id="curso-plano-pdf" class="curso-cartao curso-plano-pdf" hidden>
+            <div class="curso-plano-pdf-cabecalho">
+                <h2>Plano de Curso</h2>
+                <a id="curso-plano-pdf-abrir" href="#" target="_blank" rel="noopener">Abrir em nova aba &#8599;</a>
+            </div>
+            <iframe id="curso-plano-pdf-iframe" title="Plano de Curso em PDF" loading="lazy"></iframe>
+        </section>
     </div>
+
+    <!-- Matriz curricular completa: abre pelo botão "Ver matriz completa" -->
+    <dialog class="painel-unidade matriz-dialogo" id="dialogo-matriz" aria-labelledby="dialogo-matriz-titulo">
+        <div class="painel-unidade-conteudo" id="dialogo-matriz-conteudo"></div>
+    </dialog>
 
     <!-- Botão Flutuante do Chat -->
     <button id="chatbot-toggle" class="chat-btn-blue" aria-label="Abrir assistente inteligente">

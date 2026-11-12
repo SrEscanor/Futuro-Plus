@@ -1,0 +1,1 @@
+import{f as t,d as c,c as n}from"./firebase-config-BVis2Pi9.js";async function g(o,r){const e=document.getElementById("conteudo-legal");try{const a=await t(c(n,"configuracoes",o));e.innerHTML=a.exists()&&a.data().html?a.data().html:r}catch(a){console.error(`Erro ao carregar ${o}:`,a),e.innerHTML=r}}export{g as c};

@@ -276,3 +276,147 @@ def excluir_contas_agendadas(event: scheduler_fn.ScheduledEvent) -> None:
             print(f"Conta {doc_usuario.id} excluída (prazo de exclusão vencido).")
         except Exception as erro:
             print(f"Erro ao excluir a conta {doc_usuario.id}: {erro}")
+
+def _exigir_admin(req, db):
+    """Devolve (uid, None) quando quem chama é administrador, ou (None,
+    resposta de erro) para devolver na hora."""
+    cabecalho_auth = req.headers.get("Authorization", "")
+    if not cabecalho_auth.startswith("Bearer "):
+        return None, https_fn.Response(json.dumps({"erro": "Não autenticado."}), status=401)
+
+    try:
+        uid = firebase_auth.verify_id_token(cabecalho_auth.removeprefix("Bearer ").strip())["uid"]
+    except Exception:
+        return None, https_fn.Response(json.dumps({"erro": "Sessão inválida ou expirada. Faça login novamente."}), status=401)
+
+    perfil = db.collection("usuarios").document(uid).get()
+    if not perfil.exists or perfil.to_dict().get("admin") is not True:
+        return None, https_fn.Response(json.dumps({"erro": "Acesso restrito a administradores."}), status=403)
+    return uid, None
+
+
+def _gravar_em_lotes(db, escritas, tamanho=400):
+    """escritas: lista de (referência, dados, merge)."""
+    for inicio in range(0, len(escritas), tamanho):
+        lote = db.batch()
+        for referencia, dados, merge in escritas[inicio:inicio + tamanho]:
+            lote.set(referencia, dados, merge=merge)
+        lote.commit()
+
+
+@https_fn.on_request(
+    cors=options.CorsOptions(cors_origins="*", cors_methods=["get", "post"]),
+    region=options.SupportedRegion.SOUTHAMERICA_EAST1,
+    # Só o painel admin chama, e uma coleta por vez.
+    max_instances=2,
+    memory=options.MemoryOption.MB_256,
+    # Um semestre da Etec são umas 400 páginas; leva menos de um minuto, mas
+    # o padrão de 60 s ficaria no limite num dia em que o site estiver lento.
+    timeout_sec=300,
+)
+def coletar_demanda(req: https_fn.Request) -> https_fn.Response:
+    """Busca a demanda (inscritos por vaga) nos sites do Vestibulinho das
+    Etecs e do Vestibular das Fatecs e grava no Firestore. Chamada pelo botão
+    "Atualizar demanda" do painel Admin · Cursos.
+
+    acao "situacao": quais semestres os sites oferecem e quais já foram
+    coletados. acao "coletar" (com "site" e "semestre"): coleta um semestre de
+    um site, soma por curso e grava em cursos/{id}.demanda; o detalhe por
+    unidade fica em demanda/{site}-{semestre}/unidades."""
+    if req.method == "OPTIONS":
+        return https_fn.Response(status=204)
+
+    cabecalho_json = {"Content-Type": "application/json"}
+    try:
+        db = firestore.client()
+        _, erro = _exigir_admin(req, db)
+        if erro:
+            return erro
+
+        import demanda
+
+        dados = req.get_json(silent=True) or {}
+        acao = dados.get("acao") or "situacao"
+
+        if acao == "situacao":
+            coletados = {}
+            for registro in db.collection("demanda").stream():
+                info = registro.to_dict() or {}
+                if info.get("site") and info.get("semestre"):
+                    coletados.setdefault(info["site"], {})[info["semestre"]] = {
+                        "coletadoEm": info.get("coletadoEm"),
+                        "cursos": info.get("cursos", 0),
+                        "unidades": info.get("unidades", 0),
+                        "semPar": info.get("semPar", []),
+                    }
+            disponiveis = {site: demanda.listar_semestres(site) for site in demanda.SITES}
+            return https_fn.Response(
+                json.dumps({"disponiveis": disponiveis, "coletados": coletados}),
+                status=200, headers=cabecalho_json,
+            )
+
+        if acao != "coletar":
+            return https_fn.Response(json.dumps({"erro": "Ação desconhecida."}), status=400)
+
+        site = (dados.get("site") or "").strip().lower()
+        semestre = str(dados.get("semestre") or "").strip()
+        if site not in demanda.SITES or not re.fullmatch(r"\d{4}[12]", semestre):
+            return https_fn.Response(json.dumps({"erro": "Informe 'site' (etec ou fatec) e 'semestre' (ex.: 20261)."}), status=400)
+
+        coleta = demanda.coletar(site, semestre)
+        if not coleta["unidades"]:
+            return https_fn.Response(
+                json.dumps({"erro": "O site não devolveu nenhuma unidade para esse semestre."}),
+                status=502, headers=cabecalho_json,
+            )
+
+        cursos = {doc_curso.id: (doc_curso.to_dict() or {}) for doc_curso in db.collection("cursos").stream()}
+        catalogo = [{"id": id_curso, "nome": c.get("nome"), "nivel": c.get("nivel")} for id_curso, c in cursos.items()]
+        por_curso, sem_par = demanda.somar_por_curso(coleta, catalogo)
+
+        agora = datetime.now(timezone.utc).isoformat()
+        periodo = f"{semestre[:4]}-{semestre[4]}"
+        escritas = []
+
+        for id_curso, soma in por_curso.items():
+            historico = [
+                h for h in ((cursos[id_curso].get("demanda") or {}).get("historico") or [])
+                if h.get("periodo") != periodo
+            ]
+            historico.append({"periodo": periodo, **soma})
+            historico.sort(key=lambda h: h["periodo"])
+            escritas.append((
+                db.collection("cursos").document(id_curso),
+                {"demanda": {"historico": historico, "atualizadoEm": agora}},
+                True,
+            ))
+
+        registro = db.collection("demanda").document(f"{site}-{semestre}")
+        for unidade in coleta["unidades"]:
+            id_unidade = re.sub(r"[^a-zA-Z0-9_-]+", "_", demanda.normalizar(unidade["codigo"]))[:120] or "sem-codigo"
+            escritas.append((registro.collection("unidades").document(id_unidade), unidade, False))
+
+        resumo = {
+            "site": site,
+            "semestre": semestre,
+            "coletadoEm": agora,
+            "unidades": len(coleta["unidades"]),
+            "linhas": sum(len(u["cursos"]) for u in coleta["unidades"]),
+            "cursos": len(por_curso),
+            # nomes que o site publica e o catálogo não tem, para revisão
+            "semPar": sem_par[:60],
+            "falhas": coleta["falhas"][:60],
+        }
+        escritas.append((registro, resumo, False))
+        _gravar_em_lotes(db, escritas)
+
+        return https_fn.Response(json.dumps(resumo), status=200, headers=cabecalho_json)
+
+    except requests.RequestException as e:
+        return https_fn.Response(
+            json.dumps({"erro": f"O site do vestibular não respondeu: {str(e)}"}),
+            status=502, headers=cabecalho_json,
+        )
+    except Exception as e:
+        print(f"Erro ao coletar demanda: {e}")
+        return https_fn.Response(json.dumps({"erro": f"Erro interno: {str(e)}"}), status=500, headers=cabecalho_json)

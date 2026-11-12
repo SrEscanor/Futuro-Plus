@@ -35,22 +35,73 @@
     <main id="admin-app" style="display:none;">
         <div class="container-admin">
 
+            <!-- ---------- IMPORTAÇÃO DO CSV DE UNIDADES ---------- -->
+            <div class="painel-fontes">
+                <section class="fonte-card fonte-card--linha" aria-labelledby="fonte-csv-titulo">
+                    <div class="fonte-cabecalho">
+                        <span class="fonte-icone" aria-hidden="true">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+                                <path d="M14 3v5h5M9 13h6M9 17h6" />
+                            </svg>
+                        </span>
+                        <div>
+                            <h2 id="fonte-csv-titulo">Importar unidades do CSV</h2>
+                            <p>Endereço, direção, cursos oferecidos e documentos de cada Etec e Fatec, do CSV de
+                                unidades exportado do CPS.</p>
+                        </div>
+                    </div>
+
+                    <ol class="fonte-passos">
+                        <li>
+                            <span class="fonte-passo-numero">1</span>
+                            <div>
+                                <strong>Diga de que tipo são as unidades do arquivo</strong>
+                                <div class="escolha-nivel escolha-nivel--tres" role="radiogroup"
+                                    aria-label="Tipo das unidades do arquivo">
+                                    <label class="escolha-nivel-opcao">
+                                        <input type="radio" name="tipo-csv" value="" checked>
+                                        <span>Descobrir pelo nome <small>"Etec ..." ou "Fatec ..."</small></span>
+                                    </label>
+                                    <label class="escolha-nivel-opcao">
+                                        <input type="radio" name="tipo-csv" value="Etec">
+                                        <span>Todas são Etec <small>arquivo só de Etecs</small></span>
+                                    </label>
+                                    <label class="escolha-nivel-opcao">
+                                        <input type="radio" name="tipo-csv" value="Fatec">
+                                        <span>Todas são Fatec <small>arquivo só de Fatecs</small></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="fonte-passo-numero">2</span>
+                            <div>
+                                <strong>Envie o arquivo</strong>
+                                <div class="zona-arquivo zona-arquivo--compacta" id="zona-csv">
+                                    <span>Arraste o CSV para cá ou</span>
+                                    <button type="button" id="btn-importar-csv" class="btn btn-primario">Escolher
+                                        arquivo</button>
+                                    <input type="file" id="input-csv" accept=".csv,text/csv" hidden>
+                                </div>
+                                <span>Nada é gravado na hora: antes você vê as unidades novas e cada informação que
+                                    seria substituída, e escolhe.</span>
+                            </div>
+                        </li>
+                    </ol>
+                </section>
+            </div>
+
             <div class="toolbar">
                 <div class="busca-area">
                     <input type="search" id="busca-unidade" placeholder="Buscar por nome, município ou código...">
                 </div>
                 <div class="acoes-toolbar">
-                    <select id="select-tipo-importacao" class="select-tipo-importacao" title="Tipo das unidades deste CSV">
-                        <option value="">Detectar tipo pelo nome</option>
-                        <option value="Etec">Importar como Etec</option>
-                        <option value="Fatec">Importar como Fatec</option>
-                    </select>
-                    <button type="button" id="btn-importar-csv" class="btn btn-secundario">⬆ Importar CSV</button>
                     <button type="button" id="btn-extrair-logos" class="btn btn-secundario">🖼 Extrair logos</button>
                     <button type="button" id="btn-localizar-unidades" class="btn btn-secundario">📍 Localizar unidades</button>
                     <button type="button" id="btn-definir-tipo" class="btn btn-secundario">🏷 Definir tipo</button>
                     <button type="button" id="btn-nova-unidade" class="btn btn-primario">+ Adicionar unidade</button>
-                    <input type="file" id="input-csv" accept=".csv,text/csv" style="display:none;">
                 </div>
             </div>
 
