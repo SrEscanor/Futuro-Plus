@@ -4,3 +4,8 @@ __pycache__/
 # Python virtual environment
 venv/
 *.local
+
+# Chave de conta de serviço do Firebase (atualizar_demanda_local.py) — nunca
+# deve ficar aqui, mas se cair por engano, não vai pro commit.
+*firebase-adminsdk*.json
+*serviceAccountKey*.json
