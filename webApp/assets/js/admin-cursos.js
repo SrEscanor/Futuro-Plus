@@ -13,17 +13,6 @@ import { enviarCapa, removerCapaDoEixo } from './enviar-capa.js';
 const CURSOS_COLLECTION = 'cursos';
 const INSTITUICOES_COLLECTION = 'instituicoes';
 
-// Função que busca a demanda nos sites do vestibular — mesmo padrão de troca
-// localhost/produção usado nas outras chamadas.
-const DEMANDA_URL = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
-    ? 'http://127.0.0.1:5001/futuroplus-bce54/southamerica-east1/coletar_demanda'
-    : 'https://southamerica-east1-futuroplus-bce54.cloudfunctions.net/coletar_demanda';
-
-// O gráfico da página do curso mostra um ponto por ano; para comparar anos
-// iguais, vale sempre o 1º semestre (o 2º não oferece os cursos integrados
-// ao ensino médio).
-const ANOS_DE_DEMANDA = 5;
-
 // Campos que a página pública usa; servem para dizer se um curso está completo.
 // O CSV da Fatec (cursos superiores) não publica carga horária, só duração
 // em anos/semestres — cobrar esse campo neles marcaria todo curso superior
@@ -365,143 +354,6 @@ async function importarCsvDoCatalogo(arquivo) {
 }
 
 // ========================================================
-// Demanda do vestibular
-// ========================================================
-
-let situacaoDaDemanda = null;
-
-async function chamarDemanda(corpo) {
-    const usuario = auth.currentUser;
-    if (!usuario) throw new Error('faça login de novo');
-
-    const resposta = await fetch(DEMANDA_URL, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + await usuario.getIdToken()
-        },
-        body: JSON.stringify(corpo)
-    });
-    const dados = await resposta.json().catch(() => ({}));
-    if (!resposta.ok) throw new Error(dados.erro || `erro ${resposta.status}`);
-    return dados;
-}
-
-const NOME_DO_SITE = { etec: 'Etec', fatec: 'Fatec' };
-
-// "20261" -> "2026"; só o 1º semestre entra, então o ano basta.
-function anosAlvo(disponiveis) {
-    return (disponiveis || []).filter((s) => s.endsWith('1')).slice(0, ANOS_DE_DEMANDA);
-}
-
-function renderizarSituacaoDaDemanda() {
-    const alvo = document.getElementById('demanda-situacao');
-    if (!situacaoDaDemanda) {
-        alvo.textContent = 'Não consegui falar com a função que busca a demanda. '
-            + 'Se ela ainda não foi publicada, faça o deploy das funções (coletar_demanda).';
-        return;
-    }
-
-    alvo.innerHTML = Object.keys(NOME_DO_SITE).map((site) => {
-        const coletados = situacaoDaDemanda.coletados?.[site] || {};
-        const anos = Object.keys(coletados).filter((s) => s.endsWith('1')).sort();
-        if (!anos.length) {
-            return `<div><strong>${NOME_DO_SITE[site]}:</strong> nada coletado ainda.</div>`;
-        }
-        const ultima = anos.map((s) => coletados[s].coletadoEm).filter(Boolean).sort().pop();
-        return `<div><strong>${NOME_DO_SITE[site]}:</strong> ${anos.map((s) => s.slice(0, 4)).join(', ')}
-            ${ultima ? `<span class="celula-nota">última coleta em ${new Date(ultima).toLocaleDateString('pt-BR')}</span>` : ''}</div>`;
-    }).join('');
-}
-
-async function carregarSituacaoDaDemanda() {
-    try {
-        situacaoDaDemanda = await chamarDemanda({ acao: 'situacao' });
-    } catch (err) {
-        console.warn('Não foi possível consultar a situação da demanda:', err);
-        situacaoDaDemanda = null;
-    }
-    renderizarSituacaoDaDemanda();
-}
-
-function renderizarSemPar(semParPorSite) {
-    const alvo = document.getElementById('demanda-sem-par');
-    const blocos = Object.entries(semParPorSite).filter(([, lista]) => lista.length);
-    alvo.hidden = !blocos.length;
-    alvo.innerHTML = blocos.map(([site, lista]) => `
-        <details>
-            <summary>${lista.length} curso(s) do site da ${NOME_DO_SITE[site]} que não achei no catálogo</summary>
-            <p>Aparecem no vestibular mas não têm página no Futuro+ com o mesmo nome. Se algum for um curso do
-            catálogo escrito de outro jeito, me avise o nome para o casamento ser ajustado.</p>
-            <ul>${lista.map((item) => `<li>${escapeHtml(item.curso)}
-                <span class="celula-nota">${item.inscritos} inscritos · ${item.vagas} vagas</span></li>`).join('')}</ul>
-        </details>`).join('');
-}
-
-// refazer: coleta de novo até os anos que já estavam gravados (útil depois de
-// incluir cursos no catálogo, para os anos antigos passarem a casar com eles).
-async function atualizarDemanda(refazer) {
-    const botoes = ['btn-atualizar-demanda', 'btn-refazer-demanda'].map((id) => document.getElementById(id));
-    botoes.forEach((b) => { b.disabled = true; });
-    document.getElementById('demanda-sem-par').hidden = true;
-
-    try {
-        mostrarStatus('status-demanda', 'Consultando os sites do vestibular...');
-        situacaoDaDemanda = await chamarDemanda({ acao: 'situacao' });
-
-        const tarefas = [];
-        Object.keys(NOME_DO_SITE).forEach((site) => {
-            const alvos = anosAlvo(situacaoDaDemanda.disponiveis?.[site]);
-            const coletados = situacaoDaDemanda.coletados?.[site] || {};
-            alvos.forEach((semestre, indice) => {
-                // O ano mais novo é sempre buscado de novo: é o que muda.
-                if (refazer || indice === 0 || !coletados[semestre]) tarefas.push({ site, semestre });
-            });
-        });
-
-        if (!tarefas.length) {
-            mostrarStatus('status-demanda', 'Os sites não listaram nenhum semestre para coletar.', 'erro');
-            return;
-        }
-
-        const semPar = {};
-        const erros = [];
-        let cursosAtualizados = 0;
-        for (const [indice, tarefa] of tarefas.entries()) {
-            const rotulo = `${NOME_DO_SITE[tarefa.site]} ${tarefa.semestre.slice(0, 4)}`;
-            mostrarStatus('status-demanda', `Coletando ${rotulo}... (${indice + 1} de ${tarefas.length})`);
-            try {
-                const resumo = await chamarDemanda({ acao: 'coletar', ...tarefa });
-                cursosAtualizados = Math.max(cursosAtualizados, resumo.cursos || 0);
-                // a lista para revisão é a do ano mais novo de cada site
-                if (!(tarefa.site in semPar)) semPar[tarefa.site] = resumo.semPar || [];
-            } catch (err) {
-                console.error(`Erro ao coletar a demanda de ${rotulo}:`, err);
-                erros.push(`${rotulo}: ${semPontoFinal(err.message)}`);
-            }
-        }
-
-        await Promise.all([carregarCursos(), carregarSituacaoDaDemanda()]);
-        renderizarSemPar(semPar);
-
-        const comDemanda = cursosCache.filter((c) => c.demanda?.historico?.length).length;
-        if (erros.length === tarefas.length) {
-            mostrarStatus('status-demanda', `A coleta falhou. ${erros[0]}`, 'erro');
-        } else {
-            mostrarStatus('status-demanda',
-                `Demanda atualizada: ${comDemanda} curso(s) do catálogo têm números.`
-                + (erros.length ? ` ${erros.length} coleta(s) falharam: ${erros.join('; ')}.` : ''),
-                erros.length ? '' : 'ok');
-        }
-    } catch (err) {
-        console.error('Erro ao atualizar a demanda:', err);
-        mostrarStatus('status-demanda', 'Não foi possível atualizar a demanda: ' + err.message, 'erro');
-    } finally {
-        botoes.forEach((b) => { b.disabled = false; });
-    }
-}
-
-// ========================================================
 // Matriz curricular (dentro do formulário do curso)
 // ========================================================
 
@@ -771,7 +623,6 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('admin-email').textContent = user.email || '';
             document.getElementById('admin-app').style.display = 'block';
             await carregarCursos();
-            carregarSituacaoDaDemanda();
             carregarFotosDosEixos().then((fotos) => {
                 fotosDosEixos = fotos;
                 renderizarCapasDosEixos();
@@ -820,9 +671,6 @@ document.addEventListener('DOMContentLoaded', () => {
         e.target.value = '';
         if (arquivo) receberCapaDoCurso(arquivo);
     });
-
-    document.getElementById('btn-atualizar-demanda').addEventListener('click', () => atualizarDemanda(false));
-    document.getElementById('btn-refazer-demanda').addEventListener('click', () => atualizarDemanda(true));
 
     document.getElementById('busca-curso').addEventListener('input', renderizarTabela);
     document.getElementById('btn-filtrar-incompletos').addEventListener('click', () => {
