@@ -72,18 +72,34 @@ export function extrairResultadoVocacional(dadosUsuario) {
     return vocacional?.cursos?.length ? vocacional : null;
 }
 
+// "resultadoTesteGardner" era o nome antigo (de antes de suportar vários
+// testes). Quem fez o teste naquela época ainda tem o resultado guardado só
+// ali — incluímos ele pra não "sumir". Só os testes de perfil (Gardner e
+// Afinidades) entram aqui: quem chama espera ranking e porcentagens. O
+// vocacional tem outro formato e sai por extrairResultadoVocacional.
+function entradasDeResultadosDePerfilValidos(dadosUsuario) {
+    return Object.entries(resultadosSalvos(dadosUsuario))
+        .filter(([, resultado]) => resultadoDePerfilValido(resultado));
+}
+
 export function extrairResultadoMaisRecente(dadosUsuario) {
-    // "resultadoTesteGardner" era o nome antigo (de antes de suportar
-    // vários testes). Quem fez o teste naquela época ainda tem o
-    // resultado guardado só ali — incluímos ele pra não "sumir".
-    // Só os testes de perfil (Gardner e Afinidades) entram aqui: quem chama
-    // espera ranking e porcentagens. O vocacional tem outro formato e sai
-    // por extrairResultadoVocacional.
-    return Object.values(resultadosSalvos(dadosUsuario))
-        .filter(resultadoDePerfilValido)
-        .reduce((maisRecente, atual) =>
+    return entradasDeResultadosDePerfilValidos(dadosUsuario)
+        .reduce((maisRecente, [, atual]) =>
             !maisRecente || atual.concluidoEm > maisRecente.concluidoEm ? atual : maisRecente
         , null);
+}
+
+// Como extrairResultadoMaisRecente, mas também diz de qual teste o
+// resultado veio ("gardner" ou "afinidades") — quem só recebe o resultado
+// pronto não tem como saber pra qual página linkar de volta (ex: o botão
+// "ver resultado" na tela de resultados salvos, em testes-resultados.js).
+export function extrairTesteDePerfilMaisRecente(dadosUsuario) {
+    const vencedor = entradasDeResultadosDePerfilValidos(dadosUsuario)
+        .reduce((maisRecente, entrada) =>
+            !maisRecente || entrada[1].concluidoEm > maisRecente[1].concluidoEm ? entrada : maisRecente
+        , null);
+
+    return vencedor ? { chaveTeste: vencedor[0], resultado: vencedor[1] } : null;
 }
 
 // Chamado logo após login/cadastro: se existir um resultado pendente

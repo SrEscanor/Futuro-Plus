@@ -350,11 +350,14 @@ function verMaisCartas() {
 // Resultado
 // ------------------------------------------------------------------
 
-async function mostrarResultado() {
+// resultadoPronto: passado quando a página abre direto num resultado já
+// salvo (?ver=1, via tentarMostrarResultadoSalvo) — nesse caso não recalcula
+// nada a partir das cartas, só mostra. aoVivo:false evita salvar de novo no
+// perfil (já está salvo, é por isso que tem o que mostrar).
+async function mostrarResultado(resultadoPronto = null, { aoVivo = true } = {}) {
     // No modo edição não refizemos o bloco de interesse/estilo, então a nota
     // de cada área continua sendo a que já foi salva da primeira vez.
-    const notas = notasAtuais();
-    const resultado = montarResultado(cartas, respostas.cartas, notas);
+    const resultado = resultadoPronto ?? montarResultado(cartas, respostas.cartas, notasAtuais());
 
     document.getElementById('voc-teste').hidden = true;
     const container = document.getElementById('voc-resultado');
@@ -412,6 +415,8 @@ async function mostrarResultado() {
     }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    if (!aoVivo) return;
 
     const usuario = auth.currentUser;
     if (!usuario) return;
@@ -471,6 +476,43 @@ async function carregarDados() {
     });
 }
 
+// ?ver=1: abre direto no resultado já salvo, sem passar pelas cartas de
+// novo (diferente do ?editar=1, que leva de volta pras cartas pra mudar as
+// respostas). Reconstrói o formato que mostrarResultado() espera a partir
+// do que foi salvo (slug/nome/eixo/resposta de cada curso), cruzando com o
+// catálogo só pra saber o nível de cada curso (usado no aviso da Fatec) e o
+// nome dos cursos descartados (salvos só como slug).
+async function tentarMostrarResultadoSalvo() {
+    if (!new URLSearchParams(location.search).get('ver')) return false;
+
+    try {
+        const snap = await getDoc(doc(db, 'usuarios', auth.currentUser.uid));
+        const salvo = extrairResultadoVocacional(snap.exists() ? snap.data() : null);
+        if (!salvo) return false;
+
+        const porSlug = new Map(catalogo.map((c) => [c.slug, c]));
+        respostas.situacao = { ...salvo.situacao };
+
+        const resultadoPronto = {
+            eixosFortes: salvo.eixosFortes || [],
+            combinam: (salvo.cursos || []).map(({ slug, nome, eixo, resposta }) => ({
+                curso: { slug, nome, nivel: porSlug.get(slug)?.nivel },
+                eixo,
+                resposta
+            })),
+            descartados: (salvo.descartados || []).map((slug) => ({
+                curso: { nome: porSlug.get(slug)?.nome || slug }
+            }))
+        };
+
+        await mostrarResultado(resultadoPronto, { aoVivo: false });
+        return true;
+    } catch (erro) {
+        console.error('Erro ao carregar o resultado salvo do teste vocacional:', erro);
+        return false;
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     await auth.authStateReady();
     if (!auth.currentUser) {
@@ -488,6 +530,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             '<p class="voc-intro">Não consegui carregar os cursos agora. Tente novamente mais tarde.</p>';
         return;
     }
+
+    if (await tentarMostrarResultadoSalvo()) return;
 
     if (new URLSearchParams(location.search).get('editar')) {
         try {

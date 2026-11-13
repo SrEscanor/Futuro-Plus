@@ -1,5 +1,8 @@
-import { auth } from "./firebase-config.js";
-import { salvarResultadoPendente, salvarResultadoNoPerfil } from "./resultado-teste.js";
+import { auth, db } from "./firebase-config.js";
+import { doc, getDoc } from "firebase/firestore";
+import {
+    salvarResultadoPendente, salvarResultadoNoPerfil, resultadosSalvos, resultadoDePerfilValido
+} from "./resultado-teste.js";
 import { descricoesInteligencias } from "./descricoes-inteligencias.js";
 import { renderizarRecomendacoesTeste } from "./recomendacao-cursos.js";
 import { blocosAfinidades } from "./perguntas-afinidades.js";
@@ -177,8 +180,6 @@ function finalizarTeste() {
     const categoriaPrincipal = ranking[0];
     const categoriaSecundaria = ranking.length > 1 ? ranking[1] : null;
 
-    mostrarResultado({ categoriaPrincipal, categoriaSecundaria, porcentagens, ranking });
-
     const dadosResultado = {
         categoriaPrincipal,
         categoriaSecundaria,
@@ -187,20 +188,32 @@ function finalizarTeste() {
         concluidoEm: new Date().toISOString()
     };
 
+    mostrarResultado(dadosResultado, { aoVivo: true });
+}
+
+// aoVivo:false é usado quando a página abre direto num resultado já salvo
+// (?ver=1, via tentarMostrarResultadoSalvo) — nesse caso não grava de novo,
+// só mostra (quem chama já garantiu que a pessoa está logada e que o
+// resultado existe).
+async function mostrarResultado(dadosResultado, { aoVivo = true } = {}) {
+    const { categoriaPrincipal, categoriaSecundaria, porcentagens, ranking } = dadosResultado;
+
+    containerTeste.style.display = "none";
+    containerResultado.style.display = "block";
+
     const usuarioLogado = auth.currentUser;
 
     if (usuarioLogado) {
-        salvarResultadoNoPerfil(usuarioLogado.uid, "afinidades", dadosResultado)
-            .then(() => marcarResultadoComoSalvo())
-            .catch(erro => console.error("Erro ao salvar resultado no perfil:", erro));
-    } else {
+        if (aoVivo) {
+            salvarResultadoNoPerfil(usuarioLogado.uid, "afinidades", dadosResultado)
+                .then(() => marcarResultadoComoSalvo())
+                .catch(erro => console.error("Erro ao salvar resultado no perfil:", erro));
+        } else {
+            marcarResultadoComoSalvo();
+        }
+    } else if (aoVivo) {
         salvarResultadoPendente("afinidades", dadosResultado);
     }
-}
-
-async function mostrarResultado({ categoriaPrincipal, categoriaSecundaria, porcentagens, ranking }) {
-    containerTeste.style.display = "none";
-    containerResultado.style.display = "block";
 
     let descricao = `
         <div style="margin-bottom: 25px;">
@@ -278,8 +291,8 @@ async function mostrarResultado({ categoriaPrincipal, categoriaSecundaria, porce
 
     const recomendacoes = await renderizarRecomendacoesTeste(
         document.getElementById("recomendacoes-teste"),
-        { porcentagens, ranking },
-        { uid: auth.currentUser?.uid }
+        dadosResultado,
+        { uid: usuarioLogado?.uid }
     );
 
     const slotCompartilhar = document.getElementById("compartilhar-resultado-slot");
@@ -312,7 +325,36 @@ function marcarResultadoComoSalvo() {
 
 
 // ============================================================
+// ABRIR DIRETO NO RESULTADO JÁ SALVO (?ver=1)
+// ============================================================
+// Link usado pela tela de resultados salvos (testes.html), pra abrir aqui
+// já mostrando o resultado em vez de começar o teste do zero. Sem ?ver=1,
+// sem login ou sem resultado salvo, cai no teste normal.
+
+async function tentarMostrarResultadoSalvo() {
+    if (!new URLSearchParams(location.search).get("ver")) return false;
+
+    await auth.authStateReady();
+    if (!auth.currentUser) return false;
+
+    try {
+        const snap = await getDoc(doc(db, "usuarios", auth.currentUser.uid));
+        const salvo = resultadosSalvos(snap.exists() ? snap.data() : null).afinidades;
+        if (!resultadoDePerfilValido(salvo)) return false;
+
+        await mostrarResultado(salvo, { aoVivo: false });
+        return true;
+    } catch (erro) {
+        console.error("Erro ao carregar o resultado salvo do teste de afinidades:", erro);
+        return false;
+    }
+}
+
+
+// ============================================================
 // INICIAR O TESTE
 // ============================================================
 
-renderizarBloco();
+tentarMostrarResultadoSalvo().then((mostrou) => {
+    if (!mostrou) renderizarBloco();
+});

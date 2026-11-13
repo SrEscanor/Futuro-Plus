@@ -1,5 +1,8 @@
-import { auth } from "./firebase-config.js";
-import { salvarResultadoPendente, salvarResultadoNoPerfil } from "./resultado-teste.js";
+import { auth, db } from "./firebase-config.js";
+import { doc, getDoc } from "firebase/firestore";
+import {
+    salvarResultadoPendente, salvarResultadoNoPerfil, resultadosSalvos, resultadoDePerfilValido
+} from "./resultado-teste.js";
 import { descricoesInteligencias as resultData } from "./descricoes-inteligencias.js";
 import { renderizarRecomendacoesTeste } from "./recomendacao-cursos.js";
 import { categoriasTeste } from "./categorias-teste.js";
@@ -364,13 +367,44 @@ async function showResult() {
         concluidoEm: new Date().toISOString()
     };
 
+    await renderizarResultado(dadosResultado, { aoVivo: true });
+}
+
+
+// ============================================================
+// MONTAR A TELA DE RESULTADO
+// ============================================================
+// Recebe um resultado já pronto (categoriaPrincipal/categoriaSecundaria/
+// porcentagens/ranking) — tanto faz se acabou de ser calculado (showResult,
+// aoVivo:true) ou se é um resultado salvo sendo reaberto (aoVivo:false, via
+// ?ver=1). aoVivo decide só se este resultado deve ser GRAVADO agora; quem
+// chama com aoVivo:false garante que a pessoa já está logada e que o
+// resultado já existe salvo.
+async function renderizarResultado(dadosResultado, { aoVivo = true } = {}) {
+
+    quizContainer.style.display = "none";
+    resultContainer.style.display = "block";
+
+    const {
+        categoriaPrincipal: primaryCategory,
+        categoriaSecundaria: secondaryCategory,
+        porcentagens: percentages,
+        ranking
+    } = dadosResultado;
+
     const usuarioLogado = auth.currentUser;
 
     if (usuarioLogado) {
-        salvarResultadoNoPerfil(usuarioLogado.uid, "gardner", dadosResultado)
-            .then(() => marcarResultadoComoSalvo())
-            .catch(erro => console.error("Erro ao salvar resultado no perfil:", erro));
-    } else {
+        if (aoVivo) {
+            salvarResultadoNoPerfil(usuarioLogado.uid, "gardner", dadosResultado)
+                .then(() => marcarResultadoComoSalvo())
+                .catch(erro => console.error("Erro ao salvar resultado no perfil:", erro));
+        } else {
+            // já está salvo (é por isso que tem um ?ver=1 pra mostrar) —
+            // só reflete isso no CTA, sem gravar de novo.
+            marcarResultadoComoSalvo();
+        }
+    } else if (aoVivo) {
         salvarResultadoPendente("gardner", dadosResultado);
     }
 
@@ -597,7 +631,36 @@ function marcarResultadoComoSalvo() {
 
 
 // ============================================================
+// ABRIR DIRETO NO RESULTADO JÁ SALVO (?ver=1)
+// ============================================================
+// Link usado pela tela de resultados salvos (testes.html), pra abrir aqui
+// já mostrando o resultado em vez de começar o quiz do zero. Sem ?ver=1,
+// sem login ou sem resultado salvo, cai no quiz normal.
+
+async function tentarMostrarResultadoSalvo() {
+    if (!new URLSearchParams(location.search).get("ver")) return false;
+
+    await auth.authStateReady();
+    if (!auth.currentUser) return false;
+
+    try {
+        const snap = await getDoc(doc(db, "usuarios", auth.currentUser.uid));
+        const salvo = resultadosSalvos(snap.exists() ? snap.data() : null).gardner;
+        if (!resultadoDePerfilValido(salvo)) return false;
+
+        await renderizarResultado(salvo, { aoVivo: false });
+        return true;
+    } catch (erro) {
+        console.error("Erro ao carregar o resultado salvo do teste rápido:", erro);
+        return false;
+    }
+}
+
+
+// ============================================================
 // INICIAR O QUIZ
 // ============================================================
 
-loadQuestion();
+tentarMostrarResultadoSalvo().then((mostrou) => {
+    if (!mostrou) loadQuestion();
+});
