@@ -22,6 +22,7 @@ import {
     avisarPrecisaConcluirMedio,
     EIXOS_NAS_CARTAS
 } from './vocacional-resultado.js';
+import { criarPainelCompartilhar } from './compartilhar-resultado.js';
 
 const CATALOGO_OFICIAL = '/dados/catalogo-cursos.json';
 const AFIRMACOES_POR_TELA = 6;
@@ -363,6 +364,8 @@ async function mostrarResultado() {
         <h2>Seu resultado</h2>
         <p class="voc-intro">Suas áreas mais fortes: <strong>${resultado.eixosFortes.map(escapeHtml).join(' · ')}</strong>.</p>
 
+        <div id="compartilhar-resultado-slot"></div>
+
         <ol class="voc-lista-resultado">
             ${resultado.combinam.map(({ curso, eixo, resposta }) => `
                 <li>
@@ -389,6 +392,24 @@ async function mostrarResultado() {
         <p id="voc-status-salvo" class="voc-observacao"></p>
 
         <p class="voc-creditos">Como este resultado foi montado: as perguntas, as áreas e a forma de pontuar foram criadas pela equipe do Futuro+ junto com a inteligência artificial Claude, da Anthropic, e revisadas uma a uma por pessoas — a IA ajuda na amplitude, a revisão humana garante que faz sentido para quem vai escolher um curso. As descrições dos cursos são do catálogo oficial do Centro Paula Souza.</p>`;
+
+    const slotCompartilhar = document.getElementById('compartilhar-resultado-slot');
+    if (slotCompartilhar) {
+        slotCompartilhar.appendChild(criarPainelCompartilhar({
+            etiquetaTopo: 'Resultado do teste vocacional',
+            titulo: resultado.eixosFortes[0],
+            numero: null,
+            numeroLabel: null,
+            frase: 'Descobri minha área mais forte no Futuro+.',
+            // O Vocacional não tem uma % de afinidade por curso (só o ranking
+            // de eixosFortes), então aqui cada curso mostra a sua área, sem
+            // inventar um número que o teste não calcula.
+            cursos: resultado.combinam.slice(0, 3).map(({ curso, eixo }) => ({
+                nome: curso.nome,
+                rotulo: eixo
+            }))
+        }, { nomeArquivoBase: 'futuroplus-teste-vocacional' }));
+    }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
 

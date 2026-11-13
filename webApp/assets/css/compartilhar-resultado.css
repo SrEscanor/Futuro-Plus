@@ -1,0 +1,238 @@
+/* =========================================================
+   Futuro+ · Compartilhar resultado (botão + carrossel + legenda sugerida)
+   Usado nas 3 telas de resultado de teste: quiz-gardner,
+   teste-afinidades e teste-vocacional.
+   ========================================================= */
+
+.compartilhar-resultado {
+    margin: 28px auto 0;
+    max-width: 600px;
+    text-align: center;
+}
+
+.btn-compartilhar-resultado {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 12px 22px;
+    border: none;
+    border-radius: var(--radius-md);
+    background: var(--blue);
+    color: #fff;
+    font: 600 15px 'Inter', sans-serif;
+    cursor: pointer;
+}
+
+.btn-compartilhar-resultado:hover {
+    background: var(--blue-dark);
+}
+
+.btn-compartilhar-resultado:disabled {
+    opacity: .6;
+    cursor: default;
+}
+
+.btn-compartilhar-resultado:focus-visible {
+    outline: 2px solid var(--blue-dark);
+    outline-offset: 2px;
+}
+
+.compartilhar-resultado-status {
+    min-height: 20px;
+    margin: 10px 0 0;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+}
+
+/* ---- Carrossel de imagens (arrastável, uma por formato de arte) ---- */
+
+.compartilhar-resultado-carrossel {
+    margin-top: 16px;
+}
+
+.compartilhar-carrossel-scroll {
+    display: flex;
+    gap: 14px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding: 4px 4px 10px;
+    margin: 0 -4px;
+}
+
+.compartilhar-carrossel-item {
+    position: relative;
+    flex: 0 0 auto;
+    width: min(42vw, 170px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    scroll-snap-align: start;
+    cursor: pointer;
+}
+
+.compartilhar-carrossel-checkbox {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.compartilhar-carrossel-thumb-wrap {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 1080 / 1920;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: var(--bg);
+    border: 3px solid var(--line);
+}
+
+.compartilhar-carrossel-checkbox:checked ~ .compartilhar-carrossel-thumb-wrap {
+    border-color: var(--blue);
+}
+
+.compartilhar-carrossel-thumb-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: opacity .15s ease;
+}
+
+.compartilhar-carrossel-checkbox:not(:checked) ~ .compartilhar-carrossel-thumb-wrap img {
+    opacity: .35;
+}
+
+.compartilhar-carrossel-marca {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid var(--line);
+    z-index: 2;
+}
+
+.compartilhar-carrossel-checkbox:checked ~ .compartilhar-carrossel-marca {
+    background: var(--blue);
+    border-color: var(--blue);
+}
+
+.compartilhar-carrossel-checkbox:checked ~ .compartilhar-carrossel-marca::after {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 3px;
+    width: 6px;
+    height: 11px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.compartilhar-carrossel-checkbox:focus-visible ~ .compartilhar-carrossel-marca {
+    outline: 2px solid var(--blue-dark);
+    outline-offset: 2px;
+}
+
+.compartilhar-carrossel-rotulo {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    text-align: center;
+}
+
+.btn-confirmar-compartilhar {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    margin-top: 6px;
+    padding: 12px 22px;
+    border: none;
+    border-radius: var(--radius-md);
+    background: var(--blue);
+    color: #fff;
+    font: 600 15px 'Inter', sans-serif;
+    cursor: pointer;
+}
+
+.btn-confirmar-compartilhar:hover {
+    background: var(--blue-dark);
+}
+
+.btn-confirmar-compartilhar:disabled {
+    opacity: .6;
+    cursor: default;
+}
+
+.btn-confirmar-compartilhar:focus-visible {
+    outline: 2px solid var(--blue-dark);
+    outline-offset: 2px;
+}
+
+.compartilhar-resultado-legenda {
+    margin-top: 16px;
+    text-align: left;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 16px;
+}
+
+.compartilhar-resultado-legenda label {
+    display: block;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+}
+
+.compartilhar-legenda-texto {
+    width: 100%;
+    min-height: 110px;
+    resize: vertical;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    /* 16px pra não dar zoom automático ao focar no iPhone */
+    font: 400 16px/1.5 'Inter', sans-serif;
+    color: var(--ink);
+    background: #fff;
+}
+
+.btn-copiar-legenda {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    margin-top: 10px;
+    padding: 8px 16px;
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: #fff;
+    color: var(--ink);
+    font: 600 13.5px 'Inter', sans-serif;
+    cursor: pointer;
+}
+
+.btn-copiar-legenda:hover {
+    border-color: var(--blue);
+    color: var(--blue-dark);
+}
+
+.btn-copiar-legenda:focus-visible {
+    outline: 2px solid var(--blue-dark);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .compartilhar-carrossel-thumb-wrap img {
+        transition: none;
+    }
+}

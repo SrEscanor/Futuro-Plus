@@ -2,6 +2,8 @@ import { auth } from "./firebase-config.js";
 import { salvarResultadoPendente, salvarResultadoNoPerfil } from "./resultado-teste.js";
 import { descricoesInteligencias as resultData } from "./descricoes-inteligencias.js";
 import { renderizarRecomendacoesTeste } from "./recomendacao-cursos.js";
+import { categoriasTeste } from "./categorias-teste.js";
+import { criarPainelCompartilhar } from "./compartilhar-resultado.js";
 
 const questions = [
     {
@@ -256,7 +258,7 @@ function selectOption(category) {
 // RESULTADO
 // ============================================================
 
-function showResult() {
+async function showResult() {
 
     quizContainer.style.display = "none";
     resultContainer.style.display = "block";
@@ -554,11 +556,27 @@ function showResult() {
     document.getElementById("result-desc").innerHTML =
         combinedDesc;
 
-    renderizarRecomendacoesTeste(
+    const recomendacoes = await renderizarRecomendacoesTeste(
         document.getElementById("recomendacoes-teste"),
         dadosResultado,
         { uid: usuarioLogado?.uid }
     );
+
+    const slotCompartilhar = document.getElementById("compartilhar-resultado-slot");
+    if (slotCompartilhar) {
+        slotCompartilhar.innerHTML = "";
+        slotCompartilhar.appendChild(criarPainelCompartilhar({
+            etiquetaTopo: "Resultado do teste rápido",
+            titulo: resultData[primaryCategory].title,
+            numero: `${Math.round(percentages[primaryCategory])}%`,
+            numeroLabel: "de afinidade",
+            frase: resultData[primaryCategory].frase,
+            cursos: (recomendacoes || []).slice(0, 3).map((r) => ({
+                nome: r.nome,
+                rotulo: `${Math.round(percentages[r.motivo] || 0)}% · ${categoriasTeste[r.motivo] || ""}`
+            }))
+        }, { nomeArquivoBase: "futuroplus-teste-rapido" }));
+    }
 }
 
 

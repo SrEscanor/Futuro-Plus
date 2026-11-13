@@ -501,8 +501,12 @@ export function linkCurso(nomeCurso) {
 // ============================================================
 // Bloco usado na tela de resultado dos testes
 // ============================================================
+// Devolve a lista de recomendações (a mesma que desenha na tela), pra quem
+// chamar poder reaproveitar a de maior pontuação — ex. o botão "Compartilhar
+// resultado" usa recomendacoes[0] pra mostrar o curso na imagem, sem duplicar
+// esse cálculo de afinidade/oferta/proximidade.
 export async function renderizarRecomendacoesTeste(container, resultado, { uid = null } = {}) {
-    if (!container) return;
+    if (!container) return [];
     container.innerHTML = `<p class="recomendacoes-carregando">Buscando cursos das unidades para o seu perfil...</p>`;
 
     try {
@@ -519,7 +523,7 @@ export async function renderizarRecomendacoesTeste(container, resultado, { uid =
 
         if (!recomendacoes.length) {
             container.innerHTML = "";
-            return;
+            return recomendacoes;
         }
 
         container.innerHTML = `
@@ -541,8 +545,11 @@ export async function renderizarRecomendacoesTeste(container, resultado, { uid =
                 </ul>
             </div>
         `;
+
+        return recomendacoes;
     } catch (erro) {
         console.error("Erro ao montar recomendações de cursos:", erro);
         container.innerHTML = "";
+        return [];
     }
 }

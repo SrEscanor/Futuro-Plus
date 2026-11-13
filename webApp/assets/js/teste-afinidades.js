@@ -3,6 +3,8 @@ import { salvarResultadoPendente, salvarResultadoNoPerfil } from "./resultado-te
 import { descricoesInteligencias } from "./descricoes-inteligencias.js";
 import { renderizarRecomendacoesTeste } from "./recomendacao-cursos.js";
 import { blocosAfinidades } from "./perguntas-afinidades.js";
+import { categoriasTeste } from "./categorias-teste.js";
+import { criarPainelCompartilhar } from "./compartilhar-resultado.js";
 
 const containerTeste = document.getElementById("afinidades-container");
 const containerResultado = document.getElementById("afinidades-resultado");
@@ -196,7 +198,7 @@ function finalizarTeste() {
     }
 }
 
-function mostrarResultado({ categoriaPrincipal, categoriaSecundaria, porcentagens, ranking }) {
+async function mostrarResultado({ categoriaPrincipal, categoriaSecundaria, porcentagens, ranking }) {
     containerTeste.style.display = "none";
     containerResultado.style.display = "block";
 
@@ -274,11 +276,27 @@ function mostrarResultado({ categoriaPrincipal, categoriaSecundaria, porcentagen
 
     document.getElementById("afinidades-resultado-desc").innerHTML = descricao;
 
-    renderizarRecomendacoesTeste(
+    const recomendacoes = await renderizarRecomendacoesTeste(
         document.getElementById("recomendacoes-teste"),
         { porcentagens, ranking },
         { uid: auth.currentUser?.uid }
     );
+
+    const slotCompartilhar = document.getElementById("compartilhar-resultado-slot");
+    if (slotCompartilhar) {
+        slotCompartilhar.innerHTML = "";
+        slotCompartilhar.appendChild(criarPainelCompartilhar({
+            etiquetaTopo: "Resultado do teste de afinidades",
+            titulo: descricoesInteligencias[categoriaPrincipal].title,
+            numero: `${Math.round(porcentagens[categoriaPrincipal])}%`,
+            numeroLabel: "de afinidade",
+            frase: descricoesInteligencias[categoriaPrincipal].frase,
+            cursos: (recomendacoes || []).slice(0, 3).map((r) => ({
+                nome: r.nome,
+                rotulo: `${Math.round(porcentagens[r.motivo] || 0)}% · ${categoriasTeste[r.motivo] || ""}`
+            }))
+        }, { nomeArquivoBase: "futuroplus-teste-afinidades" }));
+    }
 }
 
 function marcarResultadoComoSalvo() {
