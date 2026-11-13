@@ -42,7 +42,6 @@ function numero(valor) {
 const ICONES = {
     relogio: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
     calendario: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
-    eixo: '<rect x="7" y="7" width="10" height="10" rx="1.5"/><path d="M10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4"/>',
     livro: '<path d="M4 5a2 2 0 0 1 2-2h5v17H6a2 2 0 0 0-2 2zM20 5a2 2 0 0 0-2-2h-5v17h5a2 2 0 0 1 2 2z"/>',
     maleta: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18"/>',
     ferramenta: '<path d="M14.5 6.5a4 4 0 0 0 5 5L11 20a2.1 2.1 0 0 1-3-3z"/><path d="m14.5 6.5 3-3 3 3-3 3"/>',
@@ -55,9 +54,16 @@ const ICONES = {
 };
 
 function icone(nome, tamanho = 22) {
+    return iconeSvg(ICONES[nome], tamanho);
+}
+
+// Mesmo desenho do icone(), mas recebe o path pronto em vez de um nome —
+// usado para o icone do eixo tecnologico, que muda conforme o eixo do curso
+// (vem de capaDoEixo, em capas-eixos.js).
+function iconeSvg(pathSvg, tamanho = 22) {
     return `<svg class="icone" width="${tamanho}" height="${tamanho}" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        aria-hidden="true">${ICONES[nome]}</svg>`;
+        aria-hidden="true">${pathSvg}</svg>`;
 }
 
 // ========================================================
@@ -104,18 +110,22 @@ function capa(curso) {
 }
 
 function fichaTecnica(curso) {
+    // O icone do eixo acompanha o eixo do curso (mesmo desenho usado na capa),
+    // em vez do icone genérico de "semicondutor" que valia pra todos.
+    const iconeDoEixo = capaDoEixo((curso.eixos || [])[0] || '').icone;
+
     const itens = [
-        ['relogio', 'Duração', curso.duracao],
-        ['calendario', 'Carga horária', curso.cargaHoraria ? `${numero(curso.cargaHoraria)} horas` : ''],
-        ['eixo', 'Eixo tecnológico', (curso.eixos || []).join(', ')]
+        [icone('relogio', 30), 'Duração', curso.duracao],
+        [icone('calendario', 30), 'Carga horária', curso.cargaHoraria ? `${numero(curso.cargaHoraria)} horas` : ''],
+        [iconeSvg(iconeDoEixo, 30), 'Eixo tecnológico', (curso.eixos || []).join(', ')]
     ].filter(([, , valor]) => valor);
 
     if (!itens.length) return '';
     return `
         <div class="curso-ficha">
-            ${itens.map(([nomeIcone, rotulo, valor]) => `
+            ${itens.map(([svgIcone, rotulo, valor]) => `
                 <div class="curso-ficha-item">
-                    ${icone(nomeIcone, 30)}
+                    ${svgIcone}
                     <div>
                         <span class="curso-ficha-rotulo">${escapeHtml(rotulo)}</span>
                         <strong>${escapeHtml(String(valor))}</strong>
