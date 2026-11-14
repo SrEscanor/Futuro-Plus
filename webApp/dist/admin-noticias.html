@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Futuro+ | Admin · Notícias</title>
+    <link rel="icon" href="./favicon.ico" sizes="48x48">
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <script type="module" crossorigin src="./assets/adminNoticias-DMLkvSIy.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/firebase-config-DZ7_vqDZ.js">
+  <link rel="modulepreload" crossorigin href="./assets/noticias-dados-CLLgc4U3.js">
+  <link rel="stylesheet" crossorigin href="./assets/adminNoticias-CUemODxE.css">
+  <link rel="stylesheet" crossorigin href="./assets/admin-instituicoes-e7_4u62x.css">
+</head>
+
+<body>
+
+    <header class="topo-admin">
+        <div class="titulo-area">
+            <h1>Painel Admin · Notícias</h1>
+            <a href="admin-notificacoes.html" class="voltar">&larr; Notificações</a>
+        </div>
+        <div class="usuario-area">
+            <span id="admin-email"></span>
+            <button id="logout-btn" class="btn-sair-admin">Sair</button>
+        </div>
+    </header>
+
+    <div id="acesso-negado" class="acesso-negado">
+        <h2>Acesso restrito</h2>
+        <p>Esta área é exclusiva para administradores do Futuro+. Se você acredita que deveria ter acesso, fale com
+            quem administra o projeto.</p>
+        <a href="index.html" class="btn btn-secundario">Voltar ao início</a>
+    </div>
+
+    <main id="admin-app" style="display:none;">
+        <div class="container-admin">
+
+            <p class="noticias-intro">As notícias chegam sozinhas: a cada 6 horas o servidor procura novidades sobre
+                Etecs e Fatecs nos sites do Centro Paula Souza, da Agência SP e no Google Notícias.
+                <strong>Só as que você aprovar aparecem no site</strong>, na página
+                <a href="noticias.html" target="_blank" rel="noopener">Notícias</a>.</p>
+
+            <!-- ---------- BUSCA ---------- -->
+            <section class="noticias-busca" aria-labelledby="busca-titulo">
+                <div class="noticias-busca-texto">
+                    <h2 id="busca-titulo">Busca de notícias</h2>
+                    <p id="coleta-resumo" class="coleta-resumo">Lendo a última busca…</p>
+                    <ul id="coleta-fontes" class="coleta-fontes" aria-label="Fontes da última busca" hidden></ul>
+                </div>
+                <button type="button" id="btn-buscar" class="btn btn-primario">Buscar notícias agora</button>
+            </section>
+
+            <!-- ---------- ABAS ---------- -->
+            <div class="noticias-abas" role="tablist" aria-label="Notícias por situação">
+                <button type="button" class="noticias-aba noticias-aba--ativa" role="tab" id="aba-pendente"
+                    data-aba="pendente" aria-selected="true" aria-controls="painel-noticias">
+                    Pendentes <span class="noticias-aba-numero" id="numero-pendente">…</span>
+                </button>
+                <button type="button" class="noticias-aba" role="tab" id="aba-aprovada" data-aba="aprovada"
+                    aria-selected="false" aria-controls="painel-noticias" tabindex="-1">
+                    No site <span class="noticias-aba-numero" id="numero-aprovada">…</span>
+                </button>
+                <button type="button" class="noticias-aba" role="tab" id="aba-recusada" data-aba="recusada"
+                    aria-selected="false" aria-controls="painel-noticias" tabindex="-1">
+                    Recusadas <span class="noticias-aba-numero" id="numero-recusada">…</span>
+                </button>
+            </div>
+
+            <!-- Fica preso no alto da tela enquanto a lista rola: o aviso do que
+                 acabou de acontecer e, nas pendentes, as ações em várias de uma vez. -->
+            <div class="noticias-fixo">
+                <div id="status-noticias" class="status-importacao" role="status" aria-live="polite">
+                    <span class="status-texto"></span>
+                    <button type="button" class="status-fechar" id="btn-fechar-status" aria-label="Fechar aviso">&times;</button>
+                </div>
+
+                <div class="barra-selecao" id="barra-selecao" hidden>
+                    <label class="selecionar-todas">
+                        <input type="checkbox" id="selecionar-todas" aria-label="Selecionar todas">
+                        <span><span class="so-largo">Selecionar </span>todas</span>
+                    </label>
+                    <div class="barra-selecao-acoes">
+                        <button type="button" id="btn-aprovar-selecionadas" class="btn btn-primario" disabled>Aprovar selecionadas (0)</button>
+                        <button type="button" id="btn-recusar-selecionadas" class="btn btn-secundario btn-recusar" disabled>Recusar selecionadas (0)</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ---------- LISTA DA ABA ABERTA ---------- -->
+            <section id="painel-noticias" class="noticias-painel" role="tabpanel" aria-labelledby="aba-pendente" tabindex="-1">
+                <ul class="lista-noticias" id="lista-noticias" aria-busy="true"></ul>
+            </section>
+        </div>
+    </main>
+
+    <!-- ---------- MODAL: EDITAR NOTÍCIA ---------- -->
+    <div id="modal-editar" class="modal-overlay">
+        <div class="modal modal--noticia" role="dialog" aria-modal="true" aria-labelledby="editar-titulo">
+            <form id="form-editar" novalidate>
+                <div class="modal-cabecalho">
+                    <h2 id="editar-titulo">Editar notícia</h2>
+                    <button type="button" id="btn-fechar-editar" class="btn-fechar-modal" aria-label="Fechar">&times;</button>
+                </div>
+
+                <div class="modal-corpo">
+                    <div class="campo">
+                        <label for="f-titulo">Título *</label>
+                        <textarea id="f-titulo" rows="3" required></textarea>
+                        <small class="campo-dica campo-contagem">
+                            <span>É o que aparece em destaque no cartão.</span>
+                            <span class="campo-contador" id="f-titulo-contador"></span>
+                        </small>
+                    </div>
+
+                    <div class="campo">
+                        <label for="f-resumo">Resumo</label>
+                        <textarea id="f-resumo" rows="5"></textarea>
+                        <small class="campo-dica campo-contagem">
+                            <span>Uma ou duas frases. Pode ficar vazio.</span>
+                            <span class="campo-contador" id="f-resumo-contador"></span>
+                        </small>
+                    </div>
+
+                    <div class="campo">
+                        <label for="f-imagem">Endereço da imagem</label>
+                        <input type="url" id="f-imagem" inputmode="url" placeholder="https://..." autocomplete="off"
+                            autocapitalize="off" spellcheck="false">
+                        <div class="previa-imagem">
+                            <div class="previa-imagem-caixa" id="previa-imagem"></div>
+                            <small class="campo-dica" id="previa-legenda" aria-live="polite"></small>
+                        </div>
+                    </div>
+
+                    <fieldset class="campo campo-etiquetas">
+                        <legend>Etiquetas</legend>
+                        <label class="opcao-radio">
+                            <input type="checkbox" id="f-etec" value="etec">
+                            Etec
+                        </label>
+                        <label class="opcao-radio">
+                            <input type="checkbox" id="f-fatec" value="fatec">
+                            Fatec
+                        </label>
+                        <small class="campo-dica">Sem nenhuma marcada, a notícia aparece como geral do CPS.</small>
+                    </fieldset>
+
+                    <div id="status-editar" class="status-importacao status-importacao--erro" role="alert"></div>
+                </div>
+
+                <div class="modal-rodape">
+                    <button type="button" id="btn-cancelar-editar" class="btn btn-secundario">Cancelar</button>
+                    <button type="submit" id="btn-salvar-editar" class="btn btn-primario">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</body>
+
+</html>

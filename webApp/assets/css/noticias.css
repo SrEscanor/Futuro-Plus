@@ -1,0 +1,544 @@
+/* =========================================================
+   Futuro+ · Notícias (página pública)
+   Usa as variáveis de :root de dashboard.css. Os chips do filtro e a
+   paginação vêm de cursos-etec.css; aqui fica só o que é desta página.
+   Escrito do celular para o computador: 1 coluna, 2 a partir de 640 px,
+   3 a partir de 1280 px e 4 a partir de 1700 px (com 12 por página a
+   grade fecha em qualquer uma delas).
+   ========================================================= */
+
+.noticias-main {
+    /* A cor de cada etiqueta. As fortes são as mesmas da capa desenhada
+       (noticias-util.js); as claras servem de fundo. */
+    --etec: #d94f62;
+    --etec-soft: var(--red-soft);
+    --fatec: var(--blue);
+    --fatec-soft: var(--blue-soft);
+    --cps: #4a5d82;
+    --cps-soft: #eceff6;
+}
+
+/* texto que só o leitor de tela lê */
+.noticias-so-leitor {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* ---- Filtro e contagem ---- */
+.noticias-barra {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px 16px;
+    margin-bottom: 16px;
+    /* a barra do topo é fixa: sem isso ela cobre o filtro ao trocar de página */
+    scroll-margin-top: 80px;
+}
+
+.noticias-barra[hidden] {
+    display: none;
+}
+
+.noticias-filtros {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* um pouco maiores que os chips de Cursos: aqui são só três e é com o dedo */
+.noticias-filtros .chip-filtro {
+    min-height: 40px;
+    padding: 9px 20px;
+    font-size: 13.5px;
+}
+
+.noticias-contagem {
+    font-size: 13px;
+    color: var(--ink-soft);
+}
+
+.noticias-main .chip-filtro:focus-visible,
+.noticias-main .pagina-botao:focus-visible,
+.noticias-botao:focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: 2px;
+}
+
+/* Os botões da paginação têm 34 e 38 px de altura no padrão do projeto. O
+   desenho fica igual; só a área de toque cresce até 40 px. */
+.noticias-main .pagina-botao {
+    position: relative;
+}
+
+.noticias-main .pagina-botao::after {
+    content: '';
+    position: absolute;
+    inset: -1px 0;
+}
+
+.noticias-main .paginacao--topo .pagina-botao::after {
+    inset: -3px 0;
+}
+
+/* ---- Grade ---- */
+.noticias-grade {
+    list-style: none;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    margin: 0;
+    padding: 0;
+}
+
+.noticias-grade > li {
+    display: flex;
+    min-width: 0;
+}
+
+/* ---- Cartão ---- */
+.noticia-card {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-card);
+    color: inherit;
+    text-decoration: none;
+    overflow: hidden;
+    transition: box-shadow 0.15s, transform 0.15s;
+}
+
+a.noticia-card:focus-visible {
+    outline: 3px solid var(--blue);
+    outline-offset: 3px;
+}
+
+/* Só em aparelho com mouse: no celular o :hover fica grudado no cartão tocado. */
+@media (hover: hover) and (pointer: fine) {
+    a.noticia-card:hover {
+        box-shadow: var(--shadow-card-hover);
+        transform: translateY(-2px);
+    }
+
+    a.noticia-card:hover .noticia-sair {
+        background: var(--blue);
+        color: #fff;
+    }
+}
+
+.noticia-capa {
+    position: relative;
+    flex-shrink: 0;
+    aspect-ratio: 16 / 9;
+    background: var(--blue-soft);
+    overflow: hidden;
+}
+
+.noticia-capa img,
+.noticia-arte {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.noticia-capa img {
+    object-fit: cover;
+}
+
+.noticia-corpo {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 10px;
+    min-width: 0;
+    padding: 16px 18px;
+}
+
+.noticia-etiquetas {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+/* a cor fica no ponto e no fundo; o texto continua na cor de texto */
+.noticia-etiqueta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 11px 4px 9px;
+    border-radius: 99px;
+    background: var(--etiqueta-fundo, var(--cps-soft));
+    font-size: 11.5px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--ink);
+}
+
+.noticia-etiqueta::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--etiqueta-cor, var(--cps));
+}
+
+.noticia-etiqueta--etec {
+    --etiqueta-cor: var(--etec);
+    --etiqueta-fundo: var(--etec-soft);
+}
+
+.noticia-etiqueta--fatec {
+    --etiqueta-cor: var(--fatec);
+    --etiqueta-fundo: var(--fatec-soft);
+}
+
+/* só aparece no cartão em destaque (tela grande) */
+.noticia-recente {
+    display: none;
+}
+
+.noticia-titulo {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    font-size: 16.5px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--ink);
+    overflow: hidden;
+    overflow-wrap: anywhere;
+}
+
+.noticia-resumo {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    overflow: hidden;
+    overflow-wrap: anywhere;
+}
+
+.noticia-rodape {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
+    font-size: 12.5px;
+    color: var(--ink-soft);
+}
+
+.noticia-fonte {
+    min-width: 0;
+    font-weight: 600;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.noticia-data {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.noticia-data::before {
+    content: '·';
+    margin-right: 6px;
+}
+
+/* o sinal de que o cartão abre outro site */
+.noticia-sair {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    margin-left: auto;
+    border-radius: 50%;
+    background: var(--blue-soft);
+    color: var(--blue-dark);
+    transition: background 0.15s, color 0.15s;
+}
+
+/* ---- Carregando ---- */
+.noticia-esqueleto {
+    flex-direction: column;
+    gap: 12px;
+    padding-bottom: 20px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    overflow: hidden;
+}
+
+.noticia-esqueleto-capa,
+.noticia-esqueleto-linha {
+    display: block;
+    background: linear-gradient(90deg, #eceef8 25%, #f7f8fd 40%, #eceef8 60%);
+    background-size: 300% 100%;
+    animation: noticias-brilho 1.5s linear infinite;
+}
+
+.noticia-esqueleto-capa {
+    aspect-ratio: 16 / 9;
+}
+
+.noticia-esqueleto-linha {
+    height: 14px;
+    margin: 0 18px;
+    border-radius: 7px;
+}
+
+.noticia-esqueleto-linha--curta {
+    width: 28%;
+    margin-top: 4px;
+}
+
+.noticia-esqueleto-linha--media {
+    width: 62%;
+}
+
+@keyframes noticias-brilho {
+    from { background-position: 100% 0; }
+    to { background-position: 0 0; }
+}
+
+/* ---- Avisos: página vazia, erro, filtro sem resultado ---- */
+.noticias-grade > .noticias-estado {
+    grid-column: 1 / -1;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 44px 20px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    text-align: center;
+}
+
+.noticias-estado-icone {
+    display: grid;
+    place-items: center;
+    width: 60px;
+    height: 60px;
+    margin-bottom: 6px;
+    border-radius: 50%;
+    background: var(--blue-soft);
+    color: var(--blue);
+}
+
+.noticias-estado h2 {
+    font-size: 18px;
+    line-height: 1.3;
+    color: var(--ink);
+}
+
+.noticias-estado p {
+    max-width: 440px;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    overflow-wrap: anywhere;
+}
+
+.noticias-botao {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    margin-top: 10px;
+    padding: 0 24px;
+    border: 1.5px solid var(--blue);
+    border-radius: 99px;
+    background: var(--blue);
+    color: #fff;
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.noticias-botao:hover {
+    border-color: var(--blue-dark);
+    background: var(--blue-dark);
+}
+
+/* ---- Aviso de onde as notícias vêm ---- */
+.noticias-origem {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 8px;
+    margin: 22px 0 8px;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+}
+
+.noticias-origem svg {
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+/* =========================================================
+   Telas maiores
+   ========================================================= */
+@media (min-width: 640px) {
+    .noticias-grade {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+    }
+}
+
+/* Três colunas. A grade tem 6 trilhos para a primeira página poder ter um
+   cartão de ponta a ponta (a mais nova) e dois de meia largura embaixo dele:
+   1 + 2 + 9 = 12, e nenhuma linha fica com buraco. */
+@media (min-width: 1280px) {
+    .noticias-grade {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+
+    .noticias-grade > li {
+        grid-column: span 2;
+    }
+
+    .noticias-grade--destaque > li:first-child {
+        grid-column: 1 / -1;
+    }
+
+    .noticias-grade--destaque > li:nth-child(2),
+    .noticias-grade--destaque > li:nth-child(3) {
+        grid-column: span 3;
+    }
+
+    /* o destaque deita: capa de um lado, texto do outro */
+    .noticias-grade--destaque > li:first-child .noticia-card {
+        flex-direction: row;
+    }
+
+    .noticias-grade--destaque > li:first-child .noticia-capa {
+        flex: 0 0 50%;
+    }
+
+    .noticias-grade--destaque > li:first-child .noticia-corpo {
+        justify-content: center;
+        gap: 12px;
+        padding: 26px 30px;
+    }
+
+    .noticias-grade--destaque > li:first-child .noticia-recente {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--ink-soft);
+    }
+
+    /* o laranja da marca, só neste ponto */
+    .noticias-grade--destaque > li:first-child .noticia-recente::before {
+        content: '';
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--gold);
+    }
+
+    .noticias-grade--destaque > li:first-child .noticia-titulo {
+        font-size: 25px;
+        line-height: 1.22;
+        letter-spacing: -0.01em;
+    }
+
+    .noticias-grade--destaque > li:first-child .noticia-resumo {
+        -webkit-line-clamp: 4;
+        font-size: 15px;
+    }
+
+    .noticias-grade--destaque > li:first-child .noticia-rodape {
+        margin-top: 4px;
+        font-size: 13px;
+    }
+
+    .noticias-grade--destaque > li:nth-child(2) .noticia-titulo,
+    .noticias-grade--destaque > li:nth-child(3) .noticia-titulo {
+        font-size: 18px;
+    }
+}
+
+/* Quatro colunas, com 12 trilhos: destaque de ponta a ponta, três cartões de
+   um terço e oito normais (1 + 3 + 8 = 12). */
+@media (min-width: 1700px) {
+    .noticias-grade {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+    }
+
+    .noticias-grade > li {
+        grid-column: span 3;
+    }
+
+    .noticias-grade--destaque > li:nth-child(2),
+    .noticias-grade--destaque > li:nth-child(3),
+    .noticias-grade--destaque > li:nth-child(4) {
+        grid-column: span 4;
+    }
+
+    .noticias-grade--destaque > li:first-child .noticia-capa {
+        flex-basis: 46%;
+    }
+
+    .noticias-grade--destaque > li:first-child .noticia-corpo {
+        padding: 34px 44px;
+    }
+
+    .noticias-grade--destaque > li:first-child .noticia-titulo {
+        font-size: 30px;
+    }
+
+    .noticias-grade--destaque > li:first-child .noticia-resumo {
+        max-width: 640px;
+        font-size: 16px;
+    }
+
+    .noticias-grade--destaque > li:nth-child(4) .noticia-titulo {
+        font-size: 18px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .noticia-card,
+    .noticia-sair,
+    .noticias-botao {
+        transition: none;
+    }
+
+    a.noticia-card:hover {
+        transform: none;
+    }
+
+    .noticia-esqueleto-capa,
+    .noticia-esqueleto-linha {
+        animation: none;
+    }
+}

@@ -77,5 +77,25 @@ service cloud.firestore {
       allow read: if true;
       allow write: if ehAdmin();
     }
+
+    // Notícias de Etecs e Fatecs. O site só lê "noticias", que guarda apenas
+    // o que um administrador aprovou no painel Admin · Notícias.
+    match /noticias/{noticiaId} {
+      allow read: if true;
+      allow write: if ehAdmin();
+    }
+
+    // Tudo o que a coleta automática trouxe (pendente, aprovada ou
+    // recusada). Quem inclui é a função coletar_noticias (Admin SDK); o
+    // administrador lê e muda o status pelo painel. Visitante não lê.
+    match /noticias_fila/{noticiaId} {
+      allow read, write: if ehAdmin();
+    }
+
+    // Resumo da última coleta, mostrado no painel. Só a função grava.
+    match /noticias_coleta/{documento} {
+      allow read: if ehAdmin();
+      allow write: if false;
+    }
   }
 }

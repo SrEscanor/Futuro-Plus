@@ -1,5 +1,6 @@
-"""Testa as funções coletar_demanda e enviar_capa sem tocar no Firebase nem nos
-sites do vestibular: Firestore, Auth, Storage e a coleta são simulados.
+"""Testa as funções coletar_demanda, enviar_capa e coletar_noticias sem tocar no
+Firebase nem nos sites de fora: Firestore, Auth, Storage e as coletas são
+simulados.
 
 Como rodar, da pasta do projeto:
 
@@ -12,8 +13,11 @@ Para conferir a coleta de verdade (acessa os sites, não grava nada):
     functions/venv/Scripts/python.exe functions/demanda.py etec 20261 --limite 8
 """
 import base64
+import copy
 import json
 import sys
+from datetime import datetime, timedelta, timezone
+from email.utils import format_datetime
 from pathlib import Path
 from unittest import mock
 
@@ -25,7 +29,9 @@ import firebase_admin  # noqa: E402
 with mock.patch.object(firebase_admin, "initialize_app"):
     import main  # noqa: E402
 import demanda  # noqa: E402
+import noticias  # noqa: E402
 import flask  # noqa: E402
+import requests  # noqa: E402
 
 APAGAR = main.firestore.DELETE_FIELD
 
@@ -84,6 +90,33 @@ class Colecao:
         return [Doc(self.banco, c) for c in list(self.banco)
                 if c.startswith(self.caminho + "/") and c.count("/") == nivel]
 
+    def where(self, campo, operador, valor):
+        return Consulta(self, [(campo, operador, valor)])
+
+
+class Consulta:
+    """O bastante de uma consulta do Firestore para os testes: filtros com
+    ==, >= e <=. Documento sem o campo fica de fora, como no Firestore."""
+    COMPARAR = {
+        "==": lambda a, b: a == b,
+        ">=": lambda a, b: a is not None and a >= b,
+        "<=": lambda a, b: a is not None and a <= b,
+    }
+
+    def __init__(self, colecao, filtros):
+        self.colecao, self.filtros = colecao, filtros
+
+    def where(self, campo, operador, valor):
+        return Consulta(self.colecao, [*self.filtros, (campo, operador, valor)])
+
+    def select(self, _campos):
+        return self
+
+    def stream(self):
+        return [doc for doc in self.colecao.stream()
+                if all(self.COMPARAR[operador]((doc.to_dict() or {}).get(campo), valor)
+                       for campo, operador, valor in self.filtros)]
+
 
 class Lote:
     def __init__(self, banco):
@@ -107,6 +140,9 @@ class Banco:
 
     def batch(self):
         return Lote(self.dados)
+
+    def get_all(self, referencias):
+        return [referencia.get() for referencia in referencias]
 
 
 class Blob:
@@ -282,8 +318,205 @@ def testar_capas():
             s.stop()
 
 
+# --------------------------------------------------------------------------
+# Notícias
+# --------------------------------------------------------------------------
+
+def _feed(itens):
+    """Um feed RSS com os itens dados: [(título, link, quando, resto em XML)].
+    Começa com uma linha em branco, como o feed de verdade do CPS."""
+    corpo = "".join(
+        f"<item><title>{titulo}</title><link>{link}</link><pubDate>{format_datetime(quando)}</pubDate>{resto}</item>"
+        for titulo, link, quando, resto in itens
+    )
+    return ('\n<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" '
+            'xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Feed</title>'
+            f"{corpo}</channel></rss>").encode("utf-8")
+
+
+def testar_noticias():
+    print("notícias: organização do que vem dos feeds")
+    agora = datetime.now(timezone.utc)
+
+    conferir("o link perde o rastreio e a âncora",
+             noticias.limpar_link("https://Site.com.br/a/?utm_source=x&id=7&fbclid=abc#topo") == "https://site.com.br/a/?id=7",
+             noticias.limpar_link("https://Site.com.br/a/?utm_source=x&id=7&fbclid=abc#topo"))
+    conferir("endereço que não é http(s) é recusado", noticias.limpar_link("javascript:alert(1)") == "")
+    conferir("a mesma notícia por http, https ou com barra no fim tem o mesmo identificador",
+             noticias.id_da_noticia("http://site.com.br/noticia/") == noticias.id_da_noticia("https://site.com.br/noticia"))
+    conferir("links diferentes têm identificadores diferentes",
+             noticias.id_da_noticia("https://site.com.br/a") != noticias.id_da_noticia("https://site.com.br/b"))
+    conferir("Vestibulinho conta como Etec",
+             noticias.etiquetas("Inscrições do Vestibulinho e das Fatecs") == ["etec", "fatec"])
+    conferir("sem citar Etec nem Fatec, fica sem etiqueta", noticias.etiquetas("Centro Paula Souza é premiado") == [])
+    conferir("palavra que só contém 'etec' não vira etiqueta", noticias.etiquetas("Feira de biotecnologia e mecatrônica") == [])
+    conferir("capa da página escrita com aspas simples",
+             noticias.imagem_da_pagina("<meta property='og:image' content='https://a.com/f.jpg'>") == "https://a.com/f.jpg")
+    conferir("capa da página com os atributos em outra ordem",
+             noticias.imagem_da_pagina('<meta content="https://a.com/g.jpg" property="og:image" />') == "https://a.com/g.jpg")
+    conferir("imagem por http passa a https", noticias.imagem_https("http://a.com/f.jpg") == "https://a.com/f.jpg")
+    conferir("imagem embutida (data:) é recusada", noticias.imagem_https("data:image/png;base64,AAAA") == "")
+    cortado = noticias.limpar_texto("<p>" + "palavra " * 100 + "</p>", 400)
+    conferir("resumo comprido é cortado numa palavra inteira, com reticências",
+             len(cortado) <= 400 and cortado.endswith("palavra…"), cortado[-30:])
+
+    recente, velha = agora - timedelta(hours=3), agora - timedelta(days=90)
+    feeds = {
+        "cps.sp.gov.br": _feed([
+            ("Etec de Cubatão ganha prêmio", "https://www.cps.sp.gov.br/etec-cubatao-ganha-premio/?utm_source=feed", recente,
+             "<description><![CDATA[<p>Projeto de bioplástico foi o vencedor.</p>]]></description><category>Etec</category>"
+             '<content:encoded><![CDATA[<p><img src="http://www.cps.sp.gov.br/foto.jpg"></p>]]></content:encoded>'),
+            ("Notícia de três meses atrás", "https://www.cps.sp.gov.br/antiga/", velha, ""),
+            ("Centro Paula Souza divulga calendário", "https://www.cps.sp.gov.br/calendario/", recente, ""),
+        ]),
+        "tag/etec": _feed([
+            # a mesma notícia do CPS, publicada também em outro site
+            ("Etec de Cubatão ganha prêmio", "https://www.agenciasp.sp.gov.br/educacao/etec-cubatao/", recente, ""),
+            ("Vestibulinho recebe inscrições", "https://www.agenciasp.sp.gov.br/educacao/vestibulinho/", recente, ""),
+        ]),
+        # um site fora do ar não pode derrubar os outros
+        "tag/fatec": requests.HTTPError(response=type("Resposta", (), {"status_code": 500})()),
+        "news.google.com": _feed([
+            ("Fatec abre vagas em Sorocaba - G1", "https://news.google.com/rss/articles/ABC123?oc=5", recente,
+             '<source url="https://g1.globo.com">G1</source>'
+             '<description>&lt;a href="x"&gt;Fatec abre vagas em Sorocaba&lt;/a&gt;</description>'),
+            ("Prefeitura anuncia obras no centro - Jornal da Cidade", "https://news.google.com/rss/articles/DEF456?oc=5", recente,
+             '<source url="https://jornal.com">Jornal da Cidade</source>'),
+            # a notícia do CPS contada por outro jornal, com o título um pouco diferente
+            ("Etec de Cubatão ganha prêmio em feira estadual - Jornal da Baixada",
+             "https://news.google.com/rss/articles/GHI789?oc=5", recente,
+             '<source url="https://baixada.com">Jornal da Baixada</source>'),
+            # "Fatec" de outro estado, que não é do Centro Paula Souza
+            ("Fatec Ivaiporã abre inscrições - Jornal do Vale", "https://news.google.com/rss/articles/JKL012?oc=5", recente,
+             '<source url="https://vale.com">Jornal do Vale</source>'),
+        ]),
+    }
+
+    def baixar(endereco, sessao=None, limite=None):
+        for trecho, conteudo in feeds.items():
+            if trecho in endereco:
+                if isinstance(conteudo, Exception):
+                    raise conteudo
+                return conteudo
+        raise AssertionError(f"endereço inesperado: {endereco}")
+
+    with mock.patch.object(noticias, "_baixar", side_effect=baixar):
+        coleta = noticias.coletar(agora=agora)
+
+    titulos = [n["titulo"] for n in coleta["noticias"]]
+    conferir("ficam 4 notícias: sem a antiga, as repetidas, a de outro assunto e a escola de outro estado",
+             titulos == ["Etec de Cubatão ganha prêmio", "Centro Paula Souza divulga calendário",
+                         "Vestibulinho recebe inscrições", "Fatec abre vagas em Sorocaba"], titulos)
+    premio, calendario, _, fatec = coleta["noticias"]
+    conferir("a notícia repetida em dois sites fica com a do mais oficial", premio["fonte"] == "Centro Paula Souza", premio["fonte"])
+    conferir("o link é guardado sem o rastreio", premio["link"] == "https://www.cps.sp.gov.br/etec-cubatao-ganha-premio/", premio["link"])
+    conferir("o resumo vem sem as tags", premio["resumo"] == "Projeto de bioplástico foi o vencedor.", premio["resumo"])
+    conferir("a imagem do texto serve de reserva, já por https", premio["imagem"] == "https://www.cps.sp.gov.br/foto.jpg", premio["imagem"])
+    conferir("etiqueta de Etec", premio["instituicoes"] == ["etec"], premio["instituicoes"])
+    conferir("notícia geral do CPS fica sem etiqueta", calendario["instituicoes"] == [], calendario["instituicoes"])
+    conferir("no Google Notícias o nome do site sai do título e vira a fonte",
+             fatec["titulo"] == "Fatec abre vagas em Sorocaba" and fatec["fonte"] == "G1" and fatec["resumo"] == "", fatec)
+    conferir("o link do Google fica sem o parâmetro de rastreio",
+             fatec["link"] == "https://news.google.com/rss/articles/ABC123", fatec["link"])
+    conferir("cada notícia guarda por qual feed chegou", (premio["feed"], fatec["feed"]) == ("cps", "google"))
+
+    palavras = noticias.palavras_do_titulo
+    conferir("títulos de jornais diferentes sobre o mesmo fato contam como parecidos",
+             noticias.titulo_parecido(palavras("alunos da etec lauro gomes sao premiados em simposio academico"),
+                                      [palavras("etec lauro gomes conquista premio em simposio academico")]))
+    conferir("prazo da Fatec e prazo da Etec não são a mesma notícia",
+             not noticias.titulo_parecido(palavras("inscricoes para o vestibular das fatecs terminam nesta segunda feira"),
+                                          [palavras("inscricoes para o vestibulinho das etecs terminam nesta terca feira")]))
+
+    situacao = {f["nome"]: f for f in coleta["fontes"]}
+    conferir("o resumo conta as notícias de cada fonte",
+             [situacao[n]["encontradas"] for n in ("Centro Paula Souza", "Agência SP · Etec", "Google Notícias")] == [2, 1, 1],
+             coleta["fontes"])
+    conferir("a fonte que falhou aparece com o motivo, e as outras seguem",
+             situacao["Agência SP · Fatec"]["erro"] == "o site respondeu com erro 500", situacao["Agência SP · Fatec"])
+
+    print("coletar_noticias")
+    ids = [n["id"] for n in coleta["noticias"]]
+    # mais uma da busca aberta, com o título quase igual ao de uma que já está na fila
+    coleta["noticias"].append({**fatec, "id": "parecida-do-google", "titulo": "Vestibulinho recebe inscrições até sexta",
+                               "chaveTitulo": "vestibulinho recebe inscricoes ate sexta",
+                               "link": "https://news.google.com/rss/articles/MNO345"})
+    docs = {
+        "usuarios/admin1": {"admin": True},
+        "usuarios/aluno1": {"admin": False},
+        # recusada numa coleta anterior: não pode voltar para pendente
+        f"noticias_fila/{ids[0]}": {"titulo": "Etec de Cubatão ganha prêmio", "status": "recusada",
+                                    "chaveTitulo": "etec de cubatao ganha premio",
+                                    "coletadaEm": noticias.em_iso(agora - timedelta(days=2))},
+        # o mesmo título, coletado há 5 dias por outro link: barra a notícia
+        "noticias_fila/outro-link": {"titulo": "Vestibulinho recebe inscrições", "status": "aprovada",
+                                     "chaveTitulo": "vestibulinho recebe inscricoes",
+                                     "coletadaEm": noticias.em_iso(agora - timedelta(days=5))},
+        # título quase igual ao do calendário do CPS: como a nova vem de site oficial, entra mesmo assim
+        "noticias_fila/parecida-com-oficial": {"titulo": "Centro Paula Souza divulga calendário escolar", "status": "pendente",
+                                               "chaveTitulo": "centro paula souza divulga calendario escolar",
+                                               "coletadaEm": noticias.em_iso(agora - timedelta(days=3))},
+        # o mesmo título, mas de 40 dias atrás: já pode ser notícia nova
+        "noticias_fila/bem-antiga": {"titulo": "Fatec abre vagas em Sorocaba", "status": "aprovada",
+                                     "chaveTitulo": "fatec abre vagas em sorocaba",
+                                     "coletadaEm": noticias.em_iso(agora - timedelta(days=40))},
+    }
+
+    def capas(novas, sessao=None):
+        for noticia in novas:
+            if "cps.sp.gov.br" in noticia["link"]:
+                noticia["imagem"] = "https://www.cps.sp.gov.br/capa.jpg"
+
+    simulacoes = [
+        mock.patch.object(main.firestore, "client", return_value=Banco(docs)),
+        mock.patch.object(main.firebase_auth, "verify_id_token", side_effect=lambda token: {"uid": token}),
+        mock.patch.object(noticias, "coletar", side_effect=lambda: copy.deepcopy(coleta)),
+        mock.patch.object(noticias, "completar_imagens", side_effect=capas),
+    ]
+    for s in simulacoes:
+        s.start()
+    try:
+        conferir("sem login devolve 401", chamar(main.coletar_noticias, {}, token=None)[0] == 401)
+        conferir("quem não é admin recebe 403", chamar(main.coletar_noticias, {}, token="aluno1")[0] == 403)
+        conferir("nada foi gravado pelas chamadas recusadas", "noticias_coleta/ultima" not in docs)
+
+        status, resumo = chamar(main.coletar_noticias, {})
+        conferir("a coleta responde 200", status == 200, resumo)
+        conferir("2 novas e 3 repetidas", (resumo["novas"], resumo["repetidas"]) == (2, 3), resumo)
+        conferir("o resumo diz que veio do botão do painel e traz as 4 fontes",
+                 resumo["origem"] == "painel" and len(resumo["fontes"]) == 4, resumo)
+
+        conferir("a recusada continua recusada", docs[f"noticias_fila/{ids[0]}"]["status"] == "recusada")
+        conferir("título igual coletado há pouco não entra de novo", f"noticias_fila/{ids[2]}" not in docs)
+        conferir("da busca aberta, título quase igual a um da fila também não entra",
+                 "noticias_fila/parecida-do-google" not in docs)
+        conferir("de site oficial, título parecido com um da fila entra do mesmo jeito",
+                 docs.get(f"noticias_fila/{ids[1]}", {}).get("feed") == "cps")
+        nova = docs.get(f"noticias_fila/{ids[1]}", {})
+        conferir("a notícia nova entra como pendente, com a data da coleta",
+                 nova.get("status") == "pendente" and nova.get("coletadaEm") == resumo["coletadaEm"], nova)
+        conferir("a nova ganha a capa da página", nova.get("imagem") == "https://www.cps.sp.gov.br/capa.jpg", nova.get("imagem"))
+        conferir("o identificador é o nome do documento, não um campo", "id" not in nova)
+        conferir("título igual a um de 40 dias atrás entra como notícia nova",
+                 docs.get(f"noticias_fila/{ids[3]}", {}).get("status") == "pendente")
+        conferir("o resumo fica guardado para o painel", docs["noticias_coleta/ultima"]["novas"] == 2)
+
+        status, de_novo = chamar(main.coletar_noticias, {})
+        conferir("buscar de novo não duplica nada", status == 200 and (de_novo["novas"], de_novo["repetidas"]) == (0, 5), de_novo)
+
+        # aprovada pelo painel entre uma coleta e outra: a coleta não mexe nela
+        docs[f"noticias_fila/{ids[1]}"]["status"] = "aprovada"
+        main.coletar_noticias_agendada.__wrapped__(None)
+        conferir("a busca agendada grava o resumo dela", docs["noticias_coleta/ultima"]["origem"] == "agendada")
+        conferir("a aprovada continua aprovada depois da busca agendada", docs[f"noticias_fila/{ids[1]}"]["status"] == "aprovada")
+    finally:
+        for s in simulacoes:
+            s.stop()
+
+
 if __name__ == "__main__":
     testar_nomes()
     testar_demanda()
     testar_capas()
+    testar_noticias()
     print("TUDO CERTO")

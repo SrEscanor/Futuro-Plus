@@ -469,3 +469,54 @@ def enviar_capa(req: https_fn.Request) -> https_fn.Response:
     except Exception as e:
         print(f"Erro ao enviar capa: {e}")
         return responder({"erro": f"Erro interno: {str(e)}"}, 500)
+
+
+@https_fn.on_request(
+    cors=options.CorsOptions(cors_origins="*", cors_methods=["get", "post"]),
+    region=options.SupportedRegion.SOUTHAMERICA_EAST1,
+    # Só o painel admin chama, e uma busca por vez.
+    max_instances=2,
+    memory=options.MemoryOption.MB_256,
+    # São quatro feeds e a capa de cada notícia nova: leva segundos num dia
+    # normal, mas o padrão de 60 s ficaria justo com um dos sites lento.
+    timeout_sec=180,
+)
+def coletar_noticias(req: https_fn.Request) -> https_fn.Response:
+    """Busca agora as notícias de Etecs e Fatecs nos feeds (noticias.py) e põe
+    as novas na fila de aprovação. Chamada pelo botão "Buscar notícias agora"
+    do painel Admin · Notícias; devolve o resumo da coleta."""
+    if req.method == "OPTIONS":
+        return https_fn.Response(status=204)
+
+    cabecalho_json = {"Content-Type": "application/json"}
+    try:
+        db = firestore.client()
+        _, erro = _exigir_admin(req, db)
+        if erro:
+            return erro
+
+        import noticias_firestore
+
+        resumo = noticias_firestore.coletar_e_gravar(db, "painel")
+        return https_fn.Response(json.dumps(resumo), status=200, headers=cabecalho_json)
+
+    except Exception as e:
+        print(f"Erro ao coletar notícias: {e}")
+        return https_fn.Response(json.dumps({"erro": f"Erro interno: {str(e)}"}), status=500, headers=cabecalho_json)
+
+
+@scheduler_fn.on_schedule(
+    # Os sites publicam poucas notícias por dia: quatro buscas diárias deixam
+    # a fila em dia e ficam dentro da faixa gratuita.
+    schedule="every 6 hours",
+    region=options.SupportedRegion.SOUTHAMERICA_EAST1,
+    memory=options.MemoryOption.MB_256,
+    timeout_sec=180,
+)
+def coletar_noticias_agendada(event: scheduler_fn.ScheduledEvent) -> None:
+    """A mesma busca do botão, rodando sozinha. Nada vai para o site sem
+    aprovação: as notícias novas só entram na fila do painel."""
+    import noticias_firestore
+
+    resumo = noticias_firestore.coletar_e_gravar(firestore.client(), "agendada")
+    print(json.dumps({"coleta_noticias": True, **resumo}, ensure_ascii=False))
