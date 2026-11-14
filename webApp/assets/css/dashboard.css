@@ -2377,9 +2377,12 @@ a.btn-saiba {
     margin-bottom: 12px;
 }
 
+/* align-items: start: cada card fica com a altura do próprio conteúdo. Esticar
+   os dois à mesma altura deixava um vão enorme no card mais curto. */
 .resultados-testes-grade {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+    align-items: start;
     gap: 16px;
 }
 
@@ -2398,6 +2401,7 @@ a.btn-saiba {
 }
 
 .resultado-teste-bloco[data-ver-resultado] .resultado-teste-acoes,
+.resultado-teste-bloco[data-ver-resultado] .resultado-teste-compartilhar,
 .resultado-teste-bloco[data-ver-resultado] .compartilhar-resultado {
     cursor: default;
 }
@@ -2420,17 +2424,6 @@ a.btn-saiba {
 .resultado-teste-data {
     font-size: 11.5px;
     color: var(--ink-soft);
-}
-
-.resultado-teste-linha {
-    font-size: 13.5px;
-    line-height: 1.55;
-    color: var(--ink-soft);
-    margin-bottom: 6px;
-}
-
-.resultado-teste-linha strong {
-    color: var(--ink);
 }
 
 .resultado-teste-desc {
@@ -2524,4 +2517,203 @@ a.btn-saiba {
     font-size: 11.5px;
     line-height: 1.6;
     color: var(--ink-soft);
+}
+
+/* Resultado principal do perfil, com a porcentagem num selo ao lado. */
+.resultado-teste-principal {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    margin: 2px 0 6px;
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--ink);
+}
+
+.resultado-teste-porcentagem {
+    padding: 3px 10px;
+    border-radius: 99px;
+    background: var(--blue-soft);
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--blue-dark);
+}
+
+/* Subtítulos dentro do card ("Seu pódio", "Cursos que combinam com você"),
+   todos no mesmo nível e menores que o título do card. O h3 do bloco de
+   recomendações (recomendacao-cursos.js, usado também nas telas dos testes)
+   entra aqui só quando está dentro do card. */
+.resultado-teste-subtitulo,
+.resultado-teste-bloco .recomendacoes-teste h3 {
+    margin: 16px 0 8px;
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.35;
+    color: var(--ink);
+}
+
+.resultado-teste-bloco .recomendacoes-teste {
+    margin: 0;
+}
+
+.resultado-teste-bloco .recomendacoes-teste-sub {
+    margin: -2px 0 10px;
+    font-size: 12.5px;
+}
+
+/* Cursos recomendados em 2 colunas quando o card é largo: 6 cursos em uma
+   coluna só deixavam o card do perfil com o dobro da altura do outro. */
+.resultado-teste-bloco .lista-recomendacoes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr));
+    gap: 8px;
+}
+
+.resultado-teste-bloco .lista-recomendacoes a {
+    height: 100%;
+    padding: 11px 14px;
+}
+
+/* Pódio: 1º, 2º e 3º com a posição numa pílula laranja, verde e azul, como
+   o pódio da arte de compartilhar. */
+.resultado-teste-podio {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+}
+
+.resultado-teste-podio-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    max-width: 100%;
+    padding: 4px 11px 4px 4px;
+    border: 1px solid var(--line);
+    border-radius: 99px;
+    background: var(--surface);
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--ink);
+}
+
+.resultado-teste-podio-nome {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.resultado-teste-posicao {
+    flex: 0 0 auto;
+    display: inline-grid;
+    place-items: center;
+    min-width: 30px;
+    height: 26px;
+    padding: 0 6px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 800;
+    color: #fff;
+}
+
+.resultado-teste-podio-item--1 .resultado-teste-posicao {
+    background: var(--gold);
+    color: var(--ink);
+}
+
+.resultado-teste-podio-item--2 .resultado-teste-posicao {
+    background: var(--green-logo-forte);
+}
+
+.resultado-teste-podio-item--3 .resultado-teste-posicao {
+    background: var(--blue);
+}
+
+.resultado-teste-podio-pct {
+    flex: 0 0 auto;
+    font-weight: 700;
+    color: var(--ink-soft);
+}
+
+/* Faixa de compartilhar no pé do card: convite à esquerda e botão à direita
+   (embaixo do texto quando o card é estreito). O painel de
+   compartilhar-resultado.js some como caixa (display: contents) pra que o
+   botão, o aviso e o carrossel virem itens da própria faixa — o carrossel
+   ocupa a largura toda quando abre. */
+.resultado-teste-compartilhar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 16px;
+    margin-top: 16px;
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    background: var(--blue-soft);
+    text-align: left;
+}
+
+.resultado-teste-compartilhar-texto {
+    flex: 1 1 220px;
+    margin: 0;
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: var(--ink-soft);
+}
+
+.resultado-teste-compartilhar-texto strong {
+    display: block;
+    margin-bottom: 2px;
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+}
+
+.resultado-teste-compartilhar-slot,
+.resultado-teste-compartilhar .compartilhar-resultado {
+    display: contents;
+    text-align: left;
+}
+
+.resultado-teste-compartilhar .btn-compartilhar-resultado {
+    flex: 0 0 auto;
+    min-height: 40px;
+    padding: 10px 18px;
+    border-radius: 99px;
+    font-size: 13.5px;
+}
+
+.resultado-teste-compartilhar .compartilhar-resultado-status {
+    flex: 1 1 100%;
+    min-height: 0;
+    margin: 0;
+}
+
+.resultado-teste-compartilhar .compartilhar-resultado-status:empty {
+    display: none;
+}
+
+.resultado-teste-compartilhar .compartilhar-resultado-carrossel {
+    flex: 1 1 100%;
+    min-width: 0;
+    margin-top: 0;
+}
+
+.resultado-teste-compartilhar .compartilhar-destaque legend {
+    margin: 0 0 10px;
+}
+
+.resultado-teste-compartilhar .compartilhar-destaque-opcoes {
+    justify-content: flex-start;
+}
+
+.resultado-teste-compartilhar .compartilhar-carrossel-item:first-child {
+    margin-left: 0;
 }
