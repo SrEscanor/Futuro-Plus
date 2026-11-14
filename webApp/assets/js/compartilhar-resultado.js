@@ -67,6 +67,8 @@ const ESCALA_MINIMA = 0.7;
 
 const ICONE_COMPARTILHAR = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="19" height="19" aria-hidden="true"><path d="M12 15.5V4M12 4 7.8 8.2M12 4l4.2 4.2"/><path d="M5 13.5V18a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4.5"/></svg>`;
 
+const ICONE_LINK = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.5-1.5"/></svg>`;
+
 const ICONE_ESTRELA = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="m12 3.6 2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg>`;
 
 // ------------------------------------------------------------------
@@ -749,14 +751,17 @@ export function desenharArteResultado({ etiquetaTopo, titulo, numero, numeroLabe
 // arte é gerada no servidor local ou num canal de prévia do Firebase (o link
 // de uma prévia expira). Se o site ganhar domínio próprio, é só trocar aqui.
 const SITE_PUBLICO = 'https://futuroplus-bce54.web.app';
+const LINK_DOS_TESTES = `${SITE_PUBLICO}/testes.html`;
 
 // Exemplo (Teste rápido, curso sugerido pelo teste):
-//   ✨Mente lógica, pronta pra resolver qualquer problema.✨
+//   ✨Lógica afiada: pra mim, todo problema tem solução.✨
 //
 //   Fiz o teste no @futuroplus_ e meu resultado foi Inteligência Lógico-Matemática (38% de afinidade). 😎
 //   Curso que mais combina comigo: Eletrônica. 🤓
 //   Faça o seu também no https://futuroplus-bce54.web.app/testes.html
 //   SIGA EM TODAS AS REDES: 👉 @futuroplus_ 👈
+//
+//   #orientacaovocacional #etec #fatec
 function montarLegenda({ titulo, numero, numeroLabel, frase }, cursoDestaque, ehEscolhaDaPessoa) {
     const linhas = [];
 
@@ -772,8 +777,12 @@ function montarLegenda({ titulo, numero, numeroLabel, frase }, cursoDestaque, eh
             : `Curso que mais combina comigo: ${cursoDestaque.nome}. 🤓`);
     }
 
-    linhas.push(`Faça o seu também no ${SITE_PUBLICO}/testes.html`);
+    linhas.push(`Faça o seu também no ${LINK_DOS_TESTES}`);
     linhas.push('SIGA EM TODAS AS REDES: 👉 @futuroplus_ 👈');
+
+    // hashtags numa linha separada no fim: ajudam a achar o post no Instagram
+    // e no TikTok, e no WhatsApp não atrapalham a leitura
+    linhas.push('', '#orientacaovocacional #etec #fatec');
 
     return linhas.join('\n');
 }
@@ -793,11 +802,21 @@ function baixarArquivo(arquivo) {
     setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
 
-// Copia a legenda sozinho, sem mostrar nenhuma caixa de texto na tela — é
-// chamado toda vez que a pessoa compartilha ou baixa, pra legenda já estar
-// pronta pra colar (o Instagram Stories, por exemplo, não aceita texto junto
-// com a imagem compartilhada, então isso é o que sobra como apoio pra ele).
-async function copiarLegendaSilenciosamente(texto) {
+// O celular (e alguns computadores) abre o menu de compartilhar com as
+// imagens; onde não abre, o painel baixa as imagens.
+function aparelhoCompartilhaImagens() {
+    try {
+        const teste = new File([new Blob()], 'teste.png', { type: 'image/png' });
+        return typeof navigator.canShare === 'function' && navigator.canShare({ files: [teste] });
+    } catch {
+        return false;
+    }
+}
+
+// Copia um texto sem mostrar nenhuma caixa na tela. Chamado toda vez que a
+// pessoa compartilha (copia o link, pra figurinha do story) ou baixa as
+// imagens (copia a legenda inteira, pra colar onde for postar).
+async function copiarSilenciosamente(texto) {
     try {
         await navigator.clipboard.writeText(texto);
         return true;
@@ -873,6 +892,11 @@ export function criarPainelCompartilhar(dados, opcoes = {}) {
                 ${ICONE_COMPARTILHAR}
                 <span>Compartilhar selecionadas</span>
             </button>
+            <p class="compartilhar-resultado-dica" hidden>
+                ${ICONE_LINK}
+                <span>Vai postar no story do Instagram? O link do Futuro+ já sai copiado: no story, toque em
+                <strong>Figurinhas › Link</strong> e cole.</span>
+            </p>
         </div>
     `;
 
@@ -883,6 +907,7 @@ export function criarPainelCompartilhar(dados, opcoes = {}) {
     const opcoesDestaque = painel.querySelector('.compartilhar-destaque-opcoes');
     const scrollCarrossel = painel.querySelector('.compartilhar-carrossel-scroll');
     const botaoConfirmar = painel.querySelector('.btn-confirmar-compartilhar');
+    const dicaStory = painel.querySelector('.compartilhar-resultado-dica');
 
     // preenchido depois de gerar as imagens:
     // { blob, url, img, nomeArquivo, usaCursos, desenhar, checkbox }
@@ -990,6 +1015,9 @@ export function criarPainelCompartilhar(dados, opcoes = {}) {
 
             blocoCarrossel.hidden = false;
             botaoPrincipal.hidden = true;
+            // a dica do story só vale onde abre o menu de compartilhar (é ali
+            // que o link é copiado); no computador as imagens são baixadas
+            dicaStory.hidden = !aparelhoCompartilhaImagens();
             status.textContent = cursos.length > 1
                 ? 'Escolha o curso em destaque e quais imagens quer compartilhar.'
                 : 'Escolha quais imagens quer compartilhar (todas marcadas por padrão).';
@@ -1024,17 +1052,16 @@ export function criarPainelCompartilhar(dados, opcoes = {}) {
                 temCursos && textoSelo(cursos, indiceDestaque) === 'Minha escolha'
             );
 
-            // Vai pro clipboard de qualquer jeito: quando o app de destino aceita
-            // texto (WhatsApp, X...), a legenda já chega junto pelo `text` do
-            // compartilhamento; isso aqui é só pra quando não aceita (Instagram
-            // Stories) ou quando cai no download — sem mostrar nenhuma caixa.
-            const legendaCopiada = await copiarLegendaSilenciosamente(legenda);
-
             if (podeCompartilharArquivos) {
+                // A legenda vai junto no próprio compartilhamento pros apps que
+                // aceitam texto (WhatsApp, X, Telegram...). O Instagram ignora
+                // texto e o story nem tem legenda — lá o que ajuda é o link, então
+                // é ele que fica copiado, pronto pra colar na figurinha "Link".
+                const linkCopiado = await copiarSilenciosamente(LINK_DOS_TESTES);
                 try {
                     await navigator.share({ files: arquivos, text: legenda, title: 'Futuro+' });
-                    status.textContent = legendaCopiada
-                        ? 'Compartilhado! A legenda também foi copiada, caso o app não traga ela junto.'
+                    status.textContent = linkCopiado
+                        ? 'Compartilhado! O link do Futuro+ ficou copiado: no story do Instagram, toque em Figurinhas › Link e cole.'
                         : 'Compartilhado!';
                     return;
                 } catch (erroCompartilhar) {
@@ -1046,6 +1073,9 @@ export function criarPainelCompartilhar(dados, opcoes = {}) {
                 }
             }
 
+            // Sem menu de compartilhar (a maioria dos computadores): baixa as
+            // imagens e copia a legenda inteira, pra colar onde for postar.
+            const legendaCopiada = await copiarSilenciosamente(legenda);
             arquivos.forEach((arquivo) => baixarArquivo(arquivo));
             const baixou = arquivos.length > 1 ? 'Imagens baixadas!' : 'Imagem baixada!';
             status.textContent = legendaCopiada ? `${baixou} A legenda já foi copiada — é só colar.` : baixou;

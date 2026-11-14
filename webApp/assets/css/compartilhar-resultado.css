@@ -276,6 +276,35 @@
     outline-offset: 2px;
 }
 
+/* Dica da figurinha de link do story (só aparece onde abre o menu de
+   compartilhar — é ali que o link fica copiado). */
+.compartilhar-resultado-dica {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 8px;
+    max-width: 460px;
+    margin: 12px auto 0;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    text-align: left;
+}
+
+.compartilhar-resultado-dica[hidden] {
+    display: none;
+}
+
+.compartilhar-resultado-dica svg {
+    flex: 0 0 auto;
+    margin-top: 2px;
+    color: var(--blue);
+}
+
+.compartilhar-resultado-dica strong {
+    color: var(--ink);
+}
+
 @media (prefers-reduced-motion: reduce) {
     .compartilhar-carrossel-thumb-wrap img,
     .compartilhar-destaque-opcao span {

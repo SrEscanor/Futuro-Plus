@@ -1277,9 +1277,11 @@ a.btn-saiba {
     margin-right: 10px;
 }
 
+/* 24px entre cards empilhados (celular): o selo encaixado na borda de cima
+   de um card (.teste-card-selo) sobe 12px e precisa de folga. */
 .testes-row {
     display: flex;
-    gap: 16px;
+    gap: 24px 16px;
     flex-wrap: wrap;
 }
 
@@ -1343,6 +1345,41 @@ a.btn-saiba {
     color: var(--ink);
     display: block;
     margin-bottom: 8px;
+}
+
+/* Selo encaixado na borda de cima do card (ex. "Mais preciso que o teste
+   rápido", no Teste de Afinidades). Fica fora do fluxo pra não empurrar o
+   título: assim os títulos dos cards lado a lado continuam alinhados. Texto
+   escuro; a cor fica no fundo, na borda e no ícone. */
+.teste-card {
+    position: relative;
+}
+
+.teste-card-selo {
+    position: absolute;
+    top: 0;
+    left: 20px;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: calc(100% - 40px);
+    padding: 4px 11px 4px 8px;
+    border: 1px solid #f7d9a3;
+    border-radius: 99px;
+    background: var(--gold-soft);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--ink);
+    white-space: nowrap;
+}
+
+.teste-card-selo svg {
+    flex: 0 0 auto;
+    width: 15px;
+    height: 15px;
+    color: var(--gold-dark);
 }
 
 .btn-teste {
@@ -2716,4 +2753,10 @@ a.btn-saiba {
 
 .resultado-teste-compartilhar .compartilhar-carrossel-item:first-child {
     margin-left: 0;
+}
+
+.resultado-teste-compartilhar .compartilhar-resultado-dica {
+    justify-content: flex-start;
+    max-width: none;
+    margin: 10px 0 0;
 }
