@@ -745,27 +745,35 @@ export function desenharArteResultado({ etiquetaTopo, titulo, numero, numeroLabe
 // Legenda sugerida (um texto só, vale pras imagens que forem compartilhadas)
 // ------------------------------------------------------------------
 
+// Endereço público do site. A legenda aponta sempre pra ele, mesmo quando a
+// arte é gerada no servidor local ou num canal de prévia do Firebase (o link
+// de uma prévia expira). Se o site ganhar domínio próprio, é só trocar aqui.
+const SITE_PUBLICO = 'https://futuroplus-bce54.web.app';
+
+// Exemplo (Teste rápido, curso sugerido pelo teste):
+//   ✨Mente lógica, pronta pra resolver qualquer problema.✨
+//
+//   Fiz o teste no @futuroplus_ e meu resultado foi Inteligência Lógico-Matemática (38% de afinidade). 😎
+//   Curso que mais combina comigo: Eletrônica. 🤓
+//   Faça o seu também no https://futuroplus-bce54.web.app/testes.html
+//   SIGA EM TODAS AS REDES: 👉 @futuroplus_ 👈
 function montarLegenda({ titulo, numero, numeroLabel, frase }, cursoDestaque, ehEscolhaDaPessoa) {
     const linhas = [];
 
-    if (frase) linhas.push(frase);
-    linhas.push('');
+    if (frase) linhas.push(`✨${frase}✨`, '');
 
-    if (numero) {
-        linhas.push(
-            `Fiz o teste no @futuroplus_ e meu resultado foi ${titulo} (${numero}${numeroLabel ? ' ' + numeroLabel : ''}).`
-        );
-    } else {
-        linhas.push(`Fiz o teste no @futuroplus_ e descobri: ${titulo}.`);
-    }
+    // o Vocacional não tem porcentagem: aí sai só a área ("... foi Ambiente e Saúde.")
+    const porcentagem = numero ? ` (${numero}${numeroLabel ? ` ${numeroLabel}` : ''})` : '';
+    linhas.push(`Fiz o teste no @futuroplus_ e meu resultado foi ${titulo}${porcentagem}. 😎`);
 
     if (cursoDestaque) {
         linhas.push(ehEscolhaDaPessoa
-            ? `O curso que eu escolhi: ${cursoDestaque.nome}.`
-            : `Curso que mais combina comigo: ${cursoDestaque.nome}.`);
+            ? `Curso que eu escolhi: ${cursoDestaque.nome}. 🤓`
+            : `Curso que mais combina comigo: ${cursoDestaque.nome}. 🤓`);
     }
 
-    linhas.push('Faça o seu também 👉 @futuroplus_');
+    linhas.push(`Faça o seu também no ${SITE_PUBLICO}/testes.html`);
+    linhas.push('SIGA EM TODAS AS REDES: 👉 @futuroplus_ 👈');
 
     return linhas.join('\n');
 }
