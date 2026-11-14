@@ -406,11 +406,16 @@ async function mostrarResultado(resultadoPronto = null, { aoVivo = true } = {}) 
             frase: 'Descobri minha área mais forte no Futuro+.',
             // O Vocacional não tem uma % de afinidade por curso (só o ranking
             // de eixosFortes), então aqui cada curso mostra a sua área, sem
-            // inventar um número que o teste não calcula.
-            cursos: resultado.combinam.slice(0, 3).map(({ curso, eixo }) => ({
+            // inventar um número que o teste não calcula. O curso em que a
+            // pessoa respondeu "Quero esse" já começa em destaque na arte,
+            // com o selo "Minha escolha".
+            cursos: resultado.combinam.slice(0, 3).map(({ curso, eixo, resposta }) => ({
                 nome: curso.nome,
-                rotulo: eixo
-            }))
+                rotulo: eixo,
+                escolhido: resposta === 'quero'
+            })),
+            // pódio das áreas, sem número (o teste não calcula %)
+            ranking: (resultado.eixosFortes || []).slice(0, 3).map((nome) => ({ nome }))
         }, { nomeArquivoBase: 'futuroplus-teste-vocacional' }));
     }
 

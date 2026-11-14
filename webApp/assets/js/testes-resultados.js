@@ -134,8 +134,11 @@ onAuthStateChanged(auth, async (usuario) => {
                     frase: 'Descobri minha área mais forte no Futuro+.',
                     cursos: (vocacional.cursos || []).slice(0, 3).map((curso) => ({
                         nome: curso.nome,
-                        rotulo: curso.eixo
-                    }))
+                        rotulo: curso.eixo,
+                        escolhido: curso.resposta === 'quero'
+                    })),
+                    // pódio das áreas, sem número (o Vocacional não calcula %)
+                    ranking: (vocacional.eixosFortes || []).slice(0, 3).map((nome) => ({ nome }))
                 }, { nomeArquivoBase: 'futuroplus-teste-vocacional' }));
             }
         }
@@ -160,6 +163,10 @@ onAuthStateChanged(auth, async (usuario) => {
                     cursos: (recomendacoes || []).slice(0, 3).map((r) => ({
                         nome: r.nome,
                         rotulo: `${Math.round(perfil.porcentagens[r.motivo] || 0)}% · ${categoriasTeste[r.motivo] || ''}`
+                    })),
+                    ranking: (perfil.ranking || []).slice(0, 3).map((chave) => ({
+                        nome: categoriasTeste[chave] || chave,
+                        porcentagem: Math.round(perfil.porcentagens?.[chave] || 0)
                     }))
                 }, { nomeArquivoBase: 'futuroplus-resultado-perfil' }));
             }

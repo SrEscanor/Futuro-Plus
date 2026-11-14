@@ -307,7 +307,15 @@ async function mostrarResultado(dadosResultado, { aoVivo = true } = {}) {
             cursos: (recomendacoes || []).slice(0, 3).map((r) => ({
                 nome: r.nome,
                 rotulo: `${Math.round(porcentagens[r.motivo] || 0)}% · ${categoriasTeste[r.motivo] || ""}`
-            }))
+            })),
+            // pódio da arte da porcentagem: só pra quem está logado, igual ao
+            // perfil complementar e ao ranking completo desta tela
+            ranking: usuarioLogado
+                ? (ranking || []).slice(0, 3).map((categoria) => ({
+                    nome: categoriasTeste[categoria] || categoria,
+                    porcentagem: Math.round(porcentagens[categoria] || 0)
+                }))
+                : null
         }, { nomeArquivoBase: "futuroplus-teste-afinidades" }));
     }
 }
