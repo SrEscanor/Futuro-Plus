@@ -40,26 +40,49 @@ BUSCA_DO_GOOGLE = " ".join([
     "when:7d",
 ])
 
+def _busca_do_bing(termo):
+    return ("https://www.bing.com/news/search?q=" + quote_plus(termo)
+            + "&format=rss&cc=br&setlang=pt-br&qft=" + quote_plus('sortbydate="1"'))
+
+
 # Do mais oficial para o mais geral: quando a mesma notícia aparece em mais de
 # uma fonte, fica a da primeira.
 #   nome       o que aparece na notícia como origem
-#   feed       o nome desta fonte no resumo da coleta (padrão: o nome)
-#   agregador  o feed junta notícias de outros sites: o nome do site vem em
-#              cada item e o link passa pelo agregador
+#   rotulo     o nome desta fonte no resumo da coleta (padrão: o nome)
+#   feeds      os endereços lidos; a fonte só conta como falha se nenhum responder
+#   agregador  junta notícias de outros sites: o nome do site vem em cada item
+#   buscador   (em cada feed de um agregador) de qual buscador é o endereço
+#
+# A imprensa é buscada em dois buscadores porque o servidor do Firebase às
+# vezes é recusado por um deles: o Google respondeu 503 aos pedidos vindos de
+# lá, mesmo funcionando de um computador comum. Basta um dos dois responder.
 FONTES = [
-    {"id": "cps", "nome": "Centro Paula Souza", "url": "https://www.cps.sp.gov.br/feed/"},
-    {"id": "agenciasp-etec", "nome": "Agência SP", "feed": "Agência SP · Etec",
-     "url": "https://www.agenciasp.sp.gov.br/tag/etec/feed/"},
-    {"id": "agenciasp-fatec", "nome": "Agência SP", "feed": "Agência SP · Fatec",
-     "url": "https://www.agenciasp.sp.gov.br/tag/fatec/feed/"},
-    {"id": "google", "nome": "Google Notícias", "agregador": True,
-     "url": "https://news.google.com/rss/search?q=" + quote_plus(BUSCA_DO_GOOGLE) + "&hl=pt-BR&gl=BR&ceid=BR:pt-419"},
+    {"id": "cps", "nome": "Centro Paula Souza", "feeds": [{"url": "https://www.cps.sp.gov.br/feed/"}]},
+    {"id": "agenciasp-etec", "nome": "Agência SP", "rotulo": "Agência SP · Etec",
+     "feeds": [{"url": "https://www.agenciasp.sp.gov.br/tag/etec/feed/"}]},
+    {"id": "agenciasp-fatec", "nome": "Agência SP", "rotulo": "Agência SP · Fatec",
+     "feeds": [{"url": "https://www.agenciasp.sp.gov.br/tag/fatec/feed/"}]},
+    {"id": "imprensa", "nome": "Imprensa", "agregador": True, "feeds": [
+        # o Bing vem antes porque entrega o link direto da notícia e um resumo
+        {"buscador": "Bing Notícias", "url": _busca_do_bing("Etec")},
+        {"buscador": "Bing Notícias", "url": _busca_do_bing("Fatec")},
+        {"buscador": "Bing Notícias", "url": _busca_do_bing('"Centro Paula Souza"')},
+        {"buscador": "Google Notícias",
+         "url": "https://news.google.com/rss/search?q=" + quote_plus(BUSCA_DO_GOOGLE) + "&hl=pt-BR&gl=BR&ceid=BR:pt-419"},
+    ]},
 ]
 FEEDS_AGREGADORES = frozenset(fonte["id"] for fonte in FONTES if fonte.get("agregador"))
 
 # Identifica o Futuro+ para quem administra os sites, em vez de se passar por
 # um navegador.
 CABECALHOS = {"User-Agent": "FuturoPlus-Noticias/1.0 (projeto escolar; leitura de feed)"}
+
+# Para os buscadores, a mesma identificação no formato que os robôs conhecidos
+# usam ("Mozilla/5.0 (compatible; ...)"), mais o idioma.
+CABECALHOS_DE_BUSCADOR = {
+    "User-Agent": "Mozilla/5.0 (compatible; FuturoPlus-Noticias/1.0; projeto escolar; leitura de feed)",
+    "Accept-Language": "pt-BR,pt;q=0.9",
+}
 
 TEMPO_LIMITE = 20
 TAMANHO_MAXIMO_DO_FEED = 3_000_000
@@ -68,7 +91,7 @@ TAMANHO_LIDO_DA_PAGINA = 400_000   # a imagem de capa fica no começo da página
 # Notícia mais velha que isso não entra: na primeira coleta o feed traria
 # meses de coisa vencida (inscrições que já fecharam, por exemplo).
 DIAS_VALIDOS = 45
-ITENS_POR_FONTE = 40
+ITENS_POR_FEED = 40
 LIMITE_TITULO = 200
 LIMITE_RESUMO = 400
 LIMITE_ENDERECO = 1000
@@ -91,7 +114,6 @@ PALAVRAS_VAZIAS = frozenset(
 )
 
 PARAMETRO_DE_RASTREIO = re.compile(r"^(utm_.+|fbclid|gclid|oc|ref|ref_src)$", re.I)
-CONTEUDO = "{http://purl.org/rss/1.0/modules/content/}encoded"
 
 
 # --------------------------------------------------------------------------
@@ -112,6 +134,8 @@ def limpar_texto(trecho, limite=None):
     # sobras comuns nos feeds de sites feitos em WordPress
     texto = re.sub(r"\s*\[(?:…|\.\.\.)\]$", "", texto)
     texto = re.sub(r"\s*(?:O post|The post) .+ (?:apareceu primeiro em|appeared first on) .+$", "", texto)
+    # os buscadores cortam o resumo com três pontos soltos
+    texto = re.sub(r"\s*\.\.\.$", "…", texto)
     if limite and len(texto) > limite:
         texto = texto[:limite - 1].rsplit(" ", 1)[0].rstrip(" ,;:.-") + "…"
     return texto
@@ -131,6 +155,21 @@ def limpar_link(link):
     ])
     limpo = urlunsplit((partes.scheme, partes.netloc.lower(), partes.path, consulta, ""))
     return limpo if len(limpo) <= LIMITE_ENDERECO else ""
+
+
+def link_de_dentro(link):
+    """O Bing entrega o link da notícia embrulhado num endereço dele
+    (.../news/apiclick.aspx?...&url=<endereço da notícia>...). Devolve o de
+    dentro; qualquer outro link volta como veio."""
+    try:
+        partes = urlsplit((link or "").strip())
+    except ValueError:
+        return link
+    if (partes.hostname or "").lower().endswith("bing.com") and "apiclick" in partes.path.lower():
+        for chave, valor in parse_qsl(partes.query):
+            if chave == "url" and valor:
+                return valor
+    return link
 
 
 def id_da_noticia(link):
@@ -224,10 +263,10 @@ def imagem_da_pagina(pagina_html):
 # Leitura dos feeds
 # --------------------------------------------------------------------------
 
-def _baixar(endereco, sessao=None, limite=TAMANHO_MAXIMO_DO_FEED):
+def _baixar(endereco, sessao=None, limite=TAMANHO_MAXIMO_DO_FEED, cabecalhos=None):
     """Conteúdo de um endereço. Para de ler em `limite`, para um site com
     problema não encher a memória da função."""
-    resposta = (sessao or requests).get(endereco, headers=CABECALHOS, timeout=TEMPO_LIMITE, stream=True)
+    resposta = (sessao or requests).get(endereco, headers=cabecalhos or CABECALHOS, timeout=TEMPO_LIMITE, stream=True)
     try:
         resposta.raise_for_status()
         partes, total = [], 0
@@ -248,15 +287,24 @@ def ler_feed(conteudo):
     raiz = ET.fromstring(conteudo.lstrip(b"\xef\xbb\xbf \t\r\n"))
     itens = []
     for item in raiz.iter("item"):
-        origem = item.find("source")
+        # Cada campo é achado pelo nome sem o prefixo: o Google escreve
+        # <source> e o Bing, <News:Source>, com um prefixo que muda a cada
+        # busca. O texto da notícia nos sites oficiais vem em <content:encoded>.
+        campos, categorias = {}, []
+        for filho in item:
+            nome = filho.tag.rsplit("}", 1)[-1].lower()
+            if nome == "category":
+                categorias.append(filho.text or "")
+            else:
+                campos.setdefault(nome, filho.text or "")
         itens.append({
-            "titulo": item.findtext("title") or "",
-            "link": item.findtext("link") or "",
-            "data": item.findtext("pubDate") or "",
-            "descricao": item.findtext("description") or "",
-            "categorias": [categoria.text or "" for categoria in item.findall("category")],
-            "origem": (origem.text or "") if origem is not None else "",
-            "conteudo": item.findtext(CONTEUDO) or "",
+            "titulo": campos.get("title", ""),
+            "link": campos.get("link", ""),
+            "data": campos.get("pubdate", ""),
+            "descricao": campos.get("description", ""),
+            "categorias": categorias,
+            "origem": campos.get("source", ""),
+            "conteudo": campos.get("encoded", ""),
         })
     return itens
 
@@ -276,12 +324,16 @@ def preparar(item, fonte, agora):
             nome_da_fonte = origem
             if titulo.endswith(f" - {origem}"):
                 titulo = titulo[:-len(origem) - 3].rstrip()
-        resumo = ""
+        # a "descrição" do Google é o título repetido; a do Bing é um resumo de verdade
+        if normalizar(resumo).startswith(normalizar(titulo)[:60]):
+            resumo = ""
+        # O assunto precisa estar no título. Pelo resumo entraria muita coisa
+        # que só cita a Fatec de passagem ("o evento será ao lado da Fatec").
         chave = normalizar(titulo)
         if not ASSUNTO.search(chave) or any(normalizar(nome) in chave for nome in OUTRAS_INSTITUICOES):
             return None, "fora do assunto"
 
-    link = limpar_link(item["link"])
+    link = limpar_link(link_de_dentro(item["link"]))
     if not titulo or not link:
         return None, "sem título ou link"
 
@@ -329,15 +381,34 @@ def coletar(sessao=None, agora=None):
     ids, titulos, titulos_em_palavras = set(), set(), []
 
     for fonte in FONTES:
-        situacao = {"id": fonte["id"], "nome": fonte.get("feed") or fonte["nome"], "encontradas": 0, "erro": None}
+        situacao = {"id": fonte["id"], "nome": fonte.get("rotulo") or fonte["nome"], "encontradas": 0, "erro": None}
         fontes.append(situacao)
-        try:
-            itens = ler_feed(_baixar(fonte["url"], sessao))
-        except (requests.RequestException, ET.ParseError) as erro:
-            situacao["erro"] = _explicar(erro)
-            continue
 
-        for item in itens[:ITENS_POR_FONTE]:
+        itens, falhas, responderam, algum_respondeu = [], [], [], False
+        for feed in fonte["feeds"]:
+            buscador = feed.get("buscador")
+            try:
+                conteudo = _baixar(feed["url"], sessao, cabecalhos=CABECALHOS_DE_BUSCADOR if buscador else None)
+                itens.extend(ler_feed(conteudo)[:ITENS_POR_FEED])
+                algum_respondeu = True
+                if buscador and buscador not in responderam:
+                    responderam.append(buscador)
+            except (requests.RequestException, ET.ParseError) as erro:
+                falha = f"{buscador}: {_explicar(erro)}" if buscador else _explicar(erro)
+                if falha not in falhas:
+                    falhas.append(falha)
+
+        if not algum_respondeu:
+            situacao["erro"] = "; ".join(falhas)
+            continue
+        if responderam:
+            situacao["nome"] = f"{fonte['nome']} ({' e '.join(responderam)})"
+        if falhas:
+            # um buscador recusou, mas outro respondeu: não é falha da fonte;
+            # fica anotado para quem for olhar os registros da função
+            situacao["semResposta"] = falhas
+
+        for item in itens:
             noticia, _motivo = preparar(item, fonte, agora)
             if not noticia or noticia["id"] in ids or noticia["chaveTitulo"] in titulos:
                 continue
@@ -396,6 +467,8 @@ if __name__ == "__main__":
 
     for fonte in coleta["fontes"]:
         print(f"{fonte['nome']}: {fonte['erro'] or str(fonte['encontradas']) + ' notícia(s)'}")
+        for falha in fonte.get("semResposta", []):
+            print(f"    (não respondeu) {falha}")
     print()
     for noticia in coleta["noticias"]:
         marcas = "/".join(noticia["instituicoes"]) or "cps"

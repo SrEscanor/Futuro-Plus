@@ -330,7 +330,8 @@ def _feed(itens):
         for titulo, link, quando, resto in itens
     )
     return ('\n<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" '
-            'xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Feed</title>'
+            'xmlns:content="http://purl.org/rss/1.0/modules/content/" '
+            'xmlns:News="https://www.bing.com/news/search?q=teste&amp;format=rss"><channel><title>Feed</title>'
             f"{corpo}</channel></rss>").encode("utf-8")
 
 
@@ -376,6 +377,8 @@ def testar_noticias():
         ]),
         # um site fora do ar não pode derrubar os outros
         "tag/fatec": requests.HTTPError(response=type("Resposta", (), {"status_code": 500})()),
+        # um dos buscadores recusa o servidor: o outro basta
+        "bing.com": requests.HTTPError(response=type("Resposta", (), {"status_code": 503})()),
         "news.google.com": _feed([
             ("Fatec abre vagas em Sorocaba - G1", "https://news.google.com/rss/articles/ABC123?oc=5", recente,
              '<source url="https://g1.globo.com">G1</source>'
@@ -392,7 +395,10 @@ def testar_noticias():
         ]),
     }
 
-    def baixar(endereco, sessao=None, limite=None):
+    pedidos = []
+
+    def baixar(endereco, sessao=None, limite=None, cabecalhos=None):
+        pedidos.append((endereco, cabecalhos))
         for trecho, conteudo in feeds.items():
             if trecho in endereco:
                 if isinstance(conteudo, Exception):
@@ -418,7 +424,7 @@ def testar_noticias():
              fatec["titulo"] == "Fatec abre vagas em Sorocaba" and fatec["fonte"] == "G1" and fatec["resumo"] == "", fatec)
     conferir("o link do Google fica sem o parâmetro de rastreio",
              fatec["link"] == "https://news.google.com/rss/articles/ABC123", fatec["link"])
-    conferir("cada notícia guarda por qual feed chegou", (premio["feed"], fatec["feed"]) == ("cps", "google"))
+    conferir("cada notícia guarda por qual feed chegou", (premio["feed"], fatec["feed"]) == ("cps", "imprensa"))
 
     palavras = noticias.palavras_do_titulo
     conferir("títulos de jornais diferentes sobre o mesmo fato contam como parecidos",
@@ -428,12 +434,57 @@ def testar_noticias():
              not noticias.titulo_parecido(palavras("inscricoes para o vestibular das fatecs terminam nesta segunda feira"),
                                           [palavras("inscricoes para o vestibulinho das etecs terminam nesta terca feira")]))
 
-    situacao = {f["nome"]: f for f in coleta["fontes"]}
+    situacao = {f["id"]: f for f in coleta["fontes"]}
     conferir("o resumo conta as notícias de cada fonte",
-             [situacao[n]["encontradas"] for n in ("Centro Paula Souza", "Agência SP · Etec", "Google Notícias")] == [2, 1, 1],
-             coleta["fontes"])
+             [situacao[i]["encontradas"] for i in ("cps", "agenciasp-etec", "imprensa")] == [2, 1, 1], coleta["fontes"])
     conferir("a fonte que falhou aparece com o motivo, e as outras seguem",
-             situacao["Agência SP · Fatec"]["erro"] == "o site respondeu com erro 500", situacao["Agência SP · Fatec"])
+             situacao["agenciasp-fatec"]["erro"] == "o site respondeu com erro 500", situacao["agenciasp-fatec"])
+    imprensa = situacao["imprensa"]
+    conferir("com um buscador recusando o servidor, a imprensa vem pelo outro e não conta como falha",
+             imprensa["erro"] is None and imprensa["nome"] == "Imprensa (Google Notícias)"
+             and imprensa.get("semResposta") == ["Bing Notícias: o site respondeu com erro 503"], imprensa)
+    conferir("os buscadores recebem a identificação no formato deles; os sites oficiais, a de sempre",
+             all((cabecalhos is noticias.CABECALHOS_DE_BUSCADOR) == ("bing.com" in endereco or "news.google.com" in endereco)
+                 for endereco, cabecalhos in pedidos), pedidos)
+
+    # o contrário, que foi o que aconteceu no servidor de verdade: o Google recusa e o Bing responde
+    recusa = requests.HTTPError(response=type("Resposta", (), {"status_code": 503})())
+    feeds["news.google.com"] = recusa
+    feeds["bing.com"] = _feed([
+        ("Etec de Mogi vence olimpíada de robótica",
+         "http://www.bing.com/news/apiclick.aspx?ref=FexRss&amp;aid=&amp;url=https%3a%2f%2fwww.jornal.com.br%2fetec-mogi-robotica%2f&amp;c=1&amp;mkt=pt-br",
+         recente,
+         "<description>Equipe da escola ficou em primeiro lugar na etapa estadual ...</description>"
+         "<News:Source>Jornal de Mogi</News:Source><News:Image>http://www.bing.com/th?id=ON.1&amp;pid=News</News:Image>"),
+        # só a descrição cita "e-Tec", que é outra rede: fica de fora
+        ("Senar abre vagas em cursos técnicos",
+         "http://www.bing.com/news/apiclick.aspx?url=https%3a%2f%2fwww.outro.com.br%2fsenar%2f", recente,
+         "<description>Formações oferecidas pela Rede e-Tec do Senar.</description><News:Source>Outro</News:Source>"),
+    ])
+    with mock.patch.object(noticias, "_baixar", side_effect=baixar):
+        pelo_bing = noticias.coletar(agora=agora)
+    imprensa = [f for f in pelo_bing["fontes"] if f["id"] == "imprensa"][0]
+    conferir("com o Google recusando, a imprensa vem pelo Bing, sem aparecer como falha",
+             imprensa["erro"] is None and imprensa["nome"] == "Imprensa (Bing Notícias)" and imprensa["encontradas"] == 1
+             and imprensa.get("semResposta") == ["Google Notícias: o site respondeu com erro 503"], imprensa)
+    do_bing = pelo_bing["noticias"][-1]
+    conferir("do Bing sai o link direto da notícia, não o endereço do buscador",
+             do_bing["link"] == "https://www.jornal.com.br/etec-mogi-robotica/", do_bing["link"])
+    conferir("do Bing vêm o nome do jornal e um resumo de verdade",
+             do_bing["fonte"] == "Jornal de Mogi"
+             and do_bing["resumo"] == "Equipe da escola ficou em primeiro lugar na etapa estadual…", do_bing)
+    conferir("a notícia do Bing leva a etiqueta e o feed certos",
+             (do_bing["instituicoes"], do_bing["feed"]) == (["etec"], "imprensa"), do_bing)
+    conferir("o que só cita 'e-Tec' não entra", len(pelo_bing["noticias"]) == 4, [n["titulo"] for n in pelo_bing["noticias"]])
+
+    feeds["bing.com"] = requests.Timeout()
+    with mock.patch.object(noticias, "_baixar", side_effect=baixar):
+        sem_imprensa = noticias.coletar(agora=agora)
+    imprensa = [f for f in sem_imprensa["fontes"] if f["id"] == "imprensa"][0]
+    conferir("com os dois buscadores fora, a imprensa aparece como falha, com o motivo de cada um",
+             imprensa["nome"] == "Imprensa" and imprensa["erro"] == "Bing Notícias: o site demorou demais para responder; "
+             "Google Notícias: o site respondeu com erro 503", imprensa)
+    conferir("...e as notícias dos sites oficiais chegam do mesmo jeito", len(sem_imprensa["noticias"]) == 3)
 
     print("coletar_noticias")
     ids = [n["id"] for n in coleta["noticias"]]
