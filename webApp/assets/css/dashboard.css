@@ -1280,14 +1280,42 @@ a.btn-saiba {
 .testes-row {
     display: flex;
     gap: 16px;
-    margin-bottom: 32px;
     flex-wrap: wrap;
+}
+
+/* Painel colorido que agrupa visualmente um aviso de cabeçalho com a fileira
+   de cards que ele descreve: o fundo tintado fica visível ao redor dos
+   cartões (que continuam brancos, com sombra), deixando claro que fazem
+   parte do mesmo grupo. Duas variantes de cor, mesma estrutura. */
+.testes-painel {
+    border-radius: var(--radius-lg);
+    padding: 20px 20px 24px;
+    margin-bottom: 28px;
+}
+
+.testes-painel .testes-row {
+    margin-bottom: 0;
+}
+
+.testes-painel--azul {
+    background: var(--blue-soft);
+    border: 1.5px solid rgba(78, 110, 232, 0.25);
+}
+
+.testes-painel--verde {
+    background: var(--green-soft);
+    border: 1.5px solid rgba(33, 168, 92, 0.35);
+}
+
+@media (max-width: 640px) {
+    .testes-painel {
+        padding: 14px 12px 18px;
+    }
 }
 
 .teste-card {
     flex: 1 1 300px;
     border: 1px solid var(--line);
-    border-top: 4px solid var(--blue);
     border-radius: var(--radius-md);
     padding: 24px;
     background: var(--surface);
@@ -1301,10 +1329,6 @@ a.btn-saiba {
 .teste-card:hover {
     box-shadow: var(--shadow-card-hover);
     transform: translateY(-2px);
-}
-
-.teste-card:nth-of-type(2) {
-    border-top-color: var(--gold);
 }
 
 .teste-card p {
@@ -1344,6 +1368,45 @@ a.btn-saiba {
 
 .btn-teste:active {
     transform: scale(0.98);
+}
+
+/* ---- cabeçalho de um .testes-painel: ícone + texto de aviso ---- */
+.testes-painel-aviso {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 0 2px;
+    margin-bottom: 16px;
+    font-size: 13.5px;
+    line-height: 1.6;
+}
+
+.testes-painel-aviso strong {
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+}
+
+.testes-painel-aviso-icone {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    margin-top: 1px;
+}
+
+.testes-painel--azul .testes-painel-aviso {
+    color: var(--blue-dark);
+}
+
+.testes-painel--azul .testes-painel-aviso-icone {
+    color: var(--blue);
+}
+
+.testes-painel--verde .testes-painel-aviso {
+    color: #145c3b;
+    font-size: 14px;
+}
+
+.testes-painel--verde .testes-painel-aviso-icone {
+    color: var(--green-dark);
 }
 
 /* ---- CURSOS SECTION ---- */
@@ -2326,6 +2389,17 @@ a.btn-saiba {
     border-radius: var(--radius-lg);
     box-shadow: 0 3px 8px rgba(27, 31, 59, 0.07), 0 20px 36px -16px rgba(70, 130, 210, 0.8);
     padding: 20px;
+}
+
+/* Clicar no card (fora dos botões e do painel de compartilhar) abre o
+   resultado salvo na página do teste — ver testes-resultados.js. */
+.resultado-teste-bloco[data-ver-resultado] {
+    cursor: pointer;
+}
+
+.resultado-teste-bloco[data-ver-resultado] .resultado-teste-acoes,
+.resultado-teste-bloco[data-ver-resultado] .compartilhar-resultado {
+    cursor: default;
 }
 
 .resultado-teste-bloco header {

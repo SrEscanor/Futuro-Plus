@@ -1555,6 +1555,9 @@
     mask-composite: intersect;
 }
 
+/* Central de Testes não tem foto própria (não é prédio nem formatura, como
+   Cursos e Instituições): no lugar da imagem, um selo com ícone de traço no
+   canto, mantendo a mesma faixa limpa do cabeçalho. */
 /* ---- Filtros em linha ---- */
 .inst-filtros-linha {
     display: flex;
