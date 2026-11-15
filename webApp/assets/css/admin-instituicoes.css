@@ -541,7 +541,7 @@ tbody tr:hover {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 20px 24px;
+    padding: 16px 16px 16px 24px;
     border-bottom: 1px solid var(--line);
 }
 
@@ -549,13 +549,31 @@ tbody tr:hover {
     font-size: 18px;
 }
 
+/* o × de fechar: círculo de 36 px, fácil de acertar, com fundo ao passar o mouse */
 .btn-fechar-modal {
-    background: transparent;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    flex: 0 0 auto;
     border: none;
+    border-radius: 50%;
+    background: transparent;
     font-size: 22px;
     line-height: 1;
     cursor: pointer;
     color: var(--ink-soft);
+    transition: background 0.15s, color 0.15s;
+}
+
+.btn-fechar-modal:hover {
+    background: var(--bg);
+    color: var(--ink);
+}
+
+.btn-fechar-modal:focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: 2px;
 }
 
 .modal-corpo {
@@ -971,6 +989,114 @@ tbody tr:hover {
 
 .opcao-radio[hidden] {
     display: none !important;
+}
+
+/* ---- Modal de notificação: opções em cartão ----
+   As escolhas viram cartões clicáveis (o marcado fica azul), no lugar das
+   bolinhas e caixinhas soltas do navegador. */
+.modal--notificacao {
+    max-width: 540px;
+}
+
+.modal--notificacao .campo {
+    margin-bottom: 16px;
+}
+
+.modal--notificacao .campo textarea {
+    min-height: 96px;
+}
+
+.modal--notificacao .modal-corpo > :last-child {
+    margin-bottom: 0;
+}
+
+.grupo-opcoes {
+    min-width: 0;
+    padding: 0;
+    border: 0;
+}
+
+.grupo-opcoes legend {
+    padding: 0;
+    margin-bottom: 6px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-soft);
+}
+
+.opcoes-cartao {
+    display: grid;
+    gap: 8px;
+}
+
+.opcoes-cartao--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* ".campo .opcao-cartao", e não só ".opcao-cartao", para vencer o
+   ".campo label" dos rótulos comuns */
+.campo .opcao-cartao {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 0;
+    padding: 11px 14px;
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
+    background: var(--surface);
+    font-size: 13.5px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--ink);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.campo .opcao-cartao input {
+    flex: 0 0 auto;
+    width: 18px;
+    height: 18px;
+    margin: 1px 0 0;
+    padding: 0;
+    border: 0;
+    accent-color: var(--blue);
+    cursor: pointer;
+}
+
+.opcao-cartao span {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.opcao-cartao small {
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--ink-soft);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .campo .opcao-cartao:hover {
+        border-color: #c4cdf6;
+    }
+}
+
+.campo .opcao-cartao:has(input:checked) {
+    border-color: var(--blue);
+    background: var(--blue-soft);
+}
+
+.campo .opcao-cartao:has(input:focus-visible) {
+    outline: 2px solid var(--blue);
+    outline-offset: 2px;
+}
+
+@media (max-width: 520px) {
+    .opcoes-cartao--2 {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* =========================================================

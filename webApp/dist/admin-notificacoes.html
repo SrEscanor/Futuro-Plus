@@ -8,9 +8,9 @@
     <link rel="icon" href="./favicon.ico" sizes="48x48">
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="./apple-touch-icon.png">
-  <script type="module" crossorigin src="./assets/adminNotificacoes-D9HZwjZx.js"></script>
+  <script type="module" crossorigin src="./assets/adminNotificacoes-DqtN0uYX.js"></script>
   <link rel="modulepreload" crossorigin href="./assets/firebase-config-DZ7_vqDZ.js">
-  <link rel="stylesheet" crossorigin href="./assets/admin-instituicoes-Dhp5EcsO.css">
+  <link rel="stylesheet" crossorigin href="./assets/admin-instituicoes-BoS5LrJM.css">
 </head>
 
 <body>
@@ -82,7 +82,7 @@
 
     <!-- ---------- MODAL: FORMULÁRIO DE NOTIFICAÇÃO ---------- -->
     <div id="modal-form" class="modal-overlay">
-        <div class="modal modal--estreito">
+        <div class="modal modal--notificacao">
             <form id="form-notificacao">
                 <div class="modal-cabecalho">
                     <h2 id="form-titulo">Nova notificação</h2>
@@ -98,39 +98,42 @@
                         <label for="f-mensagem">Mensagem *</label>
                         <textarea id="f-mensagem" required></textarea>
                     </div>
+                    <fieldset class="campo grupo-opcoes">
+                        <legend>Para quem</legend>
+                        <div class="opcoes-cartao">
+                            <label class="opcao-cartao">
+                                <input type="radio" name="f-publico" id="f-publico-logados" value="logados" checked>
+                                <span>Só quem já tem conta</span>
+                            </label>
+                            <label class="opcao-cartao">
+                                <input type="radio" name="f-publico" id="f-publico-deslogados" value="deslogados">
+                                <span>Só visitante (sem login)</span>
+                            </label>
+                            <label class="opcao-cartao">
+                                <input type="radio" name="f-publico" id="f-publico-todos" value="todos">
+                                <span>Todo mundo</span>
+                            </label>
+                        </div>
+                    </fieldset>
+                    <fieldset class="campo grupo-opcoes">
+                        <legend>Onde aparece</legend>
+                        <div class="opcoes-cartao opcoes-cartao--2">
+                            <label class="opcao-cartao">
+                                <input type="checkbox" id="f-modal">
+                                <span>Modal ao entrar no site<small>Uma vez por conta ou visitante</small></span>
+                            </label>
+                            <label class="opcao-cartao">
+                                <input type="checkbox" id="f-sino" checked>
+                                <span>Lista do sino no topo<small>Junto com os outros avisos</small></span>
+                            </label>
+                        </div>
+                    </fieldset>
                     <div class="campo">
-                        <label>Para quem</label>
-                        <label class="opcao-radio">
-                            <input type="radio" name="f-publico" id="f-publico-logados" value="logados" checked>
-                            Só quem já tem conta
-                        </label>
-                        <label class="opcao-radio">
-                            <input type="radio" name="f-publico" id="f-publico-deslogados" value="deslogados">
-                            Só visitante (sem login)
-                        </label>
-                        <label class="opcao-radio">
-                            <input type="radio" name="f-publico" id="f-publico-todos" value="todos">
-                            Todo mundo
-                        </label>
-                    </div>
-                    <div class="campo">
-                        <label>Onde aparece</label>
-                        <label class="opcao-radio">
-                            <input type="checkbox" id="f-modal">
-                            Modal ao entrar no site (uma vez por conta/visitante)
-                        </label>
-                        <label class="opcao-radio">
-                            <input type="checkbox" id="f-sino" checked>
-                            Lista do sino no topo
-                        </label>
-                    </div>
-                    <div class="campo">
-                        <label class="opcao-radio">
+                        <label class="opcao-cartao">
                             <input type="checkbox" id="f-ativa" checked>
-                            Notificação ativa
+                            <span>Notificação ativa<small>Desmarque para esconder sem excluir (fica guardada para
+                                    reativar depois).</small></span>
                         </label>
-                        <small class="campo-dica">Desmarque para esconder sem excluir (fica guardada para reativar
-                            depois).</small>
                     </div>
                 </div>
 
