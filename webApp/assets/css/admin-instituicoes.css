@@ -1093,6 +1093,11 @@ tbody tr:hover {
     outline-offset: 2px;
 }
 
+.campo .opcao-cartao:has(input:disabled) {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
 @media (max-width: 520px) {
     .opcoes-cartao--2 {
         grid-template-columns: 1fr;

@@ -64,13 +64,14 @@
                             <th title="Aparece como modal ao entrar, uma vez por conta/visitante">Modal</th>
                             <th title="Aparece na lista do sino no topo">Sino</th>
                             <th>Ativa</th>
+                            <th title="Quando a notificação passa a aparecer no site">Publicação</th>
                             <th>Criada em</th>
                             <th></th>
                         </tr>
                     </thead>
                     <tbody id="tabela-notificacoes-corpo">
                         <tr>
-                            <td colspan="8" class="tabela-vazia">Carregando notificações...</td>
+                            <td colspan="9" class="tabela-vazia">Carregando notificações...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -113,10 +114,17 @@
                             </label>
                         </div>
                     </fieldset>
+                    <div class="campo">
+                        <label for="f-agendar">Agendar publicação (opcional)</label>
+                        <input type="datetime-local" id="f-agendar">
+                        <small class="campo-dica">Deixe em branco para já valer assim que salvar. Enquanto a data não
+                            chega, a notificação fica guardada sem aparecer em lugar nenhum do site — e não pode
+                            aparecer como modal (só na lista do sino, depois que for publicada).</small>
+                    </div>
                     <fieldset class="campo grupo-opcoes">
                         <legend>Onde aparece</legend>
                         <div class="opcoes-cartao opcoes-cartao--2">
-                            <label class="opcao-cartao">
+                            <label class="opcao-cartao" id="opcao-modal">
                                 <input type="checkbox" id="f-modal">
                                 <span>Modal ao entrar no site<small>Uma vez por conta ou visitante</small></span>
                             </label>

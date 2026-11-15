@@ -85,9 +85,12 @@ let cachePromise = null;
 
 function carregarNotificacoes() {
     if (!cachePromise) {
+        const agora = new Date().toISOString();
         cachePromise = getDocs(collection(db, COLECAO)).then((snap) => snap.docs
             .map((d) => ({ id: d.id, ...d.data() }))
             .filter((n) => n.ativo !== false)
+            // agendada pro futuro: fica fora do site inteiro até a data chegar
+            .filter((n) => !n.publicarEm || n.publicarEm <= agora)
             .sort((a, b) => (b.criadoEm || '').localeCompare(a.criadoEm || '')));
     }
     return cachePromise;
