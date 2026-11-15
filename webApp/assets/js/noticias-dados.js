@@ -80,9 +80,20 @@ async function gravarEmLotes(noticias, porNoticia) {
 // ========================================================
 
 // O que a página Notícias mostra: as aprovadas, da mais nova para a mais antiga.
+// Notícia própria agendada (painel Admin · Notícias próprias) já está na
+// coleção, mas só aparece quando chega a hora: até lá fica de fora daqui.
 export async function listarNoticiasPublicadas(limite = 60) {
     const snap = await getDocs(query(collection(db, PUBLICADAS), orderBy('publicadaEm', 'desc'), limit(limite)));
-    return lerDocs(snap);
+    const agora = new Date().toISOString();
+    return lerDocs(snap).filter((noticia) => !noticia.publicarEm || noticia.publicarEm <= agora);
+}
+
+// Notícias próprias esperando aprovação (painel Admin · Notícias próprias).
+// O painel Notícias mostra no alto da aba Pendentes, com o card azul, da
+// mais antiga para a mais nova: a fila anda por ordem de chegada.
+export async function listarNoticiasPropriasPendentes() {
+    const snap = await getDocs(query(collection(db, 'noticias_proprias'), where('status', '==', 'pendente')));
+    return lerDocs(snap).sort((a, b) => String(a.enviadaEm || '').localeCompare(String(b.enviadaEm || '')));
 }
 
 // O que o painel mostra em cada aba. status: 'pendente', 'aprovada' ou 'recusada'.

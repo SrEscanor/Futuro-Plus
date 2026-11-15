@@ -168,6 +168,7 @@ a {
 .admin-nav-item[href="admin-cursos.html"] { --icone-admin: url('../icones/menu/catalogo.svg'); }
 .admin-nav-item[href="admin-notificacoes.html"] { --icone-admin: url('../icones/menu/notificacoes.svg'); }
 .admin-nav-item[href="admin-noticias.html"] { --icone-admin: url('../icones/menu/noticias.svg'); }
+.admin-nav-item[href="admin-noticias-proprias.html"] { --icone-admin: url('../icones/menu/noticias-proprias.svg'); }
 .admin-nav-voltar { --icone-admin: url('../icones/menu/inicio.svg'); }
 
 .admin-nav-item[aria-current="page"] {
@@ -838,7 +839,10 @@ tbody tr:hover {
     .linha-add-lista.duas-colunas {
         grid-template-columns: 1fr;
     }
+    /* com a navegação, o cabeçalho ocupa um terço da tela do celular: solto,
+       ele rola junto e sobra tela para o conteúdo (em todas as páginas do painel) */
     .topo-admin {
+        position: static;
         flex-direction: column;
         align-items: flex-start;
     }

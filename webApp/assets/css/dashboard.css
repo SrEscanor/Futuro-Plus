@@ -1853,6 +1853,7 @@ a.btn-saiba {
 .menu-item[href="admin-cursos.html"] { --icone-menu: url('../icones/menu/catalogo.svg'); --icone-menu-texto: ''; }
 .menu-item[href="admin-termos.html"] { --icone-menu: url('../icones/menu/termos.svg'); --icone-menu-texto: ''; }
 .menu-item[href="admin-notificacoes.html"] { --icone-menu: url('../icones/menu/notificacoes.svg'); --icone-menu-texto: ''; }
+.menu-item[href="admin-noticias-proprias.html"] { --icone-menu: url('../icones/menu/noticias-proprias.svg'); --icone-menu-texto: ''; }
 
 /* No item ativo (fundo azul) o ícone fica branco. Os detalhes dos desenhos
    são furos, então continuam aparecendo. */

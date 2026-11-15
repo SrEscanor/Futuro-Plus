@@ -526,6 +526,60 @@ a.noticia-card:focus-visible {
     }
 }
 
+/* ---- Notícia própria do Futuro+: o card azul ----
+   As que a equipe escreve no painel Admin · Notícias próprias. Abrem a
+   matéria no próprio site (noticia.html). */
+.noticia-card--propria {
+    border-color: transparent;
+    background: linear-gradient(160deg, #5c79ee 0%, var(--blue) 45%, var(--blue-dark) 100%);
+    box-shadow: 0 3px 8px rgba(27, 31, 59, 0.08), 0 22px 40px -16px rgba(59, 91, 219, 0.85);
+    color: #fff;
+}
+
+.noticia-card--propria .noticia-titulo {
+    color: #fff;
+}
+
+.noticia-card--propria .noticia-resumo {
+    color: rgba(255, 255, 255, 0.88);
+}
+
+.noticia-card--propria .noticia-rodape {
+    border-top-color: rgba(255, 255, 255, 0.28);
+}
+
+.noticia-card--propria .noticia-fonte,
+.noticia-card--propria .noticia-data {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.noticia-card--propria .noticia-sair {
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    a.noticia-card--propria:hover .noticia-sair {
+        background: #fff;
+        color: var(--blue-dark);
+    }
+}
+
+/* a etiqueta branca, com o ponto laranja da marca */
+.noticia-etiqueta--propria {
+    --etiqueta-cor: var(--gold);
+    --etiqueta-fundo: #fff;
+    color: var(--blue-dark);
+}
+
+.noticias-grade--destaque > li:first-child .noticia-card--propria .noticia-recente {
+    color: rgba(255, 255, 255, 0.92);
+}
+
+a.noticia-card--propria:focus-visible {
+    outline-color: var(--blue-dark);
+}
+
 @media (prefers-reduced-motion: reduce) {
     .noticia-card,
     .noticia-sair,

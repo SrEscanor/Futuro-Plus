@@ -9,6 +9,7 @@ import { listarNoticiasPublicadas } from './noticias-dados.js';
 import {
     capaDesenhada, dataCurta, escapeHtml, imagemSegura, linkSeguro, rotulosDaNoticia, tempoRelativo
 } from './noticias-util.js';
+import { linkDaMateria } from './noticias-proprias-util.js';
 
 const QUANTAS = 6;
 const lista = document.getElementById('noticias-inicio-lista');
@@ -23,6 +24,8 @@ function capa(noticia) {
 }
 
 function item(noticia) {
+    // a notícia própria abre a matéria aqui no site; as outras, o site de origem
+    if (noticia.propria) return itemProprio(noticia);
     const link = linkSeguro(noticia.link);
     const titulo = String(noticia.titulo || '').trim() || 'Notícia sem título';
     const etiquetas = rotulosDaNoticia(noticia).map((rotulo) => rotulo.texto).join(' e ');
@@ -47,6 +50,20 @@ function item(noticia) {
         <li><a class="noticia-mini" href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">
             ${conteudo}
             <span class="so-leitor">Abre o site de origem em outra aba.</span>
+        </a></li>`;
+}
+
+function itemProprio(noticia) {
+    const quando = tempoRelativo(noticia.publicadaEm);
+    return `
+        <li><a class="noticia-mini noticia-mini--propria" href="${escapeHtml(linkDaMateria(noticia.id))}">
+            ${capa(noticia)}
+            <span class="noticia-mini-texto">
+                <span class="noticia-mini-titulo">${escapeHtml(String(noticia.titulo || '').trim() || 'Notícia sem título')}</span>
+                <span class="noticia-mini-meta"><span class="noticia-mini-etiqueta">Futuro+</span>${quando
+                    ? ` · <time datetime="${escapeHtml(noticia.publicadaEm)}" title="${escapeHtml(dataCurta(noticia.publicadaEm))}">${escapeHtml(quando)}</time>`
+                    : ''}</span>
+            </span>
         </a></li>`;
 }
 

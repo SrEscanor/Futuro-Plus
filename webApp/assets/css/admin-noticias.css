@@ -73,6 +73,12 @@ input[type="checkbox"]:focus-visible {
     box-shadow: var(--shadow-card);
 }
 
+/* a caixa da limpeza (mesma classe) só aparece na aba Recusadas: sem isto o
+   display: flex de cima vence o atributo hidden */
+.noticias-busca[hidden] {
+    display: none;
+}
+
 .noticias-busca-texto {
     display: flex;
     flex-direction: column;
@@ -597,7 +603,9 @@ body.modal-aberto {
     overflow: hidden;
 }
 
-.modal--noticia {
+/* .modal e .campo-dica vêm de admin-instituicoes.css, que no build entra
+   depois deste arquivo: a classe comum vai junto no seletor para vencer */
+.modal.modal--noticia {
     max-width: 620px;
 }
 
@@ -612,7 +620,7 @@ body.modal-aberto {
     line-height: 1.45;
 }
 
-.campo-contagem {
+.campo-dica.campo-contagem {
     display: flex;
     justify-content: space-between;
     gap: 12px;
@@ -779,11 +787,6 @@ body.modal-aberto {
    Ajustes do que vem de admin-instituicoes.css, só no celular
    ========================================================= */
 @media (max-width: 640px) {
-    /* o cabeçalho ocupa duas linhas no celular: solto, sobra tela para a lista */
-    .topo-admin {
-        position: static;
-    }
-
     /* com menos de 16 px o iPhone dá zoom ao tocar no campo */
     .campo input,
     .campo textarea {
@@ -816,5 +819,119 @@ body.modal-aberto {
     .noticia-esqueleto-capa,
     .noticia-esqueleto-linha {
         animation: none;
+    }
+}
+
+/* =========================================================
+   Notícias próprias esperando aprovação
+   No alto da aba Pendentes, sempre em primeiro, com o card azul da página
+   Notícias. "Revisar e aprovar" leva ao painel Notícias próprias.
+   ========================================================= */
+.proprias-pendentes {
+    margin-bottom: 18px;
+}
+
+.proprias-pendentes[hidden] {
+    display: none;
+}
+
+.proprias-pendentes h2 {
+    margin-bottom: 10px;
+    font-size: 15px;
+    color: var(--blue-dark);
+}
+
+.proprias-pendentes-lista {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.propria-pendente {
+    display: grid;
+    grid-template-columns: 120px minmax(0, 1fr) auto;
+    gap: 16px;
+    align-items: center;
+    padding: 12px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(160deg, #5c79ee 0%, var(--blue) 45%, var(--blue-dark) 100%);
+    box-shadow: 0 3px 8px rgba(27, 31, 59, 0.08), 0 18px 34px -18px rgba(59, 91, 219, 0.85);
+    color: #fff;
+}
+
+.propria-pendente-capa {
+    width: 120px;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.16);
+}
+
+.propria-pendente-capa img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.propria-pendente-texto {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    min-width: 0;
+}
+
+.propria-pendente-selo {
+    padding: 3px 10px;
+    border-radius: 99px;
+    background: #fff;
+    color: var(--blue-dark);
+    font-size: 11.5px;
+    font-weight: 700;
+}
+
+.propria-pendente-texto strong {
+    font-size: 15px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.propria-pendente-meta {
+    font-size: 12.5px;
+    color: rgba(255, 255, 255, 0.88);
+    overflow-wrap: anywhere;
+}
+
+.propria-pendente-revisar {
+    min-height: 44px;
+    background: #fff;
+    color: var(--blue-dark);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.propria-pendente-revisar:hover {
+    background: var(--blue-soft);
+}
+
+.propria-pendente-revisar:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+    .propria-pendente {
+        grid-template-columns: 84px minmax(0, 1fr);
+    }
+
+    .propria-pendente-capa {
+        width: 84px;
+    }
+
+    .propria-pendente-revisar {
+        grid-column: 1 / -1;
+        justify-content: center;
     }
 }

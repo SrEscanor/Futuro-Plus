@@ -1,0 +1,29 @@
+// Monta o painel Admin · Notícias próprias com notícias de exemplo (uma no
+// site, uma pendente de aprovação, uma agendada e um rascunho, com
+// histórico). Para abrir direto a revisão, como o link do painel Notícias:
+// teste.mostrar({ revisar: 'np-pendente' }). Uso, a partir de
+// http://localhost:5173/404.html:
+//
+//     await import('/testes/painel-noticias-proprias.js');
+//
+// Depois, window.teste.mostrar({ ... }) monta de novo com variações:
+//
+//     teste.mostrar({ vazio: true })       // nenhuma notícia ainda
+//     teste.mostrar({ falhar: 'gravar' })  // salvar dá erro
+//     teste.mostrar({ admin: false })      // conta sem acesso
+//
+// O que o painel grava fica em teste.gravacoes; o histórico, em
+// teste.historico; a cópia que o site leria, em teste.publicadas.
+import { montarTela, prepararEstado, texto } from './noticias-proprias-montagem.js';
+
+async function mostrar(opcoes = {}) {
+    const teste = prepararEstado(opcoes);
+    teste.mostrar = mostrar;
+    teste.texto = texto;
+    const endereco = '/admin-noticias-proprias.html'
+        + (opcoes.revisar ? `?revisar=${encodeURIComponent(opcoes.revisar)}` : '');
+    await montarTela('/admin-noticias-proprias.html', 'admin-noticias-proprias.js', { endereco });
+    return `${teste.proprias.size} notícias próprias no painel`;
+}
+
+await mostrar();

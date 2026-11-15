@@ -26,6 +26,8 @@ export default defineConfig({
         adminNotificacoes: resolve(__dirname, 'admin-notificacoes.html'),
         noticias: resolve(__dirname, 'noticias.html'),
         adminNoticias: resolve(__dirname, 'admin-noticias.html'),
+        adminNoticiasProprias: resolve(__dirname, 'admin-noticias-proprias.html'),
+        noticia: resolve(__dirname, 'noticia.html'),
         // sem o redirecionamento "tudo para o index", um endereço errado
         // precisa desta página para não cair no 404 genérico do Firebase
         naoEncontrado: resolve(__dirname, '404.html')

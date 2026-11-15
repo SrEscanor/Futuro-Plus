@@ -34,6 +34,14 @@ service firebase.storage {
       allow write: if false;
     }
 
+    // Imagens das notícias próprias: enviadas pelo painel Admin · Notícias
+    // próprias através da função enviar_imagem_noticia, que confere se quem
+    // envia é administrador. Leitura pública, como as capas.
+    match /noticias-proprias/{caminho=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     match /{caminho=**} {
       allow read, write: if false;
     }

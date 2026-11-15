@@ -110,5 +110,26 @@ service cloud.firestore {
       allow read: if ehAdmin();
       allow write: if false;
     }
+
+    // Notícias escritas pelo próprio Futuro+ (painel Admin · Notícias
+    // próprias). Aqui fica tudo, inclusive rascunho e agendada. O site só lê
+    // a cópia que vai para "noticias" quando ela é publicada ou agendada.
+    match /noticias_proprias/{noticiaId} {
+      allow read, write: if ehAdmin();
+    }
+
+    // Histórico de quem fez o quê nas notícias próprias. Só cresce: ninguém
+    // edita nem apaga, e cada registro precisa levar o e-mail e o uid de quem
+    // está logado e a hora do servidor (não dá para registrar em nome de
+    // outra pessoa nem com outra data). Fica mesmo depois que a notícia é
+    // excluída.
+    match /noticias_proprias_historico/{registroId} {
+      allow read: if ehAdmin();
+      allow create: if ehAdmin()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.em == request.time;
+      allow update, delete: if false;
+    }
   }
 }

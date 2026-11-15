@@ -8,11 +8,13 @@
 // entrar na página.
 import {
     LIMITE_RESUMO, LIMITE_TITULO, aprovarNoticias, buscarNoticiasAgora, contarFila, devolverParaPendentes,
-    lerUltimaColeta, limparRecusadasAntigas, listarFila, observarAdmin, recusarNoticias, sairDaConta, salvarEdicao
+    lerUltimaColeta, limparRecusadasAntigas, listarFila, listarNoticiasPropriasPendentes, observarAdmin, recusarNoticias,
+    sairDaConta, salvarEdicao
 } from './noticias-dados.js';
 import {
     capaDesenhada, dataCurta, dominioDoLink, escapeHtml, imagemSegura, linkSeguro, rotulosDaNoticia, tempoRelativo
 } from './noticias-util.js';
+import { haQuantoTempo } from './noticias-proprias-util.js';
 
 // O que cada aba diz quando está vazia e os botões de cada notícia dela:
 // [ação, texto do botão, classes].
@@ -198,7 +200,7 @@ function iniciar() {
 
 // O aviso e a barra de seleção ficam presos logo abaixo do cabeçalho. No
 // computador o cabeçalho também é preso e a altura dele muda com a tela; no
-// celular ele rola junto com a página (ver admin-noticias.css).
+// celular ele rola junto com a página (ver admin-instituicoes.css).
 function medirTopo() {
     const topo = document.querySelector('.topo-admin');
     const preso = topo && getComputedStyle(topo).position === 'sticky';
@@ -419,7 +421,45 @@ function abrirAba(aba) {
     });
     el('painel-noticias').setAttribute('aria-labelledby', `aba-${aba}`);
 
+    carregarPropriasPendentes(aba === 'pendente');
     carregarLista();
+}
+
+// As notícias próprias que esperam aprovação ficam no alto da aba Pendentes,
+// sempre em primeiro, com o card azul. A revisão é no painel Notícias
+// próprias (o botão leva direto para ela).
+async function carregarPropriasPendentes(mostrar) {
+    const secao = el('proprias-pendentes');
+    if (!mostrar) {
+        secao.hidden = true;
+        return;
+    }
+    try {
+        const lista = await listarNoticiasPropriasPendentes();
+        if (estado.aba !== 'pendente') return;
+        el('proprias-pendentes-numero').textContent = `(${lista.length})`;
+        el('proprias-pendentes-lista').innerHTML = lista.map(cartaoPropriaPendente).join('');
+        secao.hidden = !lista.length;
+    } catch (erro) {
+        console.error('Erro ao carregar as notícias próprias pendentes:', erro);
+        secao.hidden = true;
+    }
+}
+
+function cartaoPropriaPendente(noticia) {
+    const imagem = imagemSegura(noticia.imagem?.url);
+    // o mesmo "há 40 minutos" do painel Notícias próprias
+    const quando = haQuantoTempo(noticia.enviadaEm);
+    return `
+        <li class="propria-pendente">
+            <span class="propria-pendente-capa">${imagem ? `<img src="${escapeHtml(imagem)}" alt="" loading="lazy">` : ''}</span>
+            <div class="propria-pendente-texto">
+                <span class="propria-pendente-selo">Notícia do Futuro+ · pendente</span>
+                <strong>${escapeHtml(noticia.titulo || '(sem título)')}</strong>
+                <span class="propria-pendente-meta">Enviada ${escapeHtml(quando || '')}${noticia.enviadaPor ? ` por ${escapeHtml(noticia.enviadaPor)}` : ''}</span>
+            </div>
+            <a class="btn propria-pendente-revisar" href="admin-noticias-proprias.html?revisar=${encodeURIComponent(noticia.id)}">Revisar e aprovar</a>
+        </li>`;
 }
 
 // A lista é lida de novo toda vez que a aba abre: o que foi aprovado ou

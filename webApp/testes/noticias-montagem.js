@@ -20,7 +20,7 @@ async function conferirQueACopiaEstaCompleta() {
     }
 }
 
-// opcoes: { noticias, demora, falhar, logado, admin, semColeta } — ver
+// opcoes: { noticias, demora, falhar, logado, admin, semColeta, propriasPendentes } — ver
 // noticias-dados-simulado.js
 export function prepararEstado(opcoes = {}) {
     window.teste = {
@@ -32,6 +32,8 @@ export function prepararEstado(opcoes = {}) {
         logado: opcoes.logado !== false,
         admin: opcoes.admin !== false,
         proximasNovas: 2,
+        // notícias próprias esperando aprovação (o card azul no alto das Pendentes)
+        propriasPendentes: opcoes.propriasPendentes || [],
         // a busca automática das 6 horas, com uma fonte que falhou
         ultimaColeta: opcoes.semColeta ? null : {
             coletadaEm: new Date(Date.now() - 5 * 3600 * 1000).toISOString(),

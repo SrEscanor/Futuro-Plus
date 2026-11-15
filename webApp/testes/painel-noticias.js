@@ -20,8 +20,11 @@
 //     teste.mostrar({ semColeta: true })   // nenhuma busca rodou ainda
 //     teste.mostrar({ admin: false })      // conta que não é administradora
 //     teste.mostrar({ logado: false })     // ninguém logado: o painel manda para o login
+//     teste.mostrar({ propriasPendentes: [] })  // sem notícia do Futuro+ esperando aprovação
+//                                          // (por padrão vem a pendente de noticias-proprias-exemplo.js)
 import { montarTelaDeNoticias, prepararEstado, texto } from './noticias-montagem.js';
 import { noticiasDeExemplo } from './noticias-exemplo.js';
+import { noticiasPropriasDeExemplo } from './noticias-proprias-exemplo.js';
 
 async function mostrar(opcoes = {}) {
     let noticias = noticiasDeExemplo();
@@ -35,8 +38,11 @@ async function mostrar(opcoes = {}) {
         noticias = [...pendentes, ...noticias.filter((n) => n.status !== 'pendente')];
     }
 
+    const propriasPendentes = opcoes.propriasPendentes
+        ?? [...noticiasPropriasDeExemplo().proprias.values()].filter((n) => n.status === 'pendente');
     const teste = prepararEstado({
-        noticias, demora: opcoes.demora, logado: opcoes.logado, admin: opcoes.admin, semColeta: opcoes.semColeta
+        noticias, demora: opcoes.demora, logado: opcoes.logado, admin: opcoes.admin, semColeta: opcoes.semColeta,
+        propriasPendentes
     });
     teste.mostrar = mostrar;
     teste.texto = texto;

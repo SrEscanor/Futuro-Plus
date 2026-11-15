@@ -540,6 +540,82 @@ def enviar_capa(req: https_fn.Request) -> https_fn.Response:
         return responder({"erro": f"Erro interno: {str(e)}"}, 500)
 
 
+TIPOS_DE_IMAGEM_NOTICIA = {"image/webp": "webp", "image/jpeg": "jpg", "image/png": "png"}
+TAMANHO_MAXIMO_IMAGEM_NOTICIA = 4 * 1024 * 1024
+
+
+@https_fn.on_request(
+    cors=options.CorsOptions(cors_origins="*", cors_methods=["get", "post"]),
+    region=options.SupportedRegion.SOUTHAMERICA_EAST1,
+    max_instances=3,
+    memory=options.MemoryOption.MB_256,
+)
+def enviar_imagem_noticia(req: https_fn.Request) -> https_fn.Response:
+    """Imagens das notícias próprias (painel Admin · Notícias próprias), no
+    mesmo esquema de enviar_capa: o navegador reduz a imagem e manda aqui, e
+    só administrador passa.
+
+    Sem "acao": guarda a imagem em noticias-proprias/<id da notícia>/ com um
+    nome novo e devolve o endereço público. acao "apagar": apaga a pasta
+    inteira da notícia (quando ela é excluída do painel)."""
+    if req.method == "OPTIONS":
+        return https_fn.Response(status=204)
+
+    cabecalho_json = {"Content-Type": "application/json"}
+
+    def responder(dados, status=200):
+        return https_fn.Response(json.dumps(dados), status=status, headers=cabecalho_json)
+
+    try:
+        db = firestore.client()
+        _, erro = _exigir_admin(req, db)
+        if erro:
+            return erro
+
+        dados = req.get_json(silent=True) or {}
+        identificador = re.sub(r"[^A-Za-z0-9_-]", "", (dados.get("id") or "").strip())[:80]
+        if not identificador:
+            return responder({"erro": "Informe o 'id' da notícia."}, 400)
+
+        bucket = storage.bucket("futuroplus-bce54.firebasestorage.app")
+        pasta = f"noticias-proprias/{identificador}"
+
+        if dados.get("acao") == "apagar":
+            apagadas = 0
+            for blob in bucket.list_blobs(prefix=f"{pasta}/"):
+                blob.delete()
+                apagadas += 1
+            return responder({"apagadas": apagadas})
+
+        tipo = (dados.get("tipo") or "").strip().lower()
+        if tipo not in TIPOS_DE_IMAGEM_NOTICIA:
+            return responder({"erro": "Envie uma imagem WebP, JPG ou PNG."}, 400)
+
+        import base64
+        import binascii
+        import uuid
+        try:
+            conteudo = base64.b64decode(dados.get("imagem") or "", validate=True)
+        except (binascii.Error, ValueError):
+            return responder({"erro": "A imagem chegou corrompida. Tente enviar de novo."}, 400)
+        if not conteudo:
+            return responder({"erro": "Nenhuma imagem recebida."}, 400)
+        if len(conteudo) > TAMANHO_MAXIMO_IMAGEM_NOTICIA:
+            return responder({"erro": "A imagem passa de 4 MB."}, 413)
+
+        # Cada imagem ganha um nome novo: trocar a de um bloco não mexe nas
+        # outras, e o navegador nunca mostra uma versão antiga guardada.
+        blob = bucket.blob(f"{pasta}/{uuid.uuid4().hex}.{TIPOS_DE_IMAGEM_NOTICIA[tipo]}")
+        blob.cache_control = "public, max-age=31536000, immutable"
+        blob.upload_from_string(conteudo, content_type=tipo)
+        blob.make_public()
+        return responder({"url": blob.public_url})
+
+    except Exception as e:
+        print(f"Erro ao enviar imagem de notícia: {e}")
+        return responder({"erro": f"Erro interno: {str(e)}"}, 500)
+
+
 @https_fn.on_request(
     cors=options.CorsOptions(cors_origins="*", cors_methods=["get", "post"]),
     region=options.SupportedRegion.SOUTHAMERICA_EAST1,

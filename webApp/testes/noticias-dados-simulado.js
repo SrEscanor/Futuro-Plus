@@ -32,14 +32,20 @@ async function chamada(tipo) {
 
 function publica(noticia) {
     const { id, titulo, resumo, link, imagem, fonte, instituicoes, publicadaEm, aprovadaEm } = noticia;
-    return { id, titulo, resumo, link, imagem, fonte, instituicoes: [...(instituicoes || [])], publicadaEm, aprovadaEm };
+    const base = { id, titulo, resumo, link, imagem, fonte, instituicoes: [...(instituicoes || [])], publicadaEm, aprovadaEm };
+    // notícia própria (painel Admin · Notícias próprias): vai com o resto do texto
+    return noticia.propria ? { ...copia(noticia), ...base } : base;
 }
 
 const guardada = (noticia) => estado().noticias.find((n) => n.id === noticia.id);
 
 export async function listarNoticiasPublicadas(limite = 60) {
     await chamada('listar');
-    return estado().noticias.filter((n) => n.status === 'aprovada').sort(maisNovaPrimeiro).slice(0, limite).map(publica);
+    // a agendada (notícia própria) só aparece quando chega a hora, como no site
+    const agora = new Date().toISOString();
+    return estado().noticias
+        .filter((n) => n.status === 'aprovada' && (!n.publicarEm || n.publicarEm <= agora))
+        .sort(maisNovaPrimeiro).slice(0, limite).map(publica);
 }
 
 export async function listarFila(status) {
@@ -152,6 +158,25 @@ export async function buscarNoticiasAgora() {
 export async function lerUltimaColeta() {
     await chamada('listar');
     return estado().ultimaColeta ? copia(estado().ultimaColeta) : null;
+}
+
+// As notícias próprias pendentes que o painel mostra no alto da aba
+// Pendentes. Ficam em teste.propriasPendentes (lista; vazia se não houver).
+export async function listarNoticiasPropriasPendentes() {
+    await chamada('listar');
+    return copia(estado().propriasPendentes || []);
+}
+
+// Apaga as recusadas com mais de 30 dias (no site quem faz é a função
+// limpar_noticias_recusadas). Devolve { apagadas }.
+export async function limparRecusadasAntigas() {
+    await chamada('gravar');
+    const limite = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
+    const antes = estado().noticias.length;
+    estado().noticias = estado().noticias.filter((n) => !(n.status === 'recusada' && (n.recusadaEm || '') < limite));
+    const apagadas = antes - estado().noticias.length;
+    estado().gravacoes.push(['limpar-recusadas', apagadas]);
+    return { apagadas };
 }
 
 export function observarAdmin(aoMudar) {

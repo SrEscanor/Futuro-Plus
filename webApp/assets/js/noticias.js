@@ -11,6 +11,7 @@ import {
     capaDesenhada, dataCurta, escapeHtml, imagemSegura, linkSeguro, rotulosDaNoticia, tempoRelativo
 } from './noticias-util.js';
 import { renderizarPaginacao } from './paginacao.js';
+import { ETIQUETAS, linkDaMateria } from './noticias-proprias-util.js';
 
 // Com 12 a grade fecha sem buraco em 1, 2, 3 ou 4 colunas (ver noticias.css).
 const POR_PAGINA = 12;
@@ -21,6 +22,7 @@ const NOME_DO_FILTRO = { etec: 'Etec', fatec: 'Fatec' };
 // Ícones de traço, no mesmo estilo dos de curso-detalhe.js.
 const ICONES = {
     sair: '<path d="M18 13.5V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4.5M14 4h6v6M20 4l-9 9"/>',
+    seguir: '<path d="M5 12h14M13 6l6 6-6 6"/>',
     jornal: '<path d="M5 4h12v14a2 2 0 0 0 2 2H7a2 2 0 0 1-2-2zM17 9h2a1 1 0 0 1 1 1v8a2 2 0 0 1-2 2M8.5 8.5h5M8.5 12h5M8.5 15.5h3"/>',
     alerta: '<path d="M12 4.5 3.5 19h17zM12 10.5v4M12 17h.01"/>',
     lupa: '<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/>'
@@ -227,9 +229,41 @@ function trocarFotoQuebrada(evento) {
     caixa.innerHTML = capaDesenhada(noticia || {});
 }
 
+// Notícia escrita pelo próprio Futuro+ (painel Admin · Notícias próprias):
+// card azul, e abre a matéria aqui mesmo, em noticia.html.
+function cartaoProprio(noticia, maisRecente) {
+    const resumo = String(noticia.resumo || '').trim();
+    const quando = tempoRelativo(noticia.publicadaEm);
+    const extras = (noticia.instituicoes || [])
+        .filter((id) => id in ETIQUETAS)
+        .map((id) => `<span class="noticia-etiqueta noticia-etiqueta--${id}">${ETIQUETAS[id]}</span>`)
+        .join('');
+
+    return `
+        <a class="noticia-card noticia-card--propria" href="${escapeHtml(linkDaMateria(noticia.id))}">
+            ${capa(noticia)}
+            <div class="noticia-corpo">
+                <div class="noticia-etiquetas">
+                    ${maisRecente ? '<span class="noticia-recente">Mais recente</span>' : ''}
+                    <span class="noticia-etiqueta noticia-etiqueta--propria">Notícia do Futuro+</span>
+                    ${extras}
+                </div>
+                <h2 class="noticia-titulo">${escapeHtml(String(noticia.titulo || '').trim() || 'Notícia sem título')}</h2>
+                ${resumo ? `<p class="noticia-resumo">${escapeHtml(resumo)}</p>` : ''}
+                <div class="noticia-rodape">
+                    <span class="noticia-fonte">Por ${escapeHtml(String(noticia.autor || '').trim() || 'Equipe Futuro+')}</span>
+                    ${quando ? `<time class="noticia-data" datetime="${escapeHtml(noticia.publicadaEm)}"
+                        title="${escapeHtml(dataCurta(noticia.publicadaEm))}">${escapeHtml(quando)}</time>` : ''}
+                    <span class="noticia-sair">${icone('seguir', 16)}</span>
+                </div>
+            </div>
+        </a>`;
+}
+
 // O cartão inteiro é o link para o site de origem. Sem um link válido, a
 // notícia aparece, mas não é clicável.
 function cartao(noticia, maisRecente) {
+    if (noticia.propria) return cartaoProprio(noticia, maisRecente);
     const link = linkSeguro(noticia.link);
     const resumo = String(noticia.resumo || '').trim();
     const quando = tempoRelativo(noticia.publicadaEm);

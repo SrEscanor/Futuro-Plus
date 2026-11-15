@@ -28,6 +28,7 @@
                 <a href="admin-cursos.html" class="admin-nav-item"><span class="admin-nav-longo">Catálogo de cursos</span><span class="admin-nav-curto">Catálogo</span></a>
                 <a href="admin-notificacoes.html" class="admin-nav-item">Notificações</a>
                 <a href="admin-noticias.html" class="admin-nav-item" aria-current="page">Notícias</a>
+                <a href="admin-noticias-proprias.html" class="admin-nav-item">Notícias próprias</a>
             </div>
             <a href="index.html" class="admin-nav-voltar">Voltar ao site</a>
         </nav>
@@ -103,6 +104,14 @@
                 </div>
                 <button type="button" id="btn-limpar-recusadas" class="btn btn-secundario">Limpar recusadas
                     antigas agora</button>
+            </section>
+
+            <!-- Notícias próprias esperando aprovação: no alto da aba Pendentes,
+                 sempre em primeiro e com o card azul (admin-noticias.js). A
+                 revisão e a aprovação são no painel Notícias próprias. -->
+            <section class="proprias-pendentes" id="proprias-pendentes" aria-labelledby="proprias-pendentes-titulo" hidden>
+                <h2 id="proprias-pendentes-titulo">Notícias do Futuro+ esperando aprovação <span id="proprias-pendentes-numero"></span></h2>
+                <ul class="proprias-pendentes-lista" id="proprias-pendentes-lista"></ul>
             </section>
 
             <!-- ---------- LISTA DA ABA ABERTA ---------- -->
