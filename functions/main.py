@@ -285,12 +285,14 @@ def excluir_contas_agendadas(event: scheduler_fn.ScheduledEvent) -> None:
 def enviar_push_da_notificacao(event: firestore_fn.Event) -> None:
     """Dispara um push de verdade (Firebase Cloud Messaging) pra quem já
     autorizou notificações no navegador (perfil.html), toda vez que o painel
-    Admin · Notificações cria um aviso novo. Respeita o mesmo "ativo" e
-    "publicarEm" do aviso: se nascer desativado ou agendado pro futuro, não
-    manda nada agora (agendamento que dispara o push exatamente na hora ainda
-    não existe — fica pra outra hora se for preciso)."""
+    Admin · Notificações cria um aviso novo — só quando o admin marcou a
+    opção "Notificação no dispositivo" (enviarPush), que é opcional; sem ela,
+    o aviso continua valendo só como modal/sino, igual sempre foi. Respeita
+    também "ativo" e "publicarEm": se nascer desativado ou agendado pro
+    futuro, não manda nada agora (agendamento que dispara o push exatamente
+    na hora ainda não existe — fica pra outra hora se for preciso)."""
     dados = event.data.to_dict() if event.data else None
-    if not dados or dados.get("ativo") is False:
+    if not dados or not dados.get("enviarPush") or dados.get("ativo") is False:
         return
 
     publicar_em = dados.get("publicarEm")

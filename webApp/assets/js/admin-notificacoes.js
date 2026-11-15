@@ -134,6 +134,7 @@ async function salvarNotificacao(event) {
         // isso aqui é só reforço contra um estado de formulário desatualizado)
         mostrarModal: publicarEm ? false : document.getElementById('f-modal').checked,
         mostrarSino: document.getElementById('f-sino').checked,
+        enviarPush: document.getElementById('f-push').checked,
         ativo: document.getElementById('f-ativa').checked,
         publicarEm,
         criadoEm: existente?.criadoEm || new Date().toISOString(),
@@ -194,6 +195,7 @@ function abrirFormulario(notificacao) {
     document.getElementById('f-agendar').value = paraDatetimeLocal(notificacao?.publicarEm);
     document.getElementById('f-modal').checked = notificacao?.mostrarModal || false;
     document.getElementById('f-sino').checked = notificacao ? !!notificacao.mostrarSino : true;
+    document.getElementById('f-push').checked = notificacao?.enviarPush || false;
     document.getElementById('f-ativa').checked = notificacao ? notificacao.ativo !== false : true;
     atualizarDisponibilidadeModal();
 
