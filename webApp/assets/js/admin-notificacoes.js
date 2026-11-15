@@ -36,6 +36,14 @@ function deDatetimeLocal(valor) {
     return Number.isNaN(data.getTime()) ? null : data.toISOString();
 }
 
+// Agendamento precisa de pelo menos 1h de folga — não faz sentido "agendar"
+// pra daqui a 2 minutos (isso é só publicar direto) nem pro passado.
+const MINIMO_AGENDAMENTO_MS = 60 * 60 * 1000;
+
+function minimoAgendamentoIso() {
+    return new Date(Date.now() + MINIMO_AGENDAMENTO_MS).toISOString();
+}
+
 const LABEL_PUBLICO = {
     logados: 'Quem tem conta',
     deslogados: 'Visitante',
@@ -107,9 +115,16 @@ async function salvarNotificacao(event) {
         return;
     }
 
+    const publicarEm = deDatetimeLocal(document.getElementById('f-agendar').value);
+    // Só barra data no futuro próximo demais — uma já publicada no passado
+    // (editando uma notificação antiga sem mexer no agendamento) não conta.
+    if (publicarEm && publicarEm > new Date().toISOString() && publicarEm < minimoAgendamentoIso()) {
+        alert('O agendamento precisa ser pelo menos 1 hora à frente do horário atual.');
+        return;
+    }
+
     const existente = editandoId ? notificacoesCache.find((n) => n.id === editandoId) : null;
     const id = editandoId || doc(collection(db, COLECAO)).id;
-    const publicarEm = deDatetimeLocal(document.getElementById('f-agendar').value);
 
     const dados = {
         titulo,
@@ -169,6 +184,13 @@ function abrirFormulario(notificacao) {
     document.getElementById('f-titulo').value = notificacao?.titulo || '';
     document.getElementById('f-mensagem').value = notificacao?.mensagem || '';
     document.getElementById(`f-publico-${notificacao?.publico || 'logados'}`).checked = true;
+    // Se já tem uma data agendada no passado (notificação já publicada), o
+    // "min" não pode ficar maior que o valor atual, senão o navegador marca
+    // o campo como inválido só por mostrar o que já estava salvo.
+    const minimo = notificacao?.publicarEm && notificacao.publicarEm < minimoAgendamentoIso()
+        ? notificacao.publicarEm
+        : minimoAgendamentoIso();
+    document.getElementById('f-agendar').min = paraDatetimeLocal(minimo);
     document.getElementById('f-agendar').value = paraDatetimeLocal(notificacao?.publicarEm);
     document.getElementById('f-modal').checked = notificacao?.mostrarModal || false;
     document.getElementById('f-sino').checked = notificacao ? !!notificacao.mostrarSino : true;
