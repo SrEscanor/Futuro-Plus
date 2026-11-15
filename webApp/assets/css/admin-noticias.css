@@ -31,7 +31,8 @@
 .noticias-aba:focus-visible,
 .noticia-item-link:focus-visible,
 .noticias-intro a:focus-visible,
-.topo-admin .voltar:focus-visible,
+.admin-nav-item:focus-visible,
+.admin-nav-voltar:focus-visible,
 input[type="checkbox"]:focus-visible {
     outline: 2px solid var(--blue);
     outline-offset: 2px;

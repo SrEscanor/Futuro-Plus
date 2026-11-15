@@ -8,12 +8,12 @@
     <link rel="icon" href="./favicon.ico" sizes="48x48">
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="./apple-touch-icon.png">
-  <script type="module" crossorigin src="./assets/adminInstituicoes-BeCOy_fc.js"></script>
+  <script type="module" crossorigin src="./assets/adminInstituicoes-DBYTZf3H.js"></script>
   <link rel="modulepreload" crossorigin href="./assets/firebase-config-DZ7_vqDZ.js">
   <link rel="modulepreload" crossorigin href="./assets/card-unidade-C3eEs3Rs.js">
   <link rel="modulepreload" crossorigin href="./assets/geocodificacao-Dyu2Eb0t.js">
   <link rel="modulepreload" crossorigin href="./assets/importacao-csv-C6XbO7FN.js">
-  <link rel="stylesheet" crossorigin href="./assets/admin-instituicoes-e7_4u62x.css">
+  <link rel="stylesheet" crossorigin href="./assets/admin-instituicoes-Dhp5EcsO.css">
 </head>
 
 <body>
@@ -21,13 +21,20 @@
     <header class="topo-admin">
         <div class="titulo-area">
             <h1>Painel Admin · Unidades</h1>
-            <a href="index.html" class="voltar">&larr; Voltar ao Futuro+</a>
-            <a href="admin-cursos.html" class="voltar">Cursos &rarr;</a>
         </div>
         <div class="usuario-area">
             <span id="admin-email"></span>
             <button id="logout-btn" class="btn-sair-admin">Sair</button>
         </div>
+        <nav class="admin-nav" aria-label="Páginas do painel">
+            <div class="admin-nav-paginas">
+                <a href="admin-instituicoes.html" class="admin-nav-item" aria-current="page">Unidades</a>
+                <a href="admin-cursos.html" class="admin-nav-item"><span class="admin-nav-longo">Catálogo de cursos</span><span class="admin-nav-curto">Catálogo</span></a>
+                <a href="admin-notificacoes.html" class="admin-nav-item">Notificações</a>
+                <a href="admin-noticias.html" class="admin-nav-item">Notícias</a>
+            </div>
+            <a href="index.html" class="admin-nav-voltar">Voltar ao site</a>
+        </nav>
     </header>
 
     <div id="acesso-negado" class="acesso-negado">

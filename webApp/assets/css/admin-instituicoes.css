@@ -108,6 +108,135 @@ a {
     background: var(--bg);
 }
 
+/* ---- NAVEGAÇÃO ENTRE AS PÁGINAS DO PAINEL ----
+   Uma linha embaixo do título com todas as páginas do admin (a atual em
+   azul, como no menu do site) e o botão de voltar ao site. Termos e
+   Privacidade fica de fora de propósito: continua isolada, aberta só pelo
+   menu do site. Os ícones são os mesmos do menu (assets/icones/menu). */
+.topo-admin {
+    flex-wrap: wrap;
+    row-gap: 12px;
+}
+
+.admin-nav {
+    flex: 1 1 100%;
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+/* em tela média (tablet) os itens quebram de linha em vez de estourar */
+.admin-nav-paginas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-width: 0;
+    padding: 2px;
+}
+
+.admin-nav-item,
+.admin-nav-voltar {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 0 14px 0 10px;
+    border-radius: 12px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.admin-nav-item::before,
+.admin-nav-voltar::before {
+    content: '';
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    background: var(--icone-admin) center / contain no-repeat;
+}
+
+.admin-nav-item[href="admin-instituicoes.html"] { --icone-admin: url('../icones/menu/unidades.svg'); }
+.admin-nav-item[href="admin-cursos.html"] { --icone-admin: url('../icones/menu/catalogo.svg'); }
+.admin-nav-item[href="admin-notificacoes.html"] { --icone-admin: url('../icones/menu/notificacoes.svg'); }
+.admin-nav-item[href="admin-noticias.html"] { --icone-admin: url('../icones/menu/noticias.svg'); }
+.admin-nav-voltar { --icone-admin: url('../icones/menu/inicio.svg'); }
+
+.admin-nav-item[aria-current="page"] {
+    background: var(--blue);
+    color: #fff;
+    box-shadow: 0 8px 18px -12px rgba(78, 110, 232, 0.9);
+}
+
+/* na página atual o ícone fica branco, como no item ativo do menu do site */
+.admin-nav-item[aria-current="page"]::before {
+    filter: brightness(0) invert(1);
+}
+
+.admin-nav-voltar {
+    padding: 0 16px 0 12px;
+    border: 1.5px solid var(--line);
+    background: var(--surface);
+    color: var(--blue-dark);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .admin-nav-item:not([aria-current="page"]):hover {
+        background: var(--blue-soft);
+        color: var(--blue-dark);
+    }
+
+    .admin-nav-voltar:hover {
+        border-color: var(--blue);
+        background: var(--blue-soft);
+    }
+}
+
+.admin-nav-item:focus-visible,
+.admin-nav-voltar:focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: 2px;
+}
+
+.admin-nav-curto {
+    display: none;
+}
+
+/* Celular: as quatro páginas numa grade 2 x 2, todas à vista (a atual
+   nunca fica escondida), e o "Voltar ao site" largo embaixo. */
+@media (max-width: 640px) {
+    .admin-nav {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .admin-nav-paginas {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .admin-nav-voltar {
+        justify-content: center;
+    }
+
+    .admin-nav-longo {
+        display: none;
+    }
+
+    .admin-nav-curto {
+        display: inline;
+    }
+}
+
 /* ---- ACESSO NEGADO ---- */
 .acesso-negado {
     display: none;

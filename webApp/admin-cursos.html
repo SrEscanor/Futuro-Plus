@@ -16,12 +16,20 @@
     <header class="topo-admin">
         <div class="titulo-area">
             <h1>Painel Admin · Cursos</h1>
-            <a href="admin-instituicoes.html" class="voltar">&larr; Unidades</a>
         </div>
         <div class="usuario-area">
             <span id="admin-email"></span>
             <button id="logout-btn" class="btn-sair-admin">Sair</button>
         </div>
+        <nav class="admin-nav" aria-label="Páginas do painel">
+            <div class="admin-nav-paginas">
+                <a href="admin-instituicoes.html" class="admin-nav-item">Unidades</a>
+                <a href="admin-cursos.html" class="admin-nav-item" aria-current="page"><span class="admin-nav-longo">Catálogo de cursos</span><span class="admin-nav-curto">Catálogo</span></a>
+                <a href="admin-notificacoes.html" class="admin-nav-item">Notificações</a>
+                <a href="admin-noticias.html" class="admin-nav-item">Notícias</a>
+            </div>
+            <a href="index.html" class="admin-nav-voltar">Voltar ao site</a>
+        </nav>
     </header>
 
     <div id="acesso-negado" class="acesso-negado">
