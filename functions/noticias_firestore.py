@@ -20,6 +20,14 @@ REGISTRO_DA_COLETA = ("noticias_coleta", "ultima")
 # ("Inscrições do Vestibulinho terminam hoje" acontece todo semestre).
 DIAS_DE_TITULO_REPETIDO = 30
 
+# Por quanto tempo uma notícia recusada fica guardada antes de ser apagada de
+# vez. Ela é mantida até aqui só pra não deixar a mesma notícia voltar na
+# próxima coleta (ver repetida() abaixo) — depois disso não serve mais pra
+# nada. Como coletadaEm é sempre <= recusadaEm, uma recusada com mais de 30
+# dias já caiu fora da janela de DIAS_DE_TITULO_REPETIDO de qualquer forma,
+# então apagar aqui não reabre brecha pra repetição.
+DIAS_PARA_APAGAR_RECUSADA = 30
+
 
 def coletar_e_gravar(db, origem):
     """origem: "painel" (botão) ou "agendada". Devolve o resumo da coleta."""
@@ -73,3 +81,26 @@ def gravar_coleta(db, coleta, origem):
     # o painel mostra isto como "última busca"
     db.collection(REGISTRO_DA_COLETA[0]).document(REGISTRO_DA_COLETA[1]).set(resumo)
     return resumo
+
+
+def apagar_recusadas_antigas(db):
+    """Apaga de vez as notícias recusadas há mais de DIAS_PARA_APAGAR_RECUSADA
+    dias. Chamada só pela coleta agendada (main.py), pra não atrasar o botão
+    "Buscar notícias agora" do painel com uma varredura que não precisa ser na
+    hora. Devolve quantas foram apagadas.
+
+    Só filtra por "recusadaEm" (sem "status =="): esse campo só existe em
+    quem foi recusada (noticias-dados.js apaga ele ao aprovar/devolver), então
+    a comparação já exclui sozinha quem não é recusada — e evita precisar de
+    um índice composto no Firestore (mesmo truque de listarFila('recusada')
+    no painel, que ordena por recusadaEm em vez de filtrar por status)."""
+    limite = noticias.em_iso(datetime.now(timezone.utc) - timedelta(days=DIAS_PARA_APAGAR_RECUSADA))
+    antigas = list(db.collection(FILA).where("recusadaEm", "<=", limite).stream())
+
+    for inicio in range(0, len(antigas), 400):
+        lote = db.batch()
+        for registro in antigas[inicio:inicio + 400]:
+            lote.delete(registro.reference)
+        lote.commit()
+
+    return len(antigas)

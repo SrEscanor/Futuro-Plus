@@ -515,8 +515,18 @@ def coletar_noticias(req: https_fn.Request) -> https_fn.Response:
 )
 def coletar_noticias_agendada(event: scheduler_fn.ScheduledEvent) -> None:
     """A mesma busca do botão, rodando sozinha. Nada vai para o site sem
-    aprovação: as notícias novas só entram na fila do painel."""
+    aprovação: as notícias novas só entram na fila do painel. Aproveita essa
+    mesma agenda (a cada 6h) pra também apagar notícias recusadas há mais de
+    30 dias, sem precisar de um agendamento novo só para isso."""
     import noticias_firestore
 
-    resumo = noticias_firestore.coletar_e_gravar(firestore.client(), "agendada")
+    db = firestore.client()
+    resumo = noticias_firestore.coletar_e_gravar(db, "agendada")
     print(json.dumps({"coleta_noticias": True, **resumo}, ensure_ascii=False))
+
+    try:
+        apagadas = noticias_firestore.apagar_recusadas_antigas(db)
+        if apagadas:
+            print(f"{apagadas} notícia(s) recusada(s) há mais de 30 dias foram apagadas.")
+    except Exception as erro:
+        print(f"Erro ao apagar notícias recusadas antigas: {erro}")
