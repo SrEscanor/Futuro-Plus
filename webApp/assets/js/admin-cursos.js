@@ -43,6 +43,30 @@ let filtroSemMatriz = false;
 // imagens já enviadas para cada eixo: { slug: endereço }
 let fotosDosEixos = {};
 
+// Ordenação da tabela, por coluna clicada no cabeçalho (mesmo padrão de
+// admin-instituicoes.js). Curso sem demanda coletada fica com -1, pra sempre
+// ordenar abaixo de quem tem demanda de verdade (0 ou mais).
+const EXTRATORES_ORDENACAO = {
+    nome: (c) => c.nome || '',
+    eixo: (c) => (c.eixos || []).join(', '),
+    duracao: (c) => c.duracao || '',
+    cargaHoraria: (c) => c.cargaHoraria || 0,
+    demanda: (c) => resumoDaDemanda(c.demanda)?.porVaga ?? -1,
+    unidades: (c) => unidadesPorCurso.get(normalizar(c.nome)) || 0
+};
+
+let ordenacao = { coluna: 'nome', direcao: 'asc' };
+
+function atualizarSetasOrdenacao() {
+    document.querySelectorAll('.th-ordenavel').forEach((th) => {
+        const seta = th.querySelector('.seta-ordenacao');
+        if (!seta) return;
+        seta.textContent = th.dataset.coluna === ordenacao.coluna
+            ? (ordenacao.direcao === 'asc' ? '▲' : '▼')
+            : '';
+    });
+}
+
 function escapeHtml(str) {
     return String(str ?? '').replace(/[&<>"']/g, (c) => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -147,6 +171,7 @@ function renderizarTabela() {
     renderizarAlerta();
     renderizarSituacaoDasMatrizes();
     renderizarCapasDosEixos();
+    atualizarSetasOrdenacao();
 
     const linhas = cursosCache
         .filter((c) => !filtroIncompletos || faltando(c).length)
@@ -154,7 +179,16 @@ function renderizarTabela() {
         .filter((c) => !filtroSemMatriz || !(c.matrizes || []).length)
         .filter((c) => !filtro || normalizar([
             c.nome, (c.eixos || []).join(' '), (c.modalidades || []).join(' ')
-        ].join(' ')).includes(filtro));
+        ].join(' ')).includes(filtro))
+        .sort((a, b) => {
+            const extrator = EXTRATORES_ORDENACAO[ordenacao.coluna] || EXTRATORES_ORDENACAO.nome;
+            const va = extrator(a);
+            const vb = extrator(b);
+            const comparacao = typeof va === 'number'
+                ? va - vb
+                : String(va).localeCompare(String(vb), 'pt-BR');
+            return ordenacao.direcao === 'asc' ? comparacao : -comparacao;
+        });
 
     if (!linhas.length) {
         corpo.innerHTML = `<tr><td colspan="7" class="tabela-vazia">
@@ -673,6 +707,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('busca-curso').addEventListener('input', renderizarTabela);
+    document.querySelectorAll('.th-ordenavel').forEach((th) => {
+        th.addEventListener('click', () => {
+            const coluna = th.dataset.coluna;
+            if (ordenacao.coluna === coluna) {
+                ordenacao.direcao = ordenacao.direcao === 'asc' ? 'desc' : 'asc';
+            } else {
+                ordenacao = { coluna, direcao: 'asc' };
+            }
+            renderizarTabela();
+        });
+    });
     document.getElementById('btn-filtrar-incompletos').addEventListener('click', () => {
         filtroIncompletos = !filtroIncompletos;
         renderizarTabela();
