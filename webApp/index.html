@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="assets/css/ondas.css">
     <link rel="stylesheet" href="assets/css/dashboard.css">
     <link rel="stylesheet" href="assets/css/cursos-etec.css">
+    <link rel="stylesheet" href="assets/css/inicio.css">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#4e6ee8">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -19,7 +20,10 @@
 
     <aside class="menu-panel" aria-label="Menu principal">
         <div class="menu-topo">
-            <img src="assets/images/logo.png" alt="Futuro+" class="menu-logo">
+            <div class="menu-marca">
+                <img src="assets/images/logo.png" alt="" class="menu-logo">
+                <span class="menu-marca-texto">Futuro+</span>
+            </div>
             <span class="menu-subtitulo">Escolha seu caminho</span>
         </div>
 
@@ -49,6 +53,17 @@
             <a href="admin-notificacoes.html" id="menu-admin-notificacoes" class="menu-item menu-admin-area" data-icone="🔔" hidden>Notificações</a>
             <a href="admin-noticias.html" id="menu-admin-noticias" class="menu-item menu-admin-area" data-icone="🗞️" hidden>Notícias</a>
         </nav>
+
+        <a href="testes.html" class="menu-cartao">
+            <img class="menu-cartao-icone" src="assets/icones/3d/conquistas.webp" alt="" width="58" height="58">
+            <strong>Seu futuro começa aqui!</strong>
+            <span class="menu-cartao-texto">Aprenda, evolua e conquiste mais.</span>
+            <span class="menu-cartao-acao">Fazer um teste <span aria-hidden="true">→</span></span>
+            <svg class="menu-cartao-onda" viewBox="0 0 240 34" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M0 14 C40 2 80 2 120 14 C160 26 200 26 240 14 V34 H0 Z" fill="#f7b03f" />
+                <path d="M0 23 C50 11 92 13 132 23 C172 33 206 29 240 21 V34 H0 Z" fill="#2ecc71" />
+            </svg>
+        </a>
 
     </aside>
 
@@ -106,11 +121,36 @@
         </div>
     </nav>
 
-    <header class="home-hero">
+    <header class="home-hero home-hero--inicio">
+        <!-- A saudação muda com o login (dashboard.js): "Olá, nome 👋" para
+             quem entrou; "Boas-vindas ao Futuro+!" e o botão para visitante. -->
         <div class="home-hero-conteudo">
-            <h1 id="saudacao">Olá, <span id="nomeUsuario">ESTUDANTE</span> 👋</h1>
+            <h1 id="saudacao">Olá! 👋</h1>
             <p class="home-hero-sub">Descubra seu perfil, explore os cursos das Etecs, Fatecs e outras instituições e encontre a área que combina
                 com você.</p>
+            <div class="home-hero-acoes">
+                <a href="testes.html" class="btn-hero">Explorar agora
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+                </a>
+            </div>
+        </div>
+
+        <div class="hero-fitas" aria-hidden="true">
+            <svg class="fita fita-1" viewBox="0 0 1440 60" preserveAspectRatio="none">
+                <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30" />
+            </svg>
+            <svg class="fita fita-2" viewBox="0 0 1440 60" preserveAspectRatio="none">
+                <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30" />
+            </svg>
+            <svg class="fita fita-3" viewBox="0 0 1440 60" preserveAspectRatio="none">
+                <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30" />
+            </svg>
+        </div>
+
+        <div class="hero-icones" aria-hidden="true">
+            <img class="hero-icone hero-icone-1" src="assets/icones/3d/dicas.webp" alt="" width="104" height="104">
+            <img class="hero-icone hero-icone-2" src="assets/icones/3d/relatorios.webp" alt="" width="124" height="124">
+            <img class="hero-icone hero-icone-3" src="assets/icones/3d/conquistas.webp" alt="" width="96" height="96">
         </div>
 
         <div class="hero-ondas" aria-hidden="true">
@@ -127,9 +167,142 @@
     </header>
 
     <div class="main">
-        <div class="weekly-card">
+        <!-- Ondas dos atalhos (como no modelo): uma onda forte no alto, um
+             tom claro por trás, um tom médio embaixo e uma faixa clara que
+             cruza. Dois formatos (a e b) para os cartões não ficarem iguais;
+             a cor vem do CSS de cada cartão, e o desfoque deixa as bordas
+             macias. viewBox de 240 x 50. -->
+        <svg class="atalhos-defs" aria-hidden="true" focusable="false">
+            <defs>
+                <path id="onda-a-base" d="M0 0H240V34C210 40 180 42 146 38C112 34 82 24 50 20C30 18 14 19 0 22Z" />
+                <path id="onda-a-forte" d="M24 0H240V22C222 24 204 28 186 31C170 34 156 35 142 34C112 32 88 20 64 9C50 3 36 0 24 0Z" />
+                <path id="onda-a-baixa" d="M120 46C160 44 200 32 240 18V44C206 50 166 51 120 46Z" />
+                <path id="onda-a-faixa" d="M100 40C140 38 180 26 244 4" />
+                <path id="onda-b-base" d="M0 0H240V30C214 38 188 42 158 40C124 37 94 26 62 21C38 18 18 19 0 23Z" />
+                <path id="onda-b-forte" d="M48 0H240V18C228 22 214 28 200 32C186 36 172 37 158 36C128 34 104 22 82 10C70 4 58 0 48 0Z" />
+                <path id="onda-b-baixa" d="M140 47C178 45 210 33 240 22V45C210 51 176 52 140 47Z" />
+                <path id="onda-b-faixa" d="M124 42C160 40 196 26 244 8" />
+                <filter id="onda-macia" x="-5%" y="-30%" width="110%" height="160%"><feGaussianBlur stdDeviation="1.3" /></filter>
+                <filter id="onda-mais-macia" x="-5%" y="-30%" width="110%" height="160%"><feGaussianBlur stdDeviation="2.6" /></filter>
+                <!-- a onda forte nasce transparente à esquerda, onde fica o ícone -->
+                <linearGradient id="onda-g-esquerda" gradientUnits="userSpaceOnUse" x1="36" y1="0" x2="240" y2="0">
+                    <stop offset="0" stop-color="#000" /><stop offset=".42" stop-color="#fff" /><stop offset=".8" stop-color="#fff" /><stop offset="1" stop-color="#bbb" />
+                </linearGradient>
+                <mask id="onda-some-esquerda" maskUnits="userSpaceOnUse" x="0" y="-10" width="240" height="70">
+                    <rect y="-10" width="240" height="70" fill="url(#onda-g-esquerda)" />
+                </mask>
+                <!-- os tons de fundo somem aos poucos para baixo -->
+                <linearGradient id="onda-g-baixo" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="50">
+                    <stop offset="0" stop-color="#fff" /><stop offset=".5" stop-color="#aaa" /><stop offset="1" stop-color="#000" />
+                </linearGradient>
+                <mask id="onda-some-baixo" maskUnits="userSpaceOnUse" x="0" y="-10" width="240" height="70">
+                    <rect y="-10" width="240" height="70" fill="url(#onda-g-baixo)" />
+                </mask>
+            </defs>
+        </svg>
+
+        <nav class="atalhos" aria-label="Atalhos">
+            <a class="atalho atalho--verde" href="testes.html">
+                <svg class="atalho-ondas" viewBox="0 0 240 50" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+                    <use href="#onda-a-base" class="onda-base" mask="url(#onda-some-baixo)" filter="url(#onda-macia)" />
+                    <use href="#onda-a-forte" class="onda-forte" mask="url(#onda-some-esquerda)" filter="url(#onda-macia)" />
+                    <use href="#onda-a-baixa" class="onda-baixa" mask="url(#onda-some-baixo)" filter="url(#onda-macia)" />
+                    <use href="#onda-a-faixa" class="onda-faixa" filter="url(#onda-mais-macia)" />
+                </svg>
+                <img class="atalho-icone" src="assets/icones/3d/testes.webp" alt="" width="56" height="56">
+                <span class="atalho-rodape">
+                    <span class="atalho-texto"><strong>Testes</strong><span>Descubra suas aptidões</span></span>
+                    <span class="atalho-seta" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg></span>
+                </span>
+            </a>
+            <a class="atalho atalho--laranja" href="cursos.html">
+                <svg class="atalho-ondas" viewBox="0 0 240 50" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+                    <use href="#onda-b-base" class="onda-base" mask="url(#onda-some-baixo)" filter="url(#onda-macia)" />
+                    <use href="#onda-b-forte" class="onda-forte" mask="url(#onda-some-esquerda)" filter="url(#onda-macia)" />
+                    <use href="#onda-b-baixa" class="onda-baixa" mask="url(#onda-some-baixo)" filter="url(#onda-macia)" />
+                    <use href="#onda-b-faixa" class="onda-faixa" filter="url(#onda-mais-macia)" />
+                </svg>
+                <img class="atalho-icone" src="assets/icones/3d/cursos.webp" alt="" width="56" height="56">
+                <span class="atalho-rodape">
+                    <span class="atalho-texto"><strong>Cursos</strong><span>Explore novos cursos</span></span>
+                    <span class="atalho-seta" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg></span>
+                </span>
+            </a>
+            <a class="atalho atalho--roxo" href="instituicoes.html">
+                <svg class="atalho-ondas" viewBox="0 0 240 50" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+                    <use href="#onda-a-base" class="onda-base" mask="url(#onda-some-baixo)" filter="url(#onda-macia)" />
+                    <use href="#onda-a-forte" class="onda-forte" mask="url(#onda-some-esquerda)" filter="url(#onda-macia)" />
+                    <use href="#onda-a-baixa" class="onda-baixa" mask="url(#onda-some-baixo)" filter="url(#onda-macia)" />
+                    <use href="#onda-a-faixa" class="onda-faixa" filter="url(#onda-mais-macia)" />
+                </svg>
+                <img class="atalho-icone" src="assets/icones/3d/instituicoes.webp" alt="" width="56" height="56">
+                <span class="atalho-rodape">
+                    <span class="atalho-texto"><strong>Instituições</strong><span>Conheça as unidades</span></span>
+                    <span class="atalho-seta" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg></span>
+                </span>
+            </a>
+            <a class="atalho atalho--azul" href="mural.html">
+                <svg class="atalho-ondas" viewBox="0 0 240 50" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+                    <use href="#onda-b-base" class="onda-base" mask="url(#onda-some-baixo)" filter="url(#onda-macia)" />
+                    <use href="#onda-b-forte" class="onda-forte" mask="url(#onda-some-esquerda)" filter="url(#onda-macia)" />
+                    <use href="#onda-b-baixa" class="onda-baixa" mask="url(#onda-some-baixo)" filter="url(#onda-macia)" />
+                    <use href="#onda-b-faixa" class="onda-faixa" filter="url(#onda-mais-macia)" />
+                </svg>
+                <img class="atalho-icone" src="assets/icones/3d/mural.webp" alt="" width="56" height="56">
+                <span class="atalho-rodape">
+                    <span class="atalho-texto"><strong>Mural</strong><span>Guarde seus certificados</span></span>
+                    <span class="atalho-seta" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg></span>
+                </span>
+            </a>
+            <a class="atalho atalho--verde" href="perfil.html">
+                <svg class="atalho-ondas" viewBox="0 0 240 50" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+                    <use href="#onda-a-base" class="onda-base" mask="url(#onda-some-baixo)" filter="url(#onda-macia)" />
+                    <use href="#onda-a-forte" class="onda-forte" mask="url(#onda-some-esquerda)" filter="url(#onda-macia)" />
+                    <use href="#onda-a-baixa" class="onda-baixa" mask="url(#onda-some-baixo)" filter="url(#onda-macia)" />
+                    <use href="#onda-a-faixa" class="onda-faixa" filter="url(#onda-mais-macia)" />
+                </svg>
+                <img class="atalho-icone" src="assets/icones/3d/perfil.webp" alt="" width="56" height="56">
+                <span class="atalho-rodape">
+                    <span class="atalho-texto"><strong>Perfil</strong><span>Seus dados e resultados</span></span>
+                    <span class="atalho-seta" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg></span>
+                </span>
+            </a>
+        </nav>
+
+        <div class="inicio-destaques">
+            <!-- Destaques para você: carrossel de até 3 destaques, montado por
+                 inicio-destaques.js. Por enquanto são fixos; a parte lógica
+                 entra depois chamando montarDestaques(lista). -->
+            <section class="destaques-inicio" id="destaques-inicio" aria-roledescription="carrossel" aria-labelledby="destaques-titulo">
+                <h3 class="destaques-titulo" id="destaques-titulo"><img class="titulo-icone" src="assets/icones/menu/destaques.svg" alt="">Destaques para você</h3>
+                <div class="destaques-trilho" id="destaques-trilho"></div>
+                <div class="destaques-controles">
+                    <div class="destaques-pontos" id="destaques-pontos"></div>
+                    <div class="destaques-setas">
+                        <button type="button" class="destaques-seta" id="destaques-anterior" aria-controls="destaques-trilho" aria-label="Destaque anterior">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
+                        </button>
+                        <button type="button" class="destaques-seta" id="destaques-proximo" aria-controls="destaques-trilho" aria-label="Próximo destaque">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="noticias-inicio" aria-labelledby="noticias-inicio-titulo">
+                <div class="noticias-inicio-cabecalho">
+                    <h3 id="noticias-inicio-titulo"><img class="titulo-icone" src="assets/icones/menu/noticias.svg" alt="">Últimas notícias</h3>
+                    <a class="noticias-inicio-ver" href="noticias.html">Ver todas <span aria-hidden="true">→</span></a>
+                </div>
+                <ul class="noticias-inicio-lista" id="noticias-inicio-lista">
+                    <li class="noticias-inicio-aviso">Carregando notícias...</li>
+                </ul>
+            </section>
+        </div>
+
+        <div class="weekly-card recomendados-inicio">
             <div class="weekly-cabecalho">
-                <h3 id="recomendados-titulo">Cursos recomendados</h3>
+                <h3><img class="titulo-icone" src="assets/icones/menu/cursos.svg" alt=""><span id="recomendados-titulo">Cursos recomendados</span></h3>
                 <p class="weekly-sub" id="recomendados-sub"></p>
             </div>
             <div class="courses-scroll" id="recomendados-scroll">
@@ -194,9 +367,28 @@
             </div>
         </div>
 
-        <div class="mural-cta">
-            <p>Completou algum curso? Adicione seu certificado no seu mural!</p>
-            <button class="btn-mural" onclick="location.href='mural.html'">Meu mural</button>
+        <!-- Quem já pendurou certificado vê um mini mural (inicio-mural.js);
+             os outros, o convite de sempre. O tour aponta para este bloco. -->
+        <div id="mural-inicio">
+            <section class="mural-mini" id="mural-mini" aria-labelledby="mural-mini-titulo" hidden>
+                <div class="mural-mini-cabecalho">
+                    <div>
+                        <h3 id="mural-mini-titulo"><img class="titulo-icone" src="assets/icones/menu/mural.svg" alt="">Seu mural</h3>
+                        <p id="mural-mini-contagem"></p>
+                    </div>
+                    <a class="btn-mural" href="mural.html">Ver meu mural</a>
+                </div>
+                <div class="mural-mini-parede">
+                    <span class="mural-mini-pessoa mural-mini-pessoa--esq" aria-hidden="true"></span>
+                    <ul class="mural-mini-quadros" id="mural-mini-quadros"></ul>
+                    <span class="mural-mini-pessoa mural-mini-pessoa--dir" aria-hidden="true"></span>
+                </div>
+            </section>
+
+            <div class="mural-cta" id="mural-cta">
+                <p>Completou algum curso? Adicione seu certificado no seu mural!</p>
+                <button class="btn-mural" onclick="location.href='mural.html'">Meu mural</button>
+            </div>
         </div>
 
         <div class="section-title">Testes</div>
@@ -296,6 +488,9 @@
     <script type="module" src="assets/js/inicio-resultado.js"></script>
     <script type="module" src="assets/js/inicio-cursos.js"></script>
     <script type="module" src="assets/js/inicio-recomendacoes.js"></script>
+    <script type="module" src="assets/js/inicio-destaques.js"></script>
+    <script type="module" src="assets/js/inicio-noticias.js"></script>
+    <script type="module" src="assets/js/inicio-mural.js"></script>
     <script type="module" src="assets/js/inicio-tour.js"></script>
 </body>
 

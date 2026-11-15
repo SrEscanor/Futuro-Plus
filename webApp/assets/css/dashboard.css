@@ -1750,16 +1750,35 @@ a.btn-saiba {
 .menu-topo {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    padding: 22px 22px 18px;
+    gap: 6px;
+    padding: 20px 22px 16px;
     border-bottom: 1px solid var(--line);
     background: linear-gradient(160deg, var(--blue-soft), var(--surface));
 }
 
+/* O F e o nome escrito lado a lado, como no modelo; "Escolha seu caminho"
+   fica embaixo dos dois. */
+.menu-marca {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
 .menu-logo {
-    height: 34px;
+    height: 38px;
     width: auto;
-    align-self: flex-start;
+    flex: 0 0 auto;
+}
+
+.menu-marca-texto {
+    /* o texto desce um pouco para alinhar com a parte de baixo do F */
+    padding-top: 6px;
+    font-family: 'Poppins', 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 25px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: #1a3bbf;
 }
 
 .menu-subtitulo {
@@ -1769,7 +1788,11 @@ a.btn-saiba {
     color: var(--ink-soft);
 }
 
+/* ocupa a altura que sobra e rola sozinha, para o cartão do pé do menu
+   continuar visível mesmo com a área de administração aberta */
 .menu-navegacao {
+    flex: 1 1 auto;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     gap: 2px;
@@ -1802,13 +1825,39 @@ a.btn-saiba {
     transition: background 0.15s, color 0.15s;
 }
 
-/* o ícone vem do HTML de cada item, e não da posição na lista */
+/* Ícone de cada item: um SVG desenhado no estilo dos ícones 3D da marca,
+   escolhido pelo endereço do link (assim o menu de todas as páginas pega o
+   ícone sem mexer no HTML). Item sem desenho continua com o emoji do
+   data-icone. */
 .menu-item::before {
-    content: attr(data-icone);
+    content: var(--icone-menu-texto, attr(data-icone));
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
     font-size: 15px;
     line-height: 1;
-    width: 22px;
-    text-align: center;
+    background: var(--icone-menu, none) center / contain no-repeat;
+}
+
+.menu-item[href="index.html"] { --icone-menu: url('../icones/menu/inicio.svg'); --icone-menu-texto: ''; }
+.menu-item[href="testes.html"] { --icone-menu: url('../icones/menu/testes.svg'); --icone-menu-texto: ''; }
+.menu-item[href="cursos.html"] { --icone-menu: url('../icones/menu/cursos.svg'); --icone-menu-texto: ''; }
+.menu-item[href="instituicoes.html"] { --icone-menu: url('../icones/menu/instituicoes.svg'); --icone-menu-texto: ''; }
+.menu-item[href="noticias.html"],
+.menu-item[href="admin-noticias.html"] { --icone-menu: url('../icones/menu/noticias.svg'); --icone-menu-texto: ''; }
+.menu-item[href="mural.html"] { --icone-menu: url('../icones/menu/mural.svg'); --icone-menu-texto: ''; }
+.menu-item[href="perfil.html"] { --icone-menu: url('../icones/menu/perfil.svg'); --icone-menu-texto: ''; }
+.menu-item[href="admin-instituicoes.html"] { --icone-menu: url('../icones/menu/unidades.svg'); --icone-menu-texto: ''; }
+.menu-item[href="admin-cursos.html"] { --icone-menu: url('../icones/menu/catalogo.svg'); --icone-menu-texto: ''; }
+.menu-item[href="admin-termos.html"] { --icone-menu: url('../icones/menu/termos.svg'); --icone-menu-texto: ''; }
+.menu-item[href="admin-notificacoes.html"] { --icone-menu: url('../icones/menu/notificacoes.svg'); --icone-menu-texto: ''; }
+
+/* No item ativo (fundo azul) o ícone fica branco. Os detalhes dos desenhos
+   são furos, então continuam aparecendo. */
+.menu-item.ativo::before {
+    filter: brightness(0) invert(1);
 }
 
 /* Só em aparelho com mouse: no celular o :hover fica grudado no item
@@ -1830,6 +1879,79 @@ a.btn-saiba {
 .menu-item[hidden],
 .menu-secao[hidden] {
     display: none;
+}
+
+/* ---- Cartão do pé do menu ("Seu futuro começa aqui!") ---- */
+.menu-cartao {
+    position: relative;
+    overflow: hidden;
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    margin: 8px 14px 16px;
+    padding: 14px 14px 42px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: linear-gradient(180deg, var(--blue-soft) 0%, var(--surface) 78%);
+    color: var(--ink);
+    text-align: center;
+    text-decoration: none;
+    transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.menu-cartao-icone {
+    width: 58px;
+    height: 58px;
+    margin-bottom: 2px;
+}
+
+.menu-cartao strong {
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 14.5px;
+    line-height: 1.3;
+}
+
+.menu-cartao-texto {
+    font-size: 12.5px;
+    line-height: 1.4;
+    color: var(--ink-soft);
+}
+
+.menu-cartao-acao {
+    margin-top: 6px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--blue-dark);
+}
+
+.menu-cartao-onda {
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    width: 100%;
+    height: 34px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .menu-cartao:hover {
+        box-shadow: var(--shadow-card-hover);
+        transform: translateY(-1px);
+    }
+}
+
+.menu-cartao:focus-visible {
+    outline: 3px solid var(--blue);
+    outline-offset: 2px;
+}
+
+/* Tela baixa (notebook de 768 px, celular deitado): o cartão sai para não
+   espremer a lista de páginas. */
+@media (max-height: 760px) {
+    .menu-cartao {
+        display: none;
+    }
 }
 
 .menu-overlay {

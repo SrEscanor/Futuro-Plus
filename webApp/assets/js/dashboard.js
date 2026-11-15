@@ -32,9 +32,24 @@ document.addEventListener('DOMContentLoaded', () => {
     // chamar, seja qual for a conta (ou visitante) da vez.
     let marcarNotificacoesVistas = async () => {};
 
+    // Saudação do topo da Início (o <h1 id="saudacao"> só existe lá):
+    // "Olá, nome 👋" para quem entrou e "Boas-vindas ao Futuro+!" para
+    // visitante. O texto fica invisível até aqui pôr data-sessao no <body>
+    // (inicio.css), para não piscar a saudação errada enquanto o login é
+    // conferido. "Boas-vindas" em vez de "Bem-vindo" para não marcar gênero.
+    function mostrarSaudacao(sessao, nome = '') {
+        const titulo = document.getElementById("saudacao");
+        if (!titulo) return;
+        if (sessao === 'visitante') {
+            titulo.innerHTML = 'Boas-vindas ao <span class="marca-futuro">Futuro<span class="marca-mais">+</span><span class="marca-exclamacao">!</span></span>';
+        } else {
+            titulo.textContent = nome ? `Olá, ${nome} 👋` : 'Olá! 👋';
+        }
+        document.body.dataset.sessao = sessao;
+    }
+
     // Monitora a sessão e busca o nome no Firestore (Login Opcional)
     onAuthStateChanged(auth, async (user) => {
-        const spanNome = document.getElementById("nomeUsuario");
         const avatarMenu = document.getElementById("avatar-menu");
         const avatarIniciais = document.getElementById("avatar-iniciais");
         const navAuth = document.getElementById("nav-auth");
@@ -51,6 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!podeUsar) return;
 
             let nomeCompleto = '';
+            let primeiroNome = '';
             try {
                 const docRef = doc(db, "usuarios", user.uid);
                 const docSnap = await getDoc(docRef);
@@ -78,9 +94,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         .catch((erro) => console.error("Erro ao carregar o sino de notificações:", erro));
 
                     nomeCompleto = [dados.nome, dados.sobrenome].filter(Boolean).join(' ').trim();
-                    if (dados.nome && spanNome) {
-                        spanNome.textContent = dados.nome;
-                    } else if (!dados.nome) {
+                    primeiroNome = String(dados.nome || '').trim();
+                    if (!primeiroNome) {
                         console.warn("O campo 'nome' não existe no documento do Firestore.");
                     }
 
@@ -97,6 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error("Erro ao buscar dados no Firestore:", error);
             }
 
+            mostrarSaudacao('logado', primeiroNome);
             if (avatarIniciais) avatarIniciais.textContent = iniciaisDoNome(nomeCompleto || user.email);
             if (avatarMenu) avatarMenu.hidden = false;
             if (notifMenu) notifMenu.hidden = false;
@@ -105,9 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
             desativarDestaqueTour();
         } else {
             console.log("Nenhum usuário logado. Modo visitante ativado.");
-            if (spanNome) {
-                spanNome.textContent = "ESTUDANTE";
-            }
+            mostrarSaudacao('visitante');
 
             // Avisos do admin voltados para visitante (sem conta): mesma ideia
             // do bloco acima, mas guardando o "já visto"/"limpo" no navegador.

@@ -25,7 +25,9 @@ const PASSOS = [
         texto: 'Baseado na teoria das inteligências múltiplas de Howard Gardner: descobre qual o seu tipo de inteligência mais forte (lógica, linguística, espacial, interpessoal, entre outras) e sugere áreas ligadas a ela. Dica: dá o MESMO resultado do "Teste de Afinidades" — só muda o jeito de responder. Não precisa fazer os dois.'
     },
     {
-        seletor: '.mural-cta',
+        // o bloco do mural: mini mural para quem tem certificado, convite para
+        // quem não tem
+        seletor: '#mural-inicio',
         titulo: 'Mural',
         texto: 'Guarde aqui os certificados de cursos extras que você já fez.'
     },

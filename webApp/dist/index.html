@@ -10,19 +10,21 @@
     <link rel="apple-touch-icon" href="./apple-touch-icon.png">
     <link rel="icon" href="./favicon.ico" sizes="48x48">
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
-  <script type="module" crossorigin src="./assets/main-DbGJ3XCt.js"></script>
+  <script type="module" crossorigin src="./assets/main-Yklwus3G.js"></script>
   <link rel="modulepreload" crossorigin href="./assets/firebase-config-DZ7_vqDZ.js">
   <link rel="modulepreload" crossorigin href="./assets/preload-helper-PPVm8Dsz.js">
   <link rel="modulepreload" crossorigin href="./assets/conteudo-legal-padrao-DcxCgRAC.js">
   <link rel="modulepreload" crossorigin href="./assets/resultado-teste-DG2OeZfm.js">
-  <link rel="modulepreload" crossorigin href="./assets/dashboard-DXpwZalx.js">
+  <link rel="modulepreload" crossorigin href="./assets/dashboard-j0_VvYFf.js">
   <link rel="modulepreload" crossorigin href="./assets/categorias-teste-82RqXHiT.js">
   <link rel="modulepreload" crossorigin href="./assets/card-unidade-C3eEs3Rs.js">
   <link rel="modulepreload" crossorigin href="./assets/geocodificacao-Dyu2Eb0t.js">
   <link rel="modulepreload" crossorigin href="./assets/recomendacao-cursos-EECZPvfX.js">
+  <link rel="modulepreload" crossorigin href="./assets/noticias-dados-CLLgc4U3.js">
   <link rel="modulepreload" crossorigin href="./assets/tour-motor-BeDtj6px.js">
-  <link rel="modulepreload" crossorigin href="./assets/tour-boas-vindas-CTs32DB-.js">
-  <link rel="stylesheet" crossorigin href="./assets/dashboard-BO6THdD3.css">
+  <link rel="modulepreload" crossorigin href="./assets/tour-boas-vindas-Bosq5K8y.js">
+  <link rel="stylesheet" crossorigin href="./assets/dashboard-Bf1sbWIO.css">
+  <link rel="stylesheet" crossorigin href="./assets/main-CSyX3UxR.css">
   <link rel="stylesheet" crossorigin href="./assets/ondas-Cp6OP_7e.css">
   <link rel="stylesheet" crossorigin href="./assets/cursos-etec-e3Mb4nvL.css">
 </head>
@@ -31,7 +33,10 @@
 
     <aside class="menu-panel" aria-label="Menu principal">
         <div class="menu-topo">
-            <img src="./assets/logo-DoJwmtcF.png" alt="Futuro+" class="menu-logo">
+            <div class="menu-marca">
+                <img src="./assets/logo-DoJwmtcF.png" alt="" class="menu-logo">
+                <span class="menu-marca-texto">Futuro+</span>
+            </div>
             <span class="menu-subtitulo">Escolha seu caminho</span>
         </div>
 
@@ -61,6 +66,17 @@
             <a href="admin-notificacoes.html" id="menu-admin-notificacoes" class="menu-item menu-admin-area" data-icone="🔔" hidden>Notificações</a>
             <a href="admin-noticias.html" id="menu-admin-noticias" class="menu-item menu-admin-area" data-icone="🗞️" hidden>Notícias</a>
         </nav>
+
+        <a href="testes.html" class="menu-cartao">
+            <img class="menu-cartao-icone" src="./assets/conquistas-DT49TU32.webp" alt="" width="58" height="58">
+            <strong>Seu futuro começa aqui!</strong>
+            <span class="menu-cartao-texto">Aprenda, evolua e conquiste mais.</span>
+            <span class="menu-cartao-acao">Fazer um teste <span aria-hidden="true">→</span></span>
+            <svg class="menu-cartao-onda" viewBox="0 0 240 34" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M0 14 C40 2 80 2 120 14 C160 26 200 26 240 14 V34 H0 Z" fill="#f7b03f" />
+                <path d="M0 23 C50 11 92 13 132 23 C172 33 206 29 240 21 V34 H0 Z" fill="#2ecc71" />
+            </svg>
+        </a>
 
     </aside>
 
@@ -118,11 +134,36 @@
         </div>
     </nav>
 
-    <header class="home-hero">
+    <header class="home-hero home-hero--inicio">
+        <!-- A saudação muda com o login (dashboard.js): "Olá, nome 👋" para
+             quem entrou; "Boas-vindas ao Futuro+!" e o botão para visitante. -->
         <div class="home-hero-conteudo">
-            <h1 id="saudacao">Olá, <span id="nomeUsuario">ESTUDANTE</span> 👋</h1>
+            <h1 id="saudacao">Olá! 👋</h1>
             <p class="home-hero-sub">Descubra seu perfil, explore os cursos das Etecs, Fatecs e outras instituições e encontre a área que combina
                 com você.</p>
+            <div class="home-hero-acoes">
+                <a href="testes.html" class="btn-hero">Explorar agora
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+                </a>
+            </div>
+        </div>
+
+        <div class="hero-fitas" aria-hidden="true">
+            <svg class="fita fita-1" viewBox="0 0 1440 60" preserveAspectRatio="none">
+                <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30" />
+            </svg>
+            <svg class="fita fita-2" viewBox="0 0 1440 60" preserveAspectRatio="none">
+                <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30" />
+            </svg>
+            <svg class="fita fita-3" viewBox="0 0 1440 60" preserveAspectRatio="none">
+                <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30" />
+            </svg>
+        </div>
+
+        <div class="hero-icones" aria-hidden="true">
+            <img class="hero-icone hero-icone-1" src="./assets/dicas-CLndamkh.webp" alt="" width="104" height="104">
+            <img class="hero-icone hero-icone-2" src="./assets/relatorios-DJV8sF5J.webp" alt="" width="124" height="124">
+            <img class="hero-icone hero-icone-3" src="./assets/conquistas-DT49TU32.webp" alt="" width="96" height="96">
         </div>
 
         <div class="hero-ondas" aria-hidden="true">
@@ -139,9 +180,142 @@
     </header>
 
     <div class="main">
-        <div class="weekly-card">
+        <!-- Ondas dos atalhos (como no modelo): uma onda forte no alto, um
+             tom claro por trás, um tom médio embaixo e uma faixa clara que
+             cruza. Dois formatos (a e b) para os cartões não ficarem iguais;
+             a cor vem do CSS de cada cartão, e o desfoque deixa as bordas
+             macias. viewBox de 240 x 50. -->
+        <svg class="atalhos-defs" aria-hidden="true" focusable="false">
+            <defs>
+                <path id="onda-a-base" d="M0 0H240V34C210 40 180 42 146 38C112 34 82 24 50 20C30 18 14 19 0 22Z" />
+                <path id="onda-a-forte" d="M24 0H240V22C222 24 204 28 186 31C170 34 156 35 142 34C112 32 88 20 64 9C50 3 36 0 24 0Z" />
+                <path id="onda-a-baixa" d="M120 46C160 44 200 32 240 18V44C206 50 166 51 120 46Z" />
+                <path id="onda-a-faixa" d="M100 40C140 38 180 26 244 4" />
+                <path id="onda-b-base" d="M0 0H240V30C214 38 188 42 158 40C124 37 94 26 62 21C38 18 18 19 0 23Z" />
+                <path id="onda-b-forte" d="M48 0H240V18C228 22 214 28 200 32C186 36 172 37 158 36C128 34 104 22 82 10C70 4 58 0 48 0Z" />
+                <path id="onda-b-baixa" d="M140 47C178 45 210 33 240 22V45C210 51 176 52 140 47Z" />
+                <path id="onda-b-faixa" d="M124 42C160 40 196 26 244 8" />
+                <filter id="onda-macia" x="-5%" y="-30%" width="110%" height="160%"><feGaussianBlur stdDeviation="1.3" /></filter>
+                <filter id="onda-mais-macia" x="-5%" y="-30%" width="110%" height="160%"><feGaussianBlur stdDeviation="2.6" /></filter>
+                <!-- a onda forte nasce transparente à esquerda, onde fica o ícone -->
+                <linearGradient id="onda-g-esquerda" gradientUnits="userSpaceOnUse" x1="36" y1="0" x2="240" y2="0">
+                    <stop offset="0" stop-color="#000" /><stop offset=".42" stop-color="#fff" /><stop offset=".8" stop-color="#fff" /><stop offset="1" stop-color="#bbb" />
+                </linearGradient>
+                <mask id="onda-some-esquerda" maskUnits="userSpaceOnUse" x="0" y="-10" width="240" height="70">
+                    <rect y="-10" width="240" height="70" fill="url(#onda-g-esquerda)" />
+                </mask>
+                <!-- os tons de fundo somem aos poucos para baixo -->
+                <linearGradient id="onda-g-baixo" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="50">
+                    <stop offset="0" stop-color="#fff" /><stop offset=".5" stop-color="#aaa" /><stop offset="1" stop-color="#000" />
+                </linearGradient>
+                <mask id="onda-some-baixo" maskUnits="userSpaceOnUse" x="0" y="-10" width="240" height="70">
+                    <rect y="-10" width="240" height="70" fill="url(#onda-g-baixo)" />
+                </mask>
+            </defs>
+        </svg>
+
+        <nav class="atalhos" aria-label="Atalhos">
+            <a class="atalho atalho--verde" href="testes.html">
+                <svg class="atalho-ondas" viewBox="0 0 240 50" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+                    <use href="#onda-a-base" class="onda-base" mask="url(#onda-some-baixo)" filter="url(#onda-macia)" />
+                    <use href="#onda-a-forte" class="onda-forte" mask="url(#onda-some-esquerda)" filter="url(#onda-macia)" />
+                    <use href="#onda-a-baixa" class="onda-baixa" mask="url(#onda-some-baixo)" filter="url(#onda-macia)" />
+                    <use href="#onda-a-faixa" class="onda-faixa" filter="url(#onda-mais-macia)" />
+                </svg>
+                <img class="atalho-icone" src="./assets/testes-Bx92YVr4.webp" alt="" width="56" height="56">
+                <span class="atalho-rodape">
+                    <span class="atalho-texto"><strong>Testes</strong><span>Descubra suas aptidões</span></span>
+                    <span class="atalho-seta" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg></span>
+                </span>
+            </a>
+            <a class="atalho atalho--laranja" href="cursos.html">
+                <svg class="atalho-ondas" viewBox="0 0 240 50" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+                    <use href="#onda-b-base" class="onda-base" mask="url(#onda-some-baixo)" filter="url(#onda-macia)" />
+                    <use href="#onda-b-forte" class="onda-forte" mask="url(#onda-some-esquerda)" filter="url(#onda-macia)" />
+                    <use href="#onda-b-baixa" class="onda-baixa" mask="url(#onda-some-baixo)" filter="url(#onda-macia)" />
+                    <use href="#onda-b-faixa" class="onda-faixa" filter="url(#onda-mais-macia)" />
+                </svg>
+                <img class="atalho-icone" src="./assets/cursos-C3wsm9A5.webp" alt="" width="56" height="56">
+                <span class="atalho-rodape">
+                    <span class="atalho-texto"><strong>Cursos</strong><span>Explore novos cursos</span></span>
+                    <span class="atalho-seta" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg></span>
+                </span>
+            </a>
+            <a class="atalho atalho--roxo" href="instituicoes.html">
+                <svg class="atalho-ondas" viewBox="0 0 240 50" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+                    <use href="#onda-a-base" class="onda-base" mask="url(#onda-some-baixo)" filter="url(#onda-macia)" />
+                    <use href="#onda-a-forte" class="onda-forte" mask="url(#onda-some-esquerda)" filter="url(#onda-macia)" />
+                    <use href="#onda-a-baixa" class="onda-baixa" mask="url(#onda-some-baixo)" filter="url(#onda-macia)" />
+                    <use href="#onda-a-faixa" class="onda-faixa" filter="url(#onda-mais-macia)" />
+                </svg>
+                <img class="atalho-icone" src="./assets/instituicoes-BOZKt60L.webp" alt="" width="56" height="56">
+                <span class="atalho-rodape">
+                    <span class="atalho-texto"><strong>Instituições</strong><span>Conheça as unidades</span></span>
+                    <span class="atalho-seta" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg></span>
+                </span>
+            </a>
+            <a class="atalho atalho--azul" href="mural.html">
+                <svg class="atalho-ondas" viewBox="0 0 240 50" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+                    <use href="#onda-b-base" class="onda-base" mask="url(#onda-some-baixo)" filter="url(#onda-macia)" />
+                    <use href="#onda-b-forte" class="onda-forte" mask="url(#onda-some-esquerda)" filter="url(#onda-macia)" />
+                    <use href="#onda-b-baixa" class="onda-baixa" mask="url(#onda-some-baixo)" filter="url(#onda-macia)" />
+                    <use href="#onda-b-faixa" class="onda-faixa" filter="url(#onda-mais-macia)" />
+                </svg>
+                <img class="atalho-icone" src="./assets/mural-DniGEUbK.webp" alt="" width="56" height="56">
+                <span class="atalho-rodape">
+                    <span class="atalho-texto"><strong>Mural</strong><span>Guarde seus certificados</span></span>
+                    <span class="atalho-seta" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg></span>
+                </span>
+            </a>
+            <a class="atalho atalho--verde" href="perfil.html">
+                <svg class="atalho-ondas" viewBox="0 0 240 50" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+                    <use href="#onda-a-base" class="onda-base" mask="url(#onda-some-baixo)" filter="url(#onda-macia)" />
+                    <use href="#onda-a-forte" class="onda-forte" mask="url(#onda-some-esquerda)" filter="url(#onda-macia)" />
+                    <use href="#onda-a-baixa" class="onda-baixa" mask="url(#onda-some-baixo)" filter="url(#onda-macia)" />
+                    <use href="#onda-a-faixa" class="onda-faixa" filter="url(#onda-mais-macia)" />
+                </svg>
+                <img class="atalho-icone" src="./assets/perfil-DdExD__H.webp" alt="" width="56" height="56">
+                <span class="atalho-rodape">
+                    <span class="atalho-texto"><strong>Perfil</strong><span>Seus dados e resultados</span></span>
+                    <span class="atalho-seta" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg></span>
+                </span>
+            </a>
+        </nav>
+
+        <div class="inicio-destaques">
+            <!-- Destaques para você: carrossel de até 3 destaques, montado por
+                 inicio-destaques.js. Por enquanto são fixos; a parte lógica
+                 entra depois chamando montarDestaques(lista). -->
+            <section class="destaques-inicio" id="destaques-inicio" aria-roledescription="carrossel" aria-labelledby="destaques-titulo">
+                <h3 class="destaques-titulo" id="destaques-titulo"><img class="titulo-icone" src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3e%3cdefs%3e%3clinearGradient%20id='az'%20x1='0'%20y1='0'%20x2='0'%20y2='1'%3e%3cstop%20offset='0'%20stop-color='%237090ff'/%3e%3cstop%20offset='1'%20stop-color='%233150dc'/%3e%3c/linearGradient%3e%3clinearGradient%20id='az2'%20x1='0'%20y1='0'%20x2='0'%20y2='1'%3e%3cstop%20offset='0'%20stop-color='%234f6cf0'/%3e%3cstop%20offset='1'%20stop-color='%232440c4'/%3e%3c/linearGradient%3e%3cmask%20id='m'%20maskUnits='userSpaceOnUse'%20x='0'%20y='0'%20width='24'%20height='24'%3e%3crect%20width='24'%20height='24'%20fill='%23fff'/%3e%3cpath%20d='M9.9%209.5%20L12%2011.9%20L14.1%209.5%20M12%2011.9%20V15.6'%20fill='none'%20stroke='%23000'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/mask%3e%3c/defs%3e%3cpath%20d='M12%203.4C8.5%203.4%205.9%206.1%205.9%209.4C5.9%2011.6%207%2013.3%208.5%2014.5C9.1%2015%209.4%2015.6%209.4%2016.4V17.2H14.6V16.4C14.6%2015.6%2014.9%2015%2015.5%2014.5C17%2013.3%2018.1%2011.6%2018.1%209.4C18.1%206.1%2015.5%203.4%2012%203.4Z'%20fill='url(%23az)'%20mask='url(%23m)'/%3e%3crect%20x='9.2'%20y='18.3'%20width='5.6'%20height='1.7'%20rx='.85'%20fill='url(%23az2)'/%3e%3crect%20x='10.1'%20y='20.6'%20width='3.8'%20height='1.6'%20rx='.8'%20fill='url(%23az2)'/%3e%3cpath%20d='M1.8%209.4H3.5M20.5%209.4H22.2M4.1%203.3L5.3%204.5M19.9%203.3L18.7%204.5M12%20.7V1.9'%20fill='none'%20stroke='%23f7a21b'%20stroke-width='1.5'%20stroke-linecap='round'/%3e%3c/svg%3e" alt="">Destaques para você</h3>
+                <div class="destaques-trilho" id="destaques-trilho"></div>
+                <div class="destaques-controles">
+                    <div class="destaques-pontos" id="destaques-pontos"></div>
+                    <div class="destaques-setas">
+                        <button type="button" class="destaques-seta" id="destaques-anterior" aria-controls="destaques-trilho" aria-label="Destaque anterior">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
+                        </button>
+                        <button type="button" class="destaques-seta" id="destaques-proximo" aria-controls="destaques-trilho" aria-label="Próximo destaque">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="noticias-inicio" aria-labelledby="noticias-inicio-titulo">
+                <div class="noticias-inicio-cabecalho">
+                    <h3 id="noticias-inicio-titulo"><img class="titulo-icone" src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3e%3cdefs%3e%3clinearGradient%20id='az'%20x1='0'%20y1='0'%20x2='0'%20y2='1'%3e%3cstop%20offset='0'%20stop-color='%237090ff'/%3e%3cstop%20offset='1'%20stop-color='%233150dc'/%3e%3c/linearGradient%3e%3clinearGradient%20id='az2'%20x1='0'%20y1='0'%20x2='0'%20y2='1'%3e%3cstop%20offset='0'%20stop-color='%234f6cf0'/%3e%3cstop%20offset='1'%20stop-color='%232440c4'/%3e%3c/linearGradient%3e%3cmask%20id='m'%20maskUnits='userSpaceOnUse'%20x='0'%20y='0'%20width='24'%20height='24'%3e%3crect%20width='24'%20height='24'%20fill='%23fff'/%3e%3crect%20x='4.9'%20y='6.8'%20width='10.6'%20height='4.6'%20rx='1'%20fill='%23000'/%3e%3cpath%20d='M5.6%2014.4%20H14.8%20M5.6%2017.6%20H12.2'%20stroke='%23000'%20stroke-width='1.6'%20stroke-linecap='round'/%3e%3c/mask%3e%3c/defs%3e%3crect%20x='2.4'%20y='4.2'%20width='15.6'%20height='17.2'%20rx='2.2'%20fill='url(%23az)'%20mask='url(%23m)'/%3e%3crect%20x='6.1'%20y='8'%20width='8.2'%20height='2.2'%20rx='.6'%20fill='%23f7a21b'/%3e%3crect%20x='19'%20y='8.2'%20width='2.6'%20height='13.2'%20rx='1.2'%20fill='url(%23az2)'/%3e%3c/svg%3e" alt="">Últimas notícias</h3>
+                    <a class="noticias-inicio-ver" href="noticias.html">Ver todas <span aria-hidden="true">→</span></a>
+                </div>
+                <ul class="noticias-inicio-lista" id="noticias-inicio-lista">
+                    <li class="noticias-inicio-aviso">Carregando notícias...</li>
+                </ul>
+            </section>
+        </div>
+
+        <div class="weekly-card recomendados-inicio">
             <div class="weekly-cabecalho">
-                <h3 id="recomendados-titulo">Cursos recomendados</h3>
+                <h3><img class="titulo-icone" src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3e%3cdefs%3e%3clinearGradient%20id='az'%20x1='0'%20y1='0'%20x2='0'%20y2='1'%3e%3cstop%20offset='0'%20stop-color='%237090ff'/%3e%3cstop%20offset='1'%20stop-color='%233150dc'/%3e%3c/linearGradient%3e%3clinearGradient%20id='az2'%20x1='0'%20y1='0'%20x2='0'%20y2='1'%3e%3cstop%20offset='0'%20stop-color='%234f6cf0'/%3e%3cstop%20offset='1'%20stop-color='%232440c4'/%3e%3c/linearGradient%3e%3c/defs%3e%3cpath%20d='M12%203.6%20L1.6%208.7%20L12%2013.8%20L22.4%208.7%20Z'%20fill='url(%23az)'/%3e%3cpath%20d='M6.2%2012.1%20L12%2014.95%20L17.8%2012.1%20V16%20C17.8%2017.8%2015.2%2019.3%2012%2019.3%20C8.8%2019.3%206.2%2017.8%206.2%2016%20Z'%20fill='url(%23az2)'/%3e%3cpath%20d='M12%208.7%20L19.6%2010.5%20V15.2'%20fill='none'%20stroke='%23f7a21b'%20stroke-width='1.15'%20stroke-linejoin='round'/%3e%3cpath%20d='M18.5%2015%20H20.7%20L21.3%2018.4%20H17.9%20Z'%20fill='%23f7a21b'/%3e%3ccircle%20cx='12'%20cy='8.7'%20r='1.05'%20fill='%23f7a21b'/%3e%3c/svg%3e" alt=""><span id="recomendados-titulo">Cursos recomendados</span></h3>
                 <p class="weekly-sub" id="recomendados-sub"></p>
             </div>
             <div class="courses-scroll" id="recomendados-scroll">
@@ -206,9 +380,28 @@
             </div>
         </div>
 
-        <div class="mural-cta">
-            <p>Completou algum curso? Adicione seu certificado no seu mural!</p>
-            <button class="btn-mural" onclick="location.href='mural.html'">Meu mural</button>
+        <!-- Quem já pendurou certificado vê um mini mural (inicio-mural.js);
+             os outros, o convite de sempre. O tour aponta para este bloco. -->
+        <div id="mural-inicio">
+            <section class="mural-mini" id="mural-mini" aria-labelledby="mural-mini-titulo" hidden>
+                <div class="mural-mini-cabecalho">
+                    <div>
+                        <h3 id="mural-mini-titulo"><img class="titulo-icone" src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3e%3cdefs%3e%3clinearGradient%20id='az'%20x1='0'%20y1='0'%20x2='0'%20y2='1'%3e%3cstop%20offset='0'%20stop-color='%237090ff'/%3e%3cstop%20offset='1'%20stop-color='%233150dc'/%3e%3c/linearGradient%3e%3clinearGradient%20id='az3'%20x1='0'%20y1='0'%20x2='0'%20y2='1'%3e%3cstop%20offset='0'%20stop-color='%23a3b6ff'/%3e%3cstop%20offset='1'%20stop-color='%235f7cf0'/%3e%3c/linearGradient%3e%3clinearGradient%20id='ve'%20x1='0'%20y1='0'%20x2='0'%20y2='1'%3e%3cstop%20offset='0'%20stop-color='%233fd68f'/%3e%3cstop%20offset='1'%20stop-color='%23169a5c'/%3e%3c/linearGradient%3e%3clinearGradient%20id='la'%20x1='0'%20y1='0'%20x2='0'%20y2='1'%3e%3cstop%20offset='0'%20stop-color='%23ffbe4d'/%3e%3cstop%20offset='1'%20stop-color='%23f28c0c'/%3e%3c/linearGradient%3e%3cmask%20id='m'%20maskUnits='userSpaceOnUse'%20x='0'%20y='0'%20width='24'%20height='24'%3e%3crect%20width='24'%20height='24'%20fill='%23fff'/%3e%3cpath%20d='M15.6%201.4%20C13.3%201.4%2011.6%203.2%2011.6%205.4%20C11.6%208.2%2015.6%2012.2%2015.6%2012.2%20C15.6%2012.2%2019.6%208.2%2019.6%205.4%20C19.6%203.2%2017.9%201.4%2015.6%201.4%20Z'%20fill='%23000'%20stroke='%23000'%20stroke-width='2'%20stroke-linejoin='round'/%3e%3c/mask%3e%3cmask%20id='mp'%20maskUnits='userSpaceOnUse'%20x='0'%20y='0'%20width='24'%20height='24'%3e%3crect%20width='24'%20height='24'%20fill='%23fff'/%3e%3ccircle%20cx='15.6'%20cy='5.4'%20r='1.35'%20fill='%23000'/%3e%3c/mask%3e%3c/defs%3e%3cg%20mask='url(%23m)'%3e%3cpath%20d='M2.6%208.6%20L7.95%206.75%20V20.15%20L2.6%2022%20Z'%20fill='url(%23az)'/%3e%3cpath%20d='M8.85%206.75%20L15.15%208.5%20V21.85%20L8.85%2020.1%20Z'%20fill='url(%23az3)'/%3e%3cpath%20d='M16.05%208.5%20L21.4%206.6%20V20%20L16.05%2021.9%20Z'%20fill='url(%23ve)'/%3e%3c/g%3e%3cpath%20d='M15.6%201.4%20C13.3%201.4%2011.6%203.2%2011.6%205.4%20C11.6%208.2%2015.6%2012.2%2015.6%2012.2%20C15.6%2012.2%2019.6%208.2%2019.6%205.4%20C19.6%203.2%2017.9%201.4%2015.6%201.4%20Z'%20fill='url(%23la)'%20mask='url(%23mp)'/%3e%3c/svg%3e" alt="">Seu mural</h3>
+                        <p id="mural-mini-contagem"></p>
+                    </div>
+                    <a class="btn-mural" href="mural.html">Ver meu mural</a>
+                </div>
+                <div class="mural-mini-parede">
+                    <span class="mural-mini-pessoa mural-mini-pessoa--esq" aria-hidden="true"></span>
+                    <ul class="mural-mini-quadros" id="mural-mini-quadros"></ul>
+                    <span class="mural-mini-pessoa mural-mini-pessoa--dir" aria-hidden="true"></span>
+                </div>
+            </section>
+
+            <div class="mural-cta" id="mural-cta">
+                <p>Completou algum curso? Adicione seu certificado no seu mural!</p>
+                <button class="btn-mural" onclick="location.href='mural.html'">Meu mural</button>
+            </div>
         </div>
 
         <div class="section-title">Testes</div>
