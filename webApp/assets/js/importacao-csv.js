@@ -140,6 +140,13 @@ export function escritasDoPlano(plano, manter, existentes) {
 
         // O valor do arquivo entrou no lugar do que foi digitado: o campo
         // deixa de contar como "editado à mão".
+        // TODO: isso apaga o rastro de vez — não existe histórico de edições
+        // manuais em lugar nenhum (nem aqui, nem no painel), só esse selo do
+        // estado atual. Se um dia for importante auditar quem editou o quê e
+        // quando antes de uma importação substituir, isso vai precisar de uma
+        // estrutura própria (ex.: subcoleção de histórico por edição), não só
+        // desse array. Combinado com a Victor em 2026-11-15: por enquanto fica
+        // como está, sem histórico.
         if (item.manual) {
             const editados = dados.camposEditados
                 || [...(existentes.get(item.id)?.camposEditados || [])];
