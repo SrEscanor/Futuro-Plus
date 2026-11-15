@@ -3,6 +3,7 @@ import json
 import re
 import zipfile
 from datetime import datetime, timezone
+from urllib.parse import urlparse
 
 import requests
 import firebase_admin
@@ -186,7 +187,15 @@ def extrair_logo_etec(req: https_fn.Request) -> https_fn.Response:
         if not zip_url or not codigo:
             return https_fn.Response(json.dumps({"erro": "Parâmetros 'zipUrl' e 'codigo' são obrigatórios."}), status=400)
 
-        if not zip_url.lower().startswith("https://") or not any(dominio in zip_url for dominio in DOMINIOS_ZIP_PERMITIDOS):
+        # Confere o host de verdade (não uma substring da URL inteira): sem
+        # isso, "https://blob.core.windows.net.atacante.com/x.zip" também
+        # passaria, porque a string permitida aparece em algum lugar da URL
+        # mesmo o domínio de verdade sendo outro.
+        host = (urlparse(zip_url).hostname or "").lower()
+        dominio_valido = any(
+            host == dominio or host.endswith(f".{dominio}") for dominio in DOMINIOS_ZIP_PERMITIDOS
+        )
+        if not zip_url.lower().startswith("https://") or not dominio_valido:
             return https_fn.Response(json.dumps({"erro": "URL de origem não permitida."}), status=400)
 
         codigo_seguro = re.sub(r"[^a-zA-Z0-9_-]", "_", codigo)
