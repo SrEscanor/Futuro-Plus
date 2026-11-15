@@ -33,6 +33,12 @@ const COLETAR_NOTICIAS_URL = (location.hostname === 'localhost' || location.host
     ? 'http://127.0.0.1:5001/futuroplus-bce54/southamerica-east1/coletar_noticias'
     : 'https://southamerica-east1-futuroplus-bce54.cloudfunctions.net/coletar_noticias';
 
+// Apaga na hora as recusadas com mais de 30 dias, sem esperar a próxima
+// coleta agendada (que já faz isso sozinha a cada 6h).
+const LIMPAR_RECUSADAS_URL = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+    ? 'http://127.0.0.1:5001/futuroplus-bce54/southamerica-east1/limpar_noticias_recusadas'
+    : 'https://southamerica-east1-futuroplus-bce54.cloudfunctions.net/limpar_noticias_recusadas';
+
 export const LIMITE_TITULO = 200;
 export const LIMITE_RESUMO = 400;
 
@@ -110,7 +116,9 @@ export async function contarFila() {
 // Aprovação (só administrador; as regras do Firestore conferem)
 // ========================================================
 
-// Põe as notícias no site.
+// Põe as notícias no site. aprovadaPor/recusadaPor são campos próprios (não
+// só "revisadaPor", que qualquer edição também mexe) — assim o histórico de
+// quem aprovou ou recusou não muda só porque alguém corrigiu o título depois.
 export async function aprovarNoticias(noticias) {
     const semLink = noticias.find((noticia) => !linkSeguro(noticia.link));
     if (semLink) throw new Error(`A notícia "${semLink.titulo || semLink.id}" está sem um link válido.`);
@@ -118,8 +126,13 @@ export async function aprovarNoticias(noticias) {
     const agora = revisao();
     await gravarEmLotes(noticias, (lote, noticia) => {
         const publica = camposPublicos(noticia);
-        lote.set(doc(db, PUBLICADAS, noticia.id), { ...publica, aprovadaEm: agora.revisadaEm });
-        lote.set(doc(db, FILA, noticia.id), { ...publica, status: 'aprovada', recusadaEm: deleteField(), ...agora }, { merge: true });
+        lote.set(doc(db, PUBLICADAS, noticia.id), { ...publica, aprovadaEm: agora.revisadaEm, aprovadaPor: agora.revisadaPor });
+        lote.set(doc(db, FILA, noticia.id), {
+            ...publica, status: 'aprovada',
+            aprovadaEm: agora.revisadaEm, aprovadaPor: agora.revisadaPor,
+            recusadaEm: deleteField(), recusadaPor: deleteField(),
+            ...agora
+        }, { merge: true });
     });
 }
 
@@ -128,7 +141,9 @@ export async function recusarNoticias(noticias) {
     const agora = revisao();
     await gravarEmLotes(noticias, (lote, noticia) => {
         lote.delete(doc(db, PUBLICADAS, noticia.id));
-        lote.set(doc(db, FILA, noticia.id), { status: 'recusada', recusadaEm: agora.revisadaEm, ...agora }, { merge: true });
+        lote.set(doc(db, FILA, noticia.id), {
+            status: 'recusada', recusadaEm: agora.revisadaEm, recusadaPor: agora.revisadaPor, ...agora
+        }, { merge: true });
     });
 }
 
@@ -137,7 +152,12 @@ export async function devolverParaPendentes(noticias) {
     const agora = revisao();
     await gravarEmLotes(noticias, (lote, noticia) => {
         lote.delete(doc(db, PUBLICADAS, noticia.id));
-        lote.set(doc(db, FILA, noticia.id), { status: 'pendente', recusadaEm: deleteField(), ...agora }, { merge: true });
+        lote.set(doc(db, FILA, noticia.id), {
+            status: 'pendente',
+            recusadaEm: deleteField(), recusadaPor: deleteField(),
+            aprovadaEm: deleteField(), aprovadaPor: deleteField(),
+            ...agora
+        }, { merge: true });
     });
 }
 
@@ -204,6 +224,31 @@ export async function buscarNoticiasAgora() {
 export async function lerUltimaColeta() {
     const registro = await getDoc(doc(db, 'noticias_coleta', 'ultima'));
     return registro.exists() ? registro.data() : null;
+}
+
+// Apaga na hora as recusadas com mais de 30 dias (a mesma limpeza que já
+// roda sozinha a cada coleta agendada). Devolve { apagadas }.
+export async function limparRecusadasAntigas() {
+    const usuario = auth.currentUser;
+    if (!usuario) throw new Error('Entre com a conta de administrador para limpar as recusadas.');
+
+    let resposta;
+    try {
+        resposta = await fetch(LIMPAR_RECUSADAS_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + await usuario.getIdToken()
+            },
+            body: '{}'
+        });
+    } catch {
+        throw new Error('Não consegui falar com o servidor. Se a função limpar_noticias_recusadas ainda não foi publicada, '
+            + 'faça o deploy das funções.');
+    }
+    const dados = await resposta.json().catch(() => ({}));
+    if (!resposta.ok) throw new Error(dados.erro || `O servidor respondeu com erro ${resposta.status}.`);
+    return dados;
 }
 
 // ========================================================

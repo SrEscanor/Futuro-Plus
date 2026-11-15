@@ -8,7 +8,7 @@
 // entrar na página.
 import {
     LIMITE_RESUMO, LIMITE_TITULO, aprovarNoticias, buscarNoticiasAgora, contarFila, devolverParaPendentes,
-    lerUltimaColeta, listarFila, observarAdmin, recusarNoticias, sairDaConta, salvarEdicao
+    lerUltimaColeta, limparRecusadasAntigas, listarFila, observarAdmin, recusarNoticias, sairDaConta, salvarEdicao
 } from './noticias-dados.js';
 import {
     capaDesenhada, dataCurta, dominioDoLink, escapeHtml, imagemSegura, linkSeguro, rotulosDaNoticia, tempoRelativo
@@ -145,6 +145,7 @@ function iniciar() {
 
     el('logout-btn').addEventListener('click', sair);
     el('btn-buscar').addEventListener('click', buscarAgora);
+    el('btn-limpar-recusadas').addEventListener('click', limparRecusadas);
     el('btn-fechar-status').addEventListener('click', esconderStatus);
 
     // abas: clique ou setas do teclado
@@ -375,6 +376,31 @@ async function buscarAgora() {
     }
 }
 
+// Apaga na hora as recusadas com mais de 30 dias (a mesma limpeza que já
+// roda sozinha a cada coleta agendada).
+async function limparRecusadas() {
+    const botao = el('btn-limpar-recusadas');
+    const textoOriginal = botao.textContent;
+    botao.disabled = true;
+    botao.textContent = 'Limpando…';
+    mostrarStatus('Apagando recusadas com mais de 30 dias…');
+
+    try {
+        const { apagadas } = await limparRecusadasAntigas();
+        mostrarStatus(apagadas
+            ? `${apagadas} notícia(s) recusada(s) há mais de 30 dias foram apagadas.`
+            : 'Nenhuma recusada com mais de 30 dias ainda.', 'ok');
+        await atualizarNumeros();
+        if (estado.aba === 'recusada') await carregarLista();
+    } catch (erro) {
+        console.error('Erro ao limpar notícias recusadas:', erro);
+        mostrarStatus(erro?.message || 'Não deu para limpar agora. Tente de novo.', 'erro');
+    } finally {
+        botao.disabled = false;
+        botao.textContent = textoOriginal;
+    }
+}
+
 // ========================================================
 // Abas e lista
 // ========================================================
@@ -383,6 +409,7 @@ function abrirAba(aba) {
     if (!(aba in ABAS)) return;
     estado.aba = aba;
     estado.selecionadas.clear();
+    el('noticias-recusadas-acoes').hidden = aba !== 'recusada';
 
     document.querySelectorAll('.noticias-aba').forEach((botao) => {
         const ativa = botao.dataset.aba === aba;
@@ -468,7 +495,12 @@ function itemHtml(noticia) {
     const data = dataCurta(noticia.publicadaEm);
     const relativo = tempoRelativo(noticia.publicadaEm);
     const quando = data && relativo && relativo !== data ? `${data} (${relativo})` : data;
-    const recusadaEm = estado.aba === 'recusada' ? dataCurta(noticia.recusadaEm) : '';
+    let linhaRevisao = '';
+    if (estado.aba === 'recusada' && noticia.recusadaEm) {
+        linhaRevisao = `Recusada${noticia.recusadaPor ? ` por ${escapeHtml(noticia.recusadaPor)}` : ''} em ${escapeHtml(dataCurta(noticia.recusadaEm))}`;
+    } else if (estado.aba === 'aprovada' && noticia.aprovadaEm) {
+        linhaRevisao = `Aprovada${noticia.aprovadaPor ? ` por ${escapeHtml(noticia.aprovadaPor)}` : ''} em ${escapeHtml(dataCurta(noticia.aprovadaEm))}`;
+    }
 
     const origem = link
         ? `<a class="noticia-item-link" href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">Abrir matéria ${ICONE_SAIR}</a>
@@ -491,7 +523,7 @@ function itemHtml(noticia) {
             <div class="noticia-item-topo">
                 <div class="noticia-item-etiquetas">${etiquetas}</div>
                 <p class="noticia-item-meta"><strong>${escapeHtml(fonte)}</strong>${quando ? ` · ${escapeHtml(quando)}` : ''}</p>
-                ${recusadaEm ? `<p class="noticia-item-meta">Recusada em ${escapeHtml(recusadaEm)}</p>` : ''}
+                ${linhaRevisao ? `<p class="noticia-item-meta">${linhaRevisao}</p>` : ''}
             </div>
             <div class="noticia-item-texto">
                 <h3 class="noticia-item-titulo">${escapeHtml(titulo)}</h3>

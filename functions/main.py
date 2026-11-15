@@ -505,6 +505,37 @@ def coletar_noticias(req: https_fn.Request) -> https_fn.Response:
         return https_fn.Response(json.dumps({"erro": f"Erro interno: {str(e)}"}), status=500, headers=cabecalho_json)
 
 
+@https_fn.on_request(
+    cors=options.CorsOptions(cors_origins="*", cors_methods=["get", "post"]),
+    region=options.SupportedRegion.SOUTHAMERICA_EAST1,
+    max_instances=2,
+    memory=options.MemoryOption.MB_256,
+    timeout_sec=60,
+)
+def limpar_noticias_recusadas(req: https_fn.Request) -> https_fn.Response:
+    """Apaga agora as notícias recusadas há mais de 30 dias, sem esperar a
+    próxima coleta agendada (que já faz isso sozinha). Chamada pelo botão
+    "Limpar recusadas antigas" da aba Recusadas do painel Admin · Notícias."""
+    if req.method == "OPTIONS":
+        return https_fn.Response(status=204)
+
+    cabecalho_json = {"Content-Type": "application/json"}
+    try:
+        db = firestore.client()
+        _, erro = _exigir_admin(req, db)
+        if erro:
+            return erro
+
+        import noticias_firestore
+
+        apagadas = noticias_firestore.apagar_recusadas_antigas(db)
+        return https_fn.Response(json.dumps({"apagadas": apagadas}), status=200, headers=cabecalho_json)
+
+    except Exception as e:
+        print(f"Erro ao limpar notícias recusadas: {e}")
+        return https_fn.Response(json.dumps({"erro": f"Erro interno: {str(e)}"}), status=500, headers=cabecalho_json)
+
+
 @scheduler_fn.on_schedule(
     # Os sites publicam poucas notícias por dia: quatro buscas diárias deixam
     # a fila em dia e ficam dentro da faixa gratuita.

@@ -94,6 +94,17 @@
                 </div>
             </div>
 
+            <!-- Só aparece na aba Recusadas (ver admin-noticias.js) -->
+            <section class="noticias-busca" id="noticias-recusadas-acoes" hidden>
+                <div class="noticias-busca-texto">
+                    <h2>Limpeza automática</h2>
+                    <p>Recusadas com mais de 30 dias são apagadas sozinhas a cada coleta automática (a cada 6h).
+                        Para apagar agora, sem esperar:</p>
+                </div>
+                <button type="button" id="btn-limpar-recusadas" class="btn btn-secundario">Limpar recusadas
+                    antigas agora</button>
+            </section>
+
             <!-- ---------- LISTA DA ABA ABERTA ---------- -->
             <section id="painel-noticias" class="noticias-painel" role="tabpanel" aria-labelledby="aba-pendente" tabindex="-1">
                 <ul class="lista-noticias" id="lista-noticias" aria-busy="true"></ul>
