@@ -78,6 +78,19 @@ service cloud.firestore {
       allow write: if ehAdmin();
     }
 
+    // Tokens de notificação push (FCM), registrados por
+    // notificacoes-push.js. Visitante sem conta também pode ativar, então
+    // qualquer um pode criar/atualizar o próprio — mas só com "uid" vazio
+    // (visitante) ou igual ao próprio uid, nunca o de outra pessoa (senão
+    // daria pra "roubar" o alvo de uma notificação só de conta). Ninguém lê
+    // pelo app: só a função enviar_push_da_notificacao (Admin SDK, ignora
+    // estas regras) usa isso pra mandar o push.
+    match /fcm_tokens/{token} {
+      allow read: if false;
+      allow write: if request.resource.data.uid == null ||
+        (request.auth != null && request.resource.data.uid == request.auth.uid);
+    }
+
     // Notícias de Etecs e Fatecs. O site só lê "noticias", que guarda apenas
     // o que um administrador aprovou no painel Admin · Notícias.
     match /noticias/{noticiaId} {
