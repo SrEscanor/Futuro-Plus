@@ -6,6 +6,7 @@ import { categoriasTeste } from './categorias-teste.js';
 import { extrairResultadoMaisRecente, extrairResultadoVocacional } from './resultado-teste.js';
 import { localizarRuaDoAluno } from './geocodificacao.js';
 import { ITENS_DO_PERFIL } from './perfil-completude.js';
+import { ativarNotificacoesPush, statusNotificacaoPush } from './notificacoes-push.js';
 
 // A página abre no perfil montado (o que a pessoa — e, no futuro, uma Etec —
 // veria). O formulário é o modo de edição, com uma marcação por campo do que
@@ -448,8 +449,52 @@ onAuthStateChanged(auth, async (usuario) => {
     mostrarVisualizacao();
 });
 
+// ------------------------------------------------------------------
+// Notificações push (FCM) — pede a permissão do navegador na hora que a
+// pessoa clica, nunca sozinho ao abrir a página.
+// ------------------------------------------------------------------
+function desenharStatusPush() {
+    const texto = elemento('push-status-texto');
+    const botao = elemento('btn-ativar-push');
+    if (!texto || !botao) return;
+
+    const status = statusNotificacaoPush();
+    if (status === 'granted') {
+        texto.textContent = 'Ativadas! Você recebe os avisos do Futuro+ mesmo com o site fechado.';
+        botao.hidden = true;
+    } else if (status === 'denied') {
+        texto.textContent = 'Bloqueadas nas configurações do navegador. Pra ativar, mude a permissão de notificações deste site e recarregue a página.';
+        botao.hidden = true;
+    } else if (status === 'sem-suporte') {
+        texto.textContent = 'Seu navegador não tem suporte a notificações, ou o recurso ainda não foi configurado no site.';
+        botao.hidden = true;
+    } else {
+        texto.textContent = 'Ative para receber avisos do Futuro+ mesmo com o site fechado.';
+        botao.hidden = false;
+    }
+}
+
+async function aoClicarAtivarPush() {
+    const botao = elemento('btn-ativar-push');
+    botao.disabled = true;
+    botao.textContent = 'Ativando…';
+
+    const resultado = await ativarNotificacoesPush();
+    if (resultado === 'negada') {
+        elemento('push-status-texto').textContent = 'Permissão recusada. Pra mudar de ideia depois, ajuste a permissão de notificações deste site nas configurações do navegador.';
+    } else if (resultado === 'erro') {
+        elemento('push-status-texto').textContent = 'Não consegui ativar agora. Tente de novo em instantes.';
+    }
+
+    botao.disabled = false;
+    botao.textContent = 'Ativar notificações';
+    desenharStatusPush();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     elemento('btn-editar-perfil')?.addEventListener('click', abrirEdicao);
+    elemento('btn-ativar-push')?.addEventListener('click', aoClicarAtivarPush);
+    desenharStatusPush();
     elemento('btn-cancelar-perfil')?.addEventListener('click', mostrarVisualizacao);
     elemento('perfil-edicao')?.addEventListener('submit', salvar);
     elemento('btn-excluir-conta')?.addEventListener('click', excluirConta);

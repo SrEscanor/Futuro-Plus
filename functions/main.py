@@ -6,8 +6,8 @@ from datetime import datetime, timezone
 
 import requests
 import firebase_admin
-from firebase_admin import firestore, auth as firebase_auth, storage
-from firebase_functions import https_fn, options, scheduler_fn
+from firebase_admin import firestore, auth as firebase_auth, storage, messaging
+from firebase_functions import https_fn, options, scheduler_fn, firestore_fn
 
 # Inicializa o Firebase apenas uma vez e de forma leve
 if not firebase_admin._apps:
@@ -276,6 +276,64 @@ def excluir_contas_agendadas(event: scheduler_fn.ScheduledEvent) -> None:
             print(f"Conta {doc_usuario.id} excluída (prazo de exclusão vencido).")
         except Exception as erro:
             print(f"Erro ao excluir a conta {doc_usuario.id}: {erro}")
+
+@firestore_fn.on_document_created(
+    document="notificacoes/{id}",
+    region=options.SupportedRegion.SOUTHAMERICA_EAST1,
+    memory=options.MemoryOption.MB_256,
+)
+def enviar_push_da_notificacao(event: firestore_fn.Event) -> None:
+    """Dispara um push de verdade (Firebase Cloud Messaging) pra quem já
+    autorizou notificações no navegador (perfil.html), toda vez que o painel
+    Admin · Notificações cria um aviso novo. Respeita o mesmo "ativo" e
+    "publicarEm" do aviso: se nascer desativado ou agendado pro futuro, não
+    manda nada agora (agendamento que dispara o push exatamente na hora ainda
+    não existe — fica pra outra hora se for preciso)."""
+    dados = event.data.to_dict() if event.data else None
+    if not dados or dados.get("ativo") is False:
+        return
+
+    publicar_em = dados.get("publicarEm")
+    if publicar_em and publicar_em > datetime.now(timezone.utc).isoformat():
+        return
+
+    db = firestore.client()
+    publico = dados.get("publico") or "logados"
+
+    def vale(token_doc):
+        tem_uid = bool((token_doc.to_dict() or {}).get("uid"))
+        if publico == "todos":
+            return True
+        return tem_uid if publico == "logados" else not tem_uid
+
+    tokens = [registro.id for registro in db.collection("fcm_tokens").stream() if vale(registro)]
+    if not tokens:
+        return
+
+    titulo = str(dados.get("titulo") or "Futuro+")[:200]
+    corpo = str(dados.get("mensagem") or "")[:400]
+    invalidos = []
+
+    for inicio in range(0, len(tokens), 500):
+        lote = tokens[inicio:inicio + 500]
+        resposta = messaging.send_each_for_multicast(messaging.MulticastMessage(
+            notification=messaging.Notification(title=titulo, body=corpo),
+            tokens=lote,
+        ))
+        for token, resultado in zip(lote, resposta.responses):
+            if not resultado.success and "not-registered" in str(resultado.exception).lower():
+                invalidos.append(token)
+
+    # token inválido (app desinstalado, permissão revogada no sistema) nunca
+    # mais vai funcionar — limpa pra não tentar de novo nos próximos avisos
+    for inicio in range(0, len(invalidos), 400):
+        lote_apagar = db.batch()
+        for token in invalidos[inicio:inicio + 400]:
+            lote_apagar.delete(db.collection("fcm_tokens").document(token))
+        lote_apagar.commit()
+
+    print(f"Push da notificação enviado pra {len(tokens)} token(s); {len(invalidos)} inválido(s) removido(s).")
+
 
 def _exigir_admin(req, db):
     """Devolve (uid, None) quando quem chama é administrador, ou (None,
