@@ -1,11 +1,11 @@
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, setDoc } from 'firebase/firestore';
 import { auth, db } from './firebase-config.js';
-import { escapeHtml } from './card-unidade.js';
-import { categoriasTeste } from './categorias-teste.js';
+import { escapeHtml, normalizar } from './card-unidade.js';
 import { extrairResultadoMaisRecente, extrairResultadoVocacional } from './resultado-teste.js';
 import { localizarRuaDoAluno } from './geocodificacao.js';
 import { ITENS_DO_PERFIL } from './perfil-completude.js';
+import { htmlDoPerfil, montarConta } from './perfil-visao.js';
 import { ativarNotificacoesPush, statusNotificacaoPush } from './notificacoes-push.js';
 
 // A página abre no perfil montado (o que a pessoa — e, no futuro, uma Etec —
@@ -36,16 +36,6 @@ const ESTILOS = [
     'Exercícios e provas'
 ];
 
-const ESCOLARIDADES = {
-    fundamental: 'Ensino fundamental',
-    medio_cursando: 'Cursando o ensino médio',
-    medio_concluido: 'Ensino médio completo',
-    tecnico_cursando: 'Cursando um curso técnico',
-    tecnico_concluido: 'Curso técnico completo',
-    superior_cursando: 'Cursando o ensino superior',
-    superior_concluido: 'Ensino superior completo'
-};
-
 const VISIVEL_POR_PADRAO = {
     formacao: true, cursoDesejado: true, modalidades: true, estilos: true, objetivo: true, testes: true
 };
@@ -55,6 +45,11 @@ let cadastro = {};
 let perfil = { modalidades: [], estilos: [], visibilidade: { ...VISIVEL_POR_PADRAO } };
 let temTeste = false;
 let resultados = { vocacional: null, gardner: null };
+// o que a tela nova mostra além do cadastro: os certificados do mural e o
+// curso desejado já achado no catálogo (para o link e a demanda)
+let certificados = [];
+let catalogoCursos = [];
+let cursoDesejadoInfo = null;
 
 const elemento = (id) => document.getElementById(id);
 
@@ -79,97 +74,21 @@ function mostrarResultadoCepPerfil(texto) {
 }
 
 // ------------------------------------------------------------------
-// Modo visualização
+// Modo visualização: o desenho da tela fica em perfil-visao.js
 // ------------------------------------------------------------------
 
-function tagsLeitura(container, valores, { cor = '', vazio = 'Ainda não preenchido' } = {}) {
-    container.innerHTML = valores.length
-        ? valores.map((valor) => `
-            <span class="tag-leitura ${cor ? `tag-leitura--${cor}` : ''}">${escapeHtml(valor)}</span>`).join('')
-        : `<span class="perfil-vazio">${escapeHtml(vazio)}</span>`;
-}
-
-function marcarPrivados() {
-    document.querySelectorAll('.perfil-so-voce').forEach((selo) => {
-        const visivel = perfil.visibilidade?.[selo.dataset.campo] !== false;
-        selo.hidden = visivel;
-    });
-}
-
-function linhaDeFormacao() {
-    const escolaridade = ESCOLARIDADES[perfil.escolaridade] || '';
-    const curso = perfil.visibilidade?.formacao === false ? '' : (perfil.formacao || '');
-
-    if (perfil.semFormacao && escolaridade) return `🎓 ${escolaridade}`;
-    if (curso && escolaridade) return `🎓 ${curso} · ${escolaridade}`;
-    return curso ? `🎓 ${curso}` : (escolaridade ? `🎓 ${escolaridade}` : '');
-}
-
-// O mesmo gráfico da home: as 3 inteligências mais fortes, proporcionais
-// entre si para os arcos fecharem o círculo.
-function desenharDonut(resultado) {
-    const top3 = (resultado.ranking || []).slice(0, 3);
-    const soma = top3.reduce((total, chave) => total + (resultado.porcentagens?.[chave] || 0), 0);
-    let offset = 0;
-
-    ['perfil-arco-1', 'perfil-arco-2', 'perfil-arco-3'].forEach((id, i) => {
-        const fatia = soma > 0 ? ((resultado.porcentagens?.[top3[i]] || 0) / soma) * 100 : 0;
-        const arco = elemento(id);
-        arco.setAttribute('stroke-dasharray', `${fatia} 100`);
-        arco.setAttribute('stroke-dashoffset', `${-offset}`);
-        offset += fatia;
-    });
-
-    return top3.map((chave) => categoriasTeste[chave] || chave);
-}
-
-function mostrarTestes() {
-    const rodape = elemento('perfil-testes-rodape');
-    const quadroRapido = elemento('perfil-teste-rapido');
-    const quadroVocacional = elemento('perfil-teste-vocacional');
-
-    quadroRapido.hidden = !resultados.gardner;
-    quadroVocacional.hidden = !resultados.vocacional;
-
-    if (resultados.gardner) {
-        const podio = desenharDonut(resultados.gardner);
-        elemento('perfil-teste-inteligencia').textContent =
-            categoriasTeste[resultados.gardner.categoriaPrincipal] || resultados.gardner.categoriaPrincipal;
-        elemento('perfil-teste-podio').textContent = podio.join(' · ');
+function situacaoDoPush() {
+    const status = statusNotificacaoPush();
+    if (status === 'granted') {
+        return { texto: 'Ativadas! Você recebe os avisos do Futuro+ mesmo com o site fechado.', podeAtivar: false };
     }
-
-    if (resultados.vocacional) {
-        elemento('perfil-teste-areas').textContent =
-            (resultados.vocacional.eixosFortes || []).slice(0, 2).join(' · ');
-        elemento('perfil-teste-cursos').innerHTML = (resultados.vocacional.cursos || []).slice(0, 3)
-            .map((curso) => `
-                <a class="tag-leitura tag-leitura--curso" href="curso.html?c=${encodeURIComponent(curso.slug)}">
-                    ${escapeHtml(curso.nome)}
-                </a>`).join('');
+    if (status === 'denied') {
+        return { texto: 'Bloqueadas nas configurações do navegador. Pra ativar, mude a permissão de notificações deste site e recarregue a página.', podeAtivar: false };
     }
-
-    rodape.innerHTML = resultados.gardner || resultados.vocacional
-        ? '<a href="testes.html">Ver os resultados completos</a>'
-        : 'Você ainda não fez nenhum teste. <a href="testes.html">Começar agora</a>.';
-}
-
-function atualizarProgresso() {
-    const dados = { perfil, cadastro, temTeste };
-    const faltando = ITENS_DO_PERFIL.filter((item) => !item.completo(dados));
-    const porcentagem = Math.round(((ITENS_DO_PERFIL.length - faltando.length) / ITENS_DO_PERFIL.length) * 100);
-
-    const completo = faltando.length === 0;
-
-    elemento('perfil-progresso-valor').textContent = `${porcentagem}%`;
-    elemento('perfil-progresso-fill').style.width = `${porcentagem}%`;
-    elemento('perfil-aviso').classList.toggle('perfil-aviso--completo', completo);
-    elemento('perfil-aviso-icone').textContent = completo ? '✓' : '📋';
-    elemento('perfil-aviso-titulo').textContent = completo
-        ? 'Parabéns, seu perfil está completo!'
-        : 'Complete seu perfil';
-    elemento('perfil-progresso-falta').textContent = completo
-        ? 'Com tudo preenchido, as sugestões de curso e de unidade ficam mais perto do que você quer.'
-        : `Falta ${faltando.map((item) => item.rotulo).join(', ')}.`;
+    if (status === 'sem-suporte') {
+        return { texto: 'Seu navegador não tem suporte a notificações, ou o recurso ainda não foi configurado no site.', podeAtivar: false };
+    }
+    return { texto: 'Ative para receber avisos do Futuro+ mesmo com o site fechado.', podeAtivar: true };
 }
 
 // Recebe o perfil já lido do formulário quando vem do salvar; sem argumento,
@@ -177,37 +96,64 @@ function atualizarProgresso() {
 function mostrarVisualizacao(novoPerfil = null) {
     if (novoPerfil) perfil = { ...perfil, ...novoPerfil };
 
-    const nome = [cadastro?.nome, cadastro?.sobrenome].filter(Boolean).join(' ').trim();
-    const iniciais = (nome || usuarioAtual?.email || '?').trim().split(/\s+/).slice(0, 2)
-        .map((parte) => parte[0].toUpperCase()).join('');
-
-    elemento('perfil-iniciais').textContent = iniciais;
-    elemento('perfil-saudacao').textContent = nome ? `Olá, ${nome.split(' ')[0]}` : 'Olá';
-    elemento('perfil-nome-completo').textContent = nome;
-    elemento('perfil-formacao-linha').textContent = linhaDeFormacao();
-    elemento('perfil-local').textContent = [cadastro?.cidade, cadastro?.estado].filter(Boolean).join(' · ');
-
-    tagsLeitura(elemento('ver-modalidades'), perfil.modalidades || [], {
-        cor: 'area', vazio: 'Escolha os tipos de curso no Editar'
-    });
-    tagsLeitura(elemento('ver-curso'), perfil.cursoDesejado ? [perfil.cursoDesejado] : [], {
-        cor: 'destaque', vazio: 'Escolha o curso que você quer seguir'
-    });
-    tagsLeitura(elemento('ver-estilos'), perfil.estilos || [], {
-        cor: 'estilo', vazio: 'Escolha até 3 no Editar'
-    });
-
-    const objetivo = elemento('ver-objetivo');
-    objetivo.textContent = perfil.objetivo || 'Conte em poucas palavras onde você quer chegar.';
-    objetivo.classList.toggle('perfil-vazio', !perfil.objetivo);
-
-    marcarPrivados();
-    mostrarTestes();
-    elemento('perfil-cartao-testes').hidden = false;
-    atualizarProgresso();
+    elemento('perfil-grade').innerHTML = htmlDoPerfil(montarConta({
+        nome: [cadastro?.nome, cadastro?.sobrenome].filter(Boolean).join(' '),
+        email: usuarioAtual?.email || '',
+        cadastro,
+        perfil,
+        resultados,
+        certificados,
+        cursoDesejado: cursoDesejadoInfo,
+        push: situacaoDoPush()
+    }));
 
     elemento('perfil-visualizacao').hidden = false;
     elemento('perfil-edicao').hidden = true;
+}
+
+// O curso que a pessoa escreveu em "curso que quero seguir" existe no
+// catálogo? Se existir, a tela ganha o link e a demanda do vestibular.
+// "Logística" existe como técnico e como superior (este com "superior-" na
+// frente): quem só marcou interesse em superior começa por ele.
+async function acharCursoDesejado() {
+    cursoDesejadoInfo = null;
+    if (!perfil.cursoDesejado) return;
+
+    const base = normalizar(perfil.cursoDesejado).replace(/\s+/g, '-');
+    const areas = perfil.modalidades || [];
+    const soSuperior = areas.some((area) => area.includes('Superior'))
+        && !areas.some((area) => /Técnico|Especialização/.test(area));
+    const ids = soSuperior ? [`superior-${base}`, base] : [base, `superior-${base}`];
+
+    try {
+        for (const id of ids) {
+            const snap = await getDoc(doc(db, 'cursos', id));
+            if (snap.exists()) {
+                const dados = snap.data();
+                cursoDesejadoInfo = { id, nome: dados.nome || perfil.cursoDesejado, nivel: dados.nivel || '', demanda: dados.demanda };
+                return;
+            }
+        }
+    } catch (erro) {
+        console.error('Não consegui buscar o curso desejado:', erro);
+    }
+
+    // sem o catálogo no Firestore, vale o arquivo oficial (só o link)
+    const doArquivo = catalogoCursos.find((curso) => curso.slug === base);
+    if (doArquivo) cursoDesejadoInfo = { id: doArquivo.slug, nome: doArquivo.nome, nivel: '' };
+}
+
+async function carregarCertificados() {
+    try {
+        const snap = await getDocs(collection(db, 'usuarios', usuarioAtual.uid, 'certificados'));
+        // a mesma ordem do mural: o mais novo primeiro
+        certificados = snap.docs
+            .map((d) => ({ id: d.id, ...d.data() }))
+            .sort((a, b) => (b.criadoEm || '').localeCompare(a.criadoEm || ''));
+    } catch (erro) {
+        console.error('Erro ao carregar os certificados:', erro);
+        certificados = [];
+    }
 }
 
 // ------------------------------------------------------------------
@@ -240,7 +186,7 @@ function montarTags(container, opcoes, selecionadas, limite) {
     });
 }
 
-function abrirEdicao() {
+function abrirEdicao(campoParaFocar = '') {
     elemento('perfil-nome').value = cadastro.nome || '';
     elemento('perfil-sobrenome').value = cadastro.sobrenome || '';
     elemento('perfil-data-nascimento').value = cadastro.dataNascimento || '';
@@ -278,7 +224,14 @@ function abrirEdicao() {
     elemento('perfil-status').textContent = '';
     elemento('perfil-visualizacao').hidden = true;
     elemento('perfil-edicao').hidden = false;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    const campo = typeof campoParaFocar === 'string' && campoParaFocar ? elemento(campoParaFocar) : null;
+    if (campo) {
+        campo.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        campo.focus({ preventScroll: true });
+    } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 }
 
 function lerEdicao() {
@@ -397,7 +350,9 @@ async function salvar(evento) {
             ...(cepResolvido.cidade ? { cidade: cepResolvido.cidade } : {}),
             ...(localizacao ? { localizacao } : {})
         };
-        mostrarVisualizacao(novoPerfil);
+        perfil = { ...perfil, ...novoPerfil };
+        await acharCursoDesejado();
+        mostrarVisualizacao();
         window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (erro) {
         console.error('Erro ao salvar o perfil:', erro);
@@ -412,8 +367,8 @@ async function salvar(evento) {
 
 async function carregarCatalogo() {
     try {
-        const cursos = await (await fetch(CATALOGO_OFICIAL)).json();
-        elemento('lista-cursos-catalogo').innerHTML = cursos
+        catalogoCursos = await (await fetch(CATALOGO_OFICIAL)).json();
+        elemento('lista-cursos-catalogo').innerHTML = catalogoCursos
             .map((curso) => `<option value="${escapeHtml(curso.nome)}"></option>`).join('');
     } catch (erro) {
         console.error('Não consegui carregar a lista de cursos:', erro);
@@ -450,34 +405,17 @@ onAuthStateChanged(auth, async (usuario) => {
         console.error('Erro ao carregar o perfil:', erro);
     }
 
+    // a tela aparece logo com o que já se sabe; certificados e demanda do
+    // curso entram em seguida
     mostrarVisualizacao();
+    await Promise.all([carregarCertificados(), acharCursoDesejado()]);
+    if (!elemento('perfil-visualizacao').hidden) mostrarVisualizacao();
 });
 
 // ------------------------------------------------------------------
 // Notificações push (FCM) — pede a permissão do navegador na hora que a
 // pessoa clica, nunca sozinho ao abrir a página.
 // ------------------------------------------------------------------
-function desenharStatusPush() {
-    const texto = elemento('push-status-texto');
-    const botao = elemento('btn-ativar-push');
-    if (!texto || !botao) return;
-
-    const status = statusNotificacaoPush();
-    if (status === 'granted') {
-        texto.textContent = 'Ativadas! Você recebe os avisos do Futuro+ mesmo com o site fechado.';
-        botao.hidden = true;
-    } else if (status === 'denied') {
-        texto.textContent = 'Bloqueadas nas configurações do navegador. Pra ativar, mude a permissão de notificações deste site e recarregue a página.';
-        botao.hidden = true;
-    } else if (status === 'sem-suporte') {
-        texto.textContent = 'Seu navegador não tem suporte a notificações, ou o recurso ainda não foi configurado no site.';
-        botao.hidden = true;
-    } else {
-        texto.textContent = 'Ative para receber avisos do Futuro+ mesmo com o site fechado.';
-        botao.hidden = false;
-    }
-}
-
 async function aoClicarAtivarPush() {
     const botao = elemento('btn-ativar-push');
     botao.disabled = true;
@@ -490,16 +428,23 @@ async function aoClicarAtivarPush() {
         elemento('push-status-texto').textContent = 'Não consegui ativar agora. Tente de novo em instantes.';
     }
 
-    botao.disabled = false;
-    botao.textContent = 'Ativar notificações';
-    desenharStatusPush();
+    if (resultado === 'negada' || resultado === 'erro') {
+        botao.disabled = false;
+        botao.textContent = 'Ativar notificações';
+        return;
+    }
+    mostrarVisualizacao();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    elemento('btn-editar-perfil')?.addEventListener('click', abrirEdicao);
-    elemento('btn-ativar-push')?.addEventListener('click', aoClicarAtivarPush);
-    desenharStatusPush();
-    elemento('btn-cancelar-perfil')?.addEventListener('click', mostrarVisualizacao);
+    // a tela do perfil é redesenhada a cada mudança: os cliques são ouvidos
+    // na grade, não em cada botão
+    elemento('perfil-grade')?.addEventListener('click', (e) => {
+        if (e.target.closest('#btn-editar-perfil')) abrirEdicao();
+        else if (e.target.closest('#btn-ativar-push')) aoClicarAtivarPush();
+        else if (e.target.closest('[data-editar]')) abrirEdicao(e.target.closest('[data-editar]').dataset.editar);
+    });
+    elemento('btn-cancelar-perfil')?.addEventListener('click', () => mostrarVisualizacao());
     elemento('perfil-edicao')?.addEventListener('submit', salvar);
     elemento('btn-excluir-conta')?.addEventListener('click', excluirConta);
 
