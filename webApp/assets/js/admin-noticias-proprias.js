@@ -222,10 +222,10 @@ async function excluir(id) {
         + ' O registro no histórico continua guardado.';
     if (!confirm(pergunta)) return;
     try {
-        await excluirNoticiaPropria(noticia);
+        const { saiuDoCarrossel } = (await excluirNoticiaPropria(noticia)) || {};
         estado.noticias = estado.noticias.filter((n) => n.id !== id);
         desenharLista();
-        mostrarStatus('Notícia excluída.', 'ok');
+        mostrarStatus(`Notícia excluída.${saiuDoCarrossel ? AVISO_CARROSSEL : ''}`, 'ok');
     } catch (erro) {
         console.error('Erro ao excluir a notícia:', erro);
         mostrarStatus(`Não foi possível excluir: ${erro.message}`, 'erro');
@@ -577,6 +577,9 @@ const MENSAGENS = {
     despublicar: 'A notícia saiu do site e voltou a ser rascunho.'
 };
 
+// a notícia estava no carrossel da Início (painel Notícias) e saiu junto do site
+const AVISO_CARROSSEL = ' Ela também saiu do carrossel da Início.';
+
 async function salvar(acao, opcoes = {}) {
     if (estado.ocupado) return;
     if (estado.enviando.size) {
@@ -586,7 +589,8 @@ async function salvar(acao, opcoes = {}) {
     travar(true);
     mostrarStatus('Salvando...');
     try {
-        const salva = await salvarNoticiaPropria(estado.editando, acao, opcoes);
+        // saiuDoCarrossel não é da notícia: fica fora do que o editor guarda
+        const { saiuDoCarrossel, ...salva } = await salvarNoticiaPropria(estado.editando, acao, opcoes);
         estado.editando = { ...estado.editando, ...salva };
         // o que foi guardado vem limpo (parágrafo vazio sai): a tela volta a
         // mostrar exatamente isso, para os campos não ficarem fora de ordem
@@ -605,7 +609,7 @@ async function salvar(acao, opcoes = {}) {
         marcarComoSalvo();
         const chave = acao === 'aprovar' && opcoes.quando === 'agendar' ? 'agendar' : acao;
         const extra = chave === 'agendar' ? ` Ela vai ao ar ${dataHora(salva.publicarEm)}.` : '';
-        mostrarStatus(MENSAGENS[chave] + extra, 'ok');
+        mostrarStatus(MENSAGENS[chave] + extra + (saiuDoCarrossel ? AVISO_CARROSSEL : ''), 'ok');
         carregarHistoricoDaNoticia();
     } catch (erro) {
         console.error('Erro ao salvar a notícia:', erro);

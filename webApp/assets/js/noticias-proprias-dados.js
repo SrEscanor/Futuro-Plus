@@ -13,18 +13,23 @@
 //   noticias_proprias_historico  quem fez o quê, com e-mail e hora do
 //                                servidor. Só cresce (ver firestore.rules).
 //
-// Toda gravação vai num lote só (notícia + cópia pública + histórico), para
-// uma parte nunca ficar sem a outra.
+// Toda gravação vai junta (notícia + cópia pública + histórico), para uma
+// parte nunca ficar sem a outra. Quando a cópia do site é apagada (a notícia
+// sai do site ou é excluída), ela sai também do carrossel da Início
+// (configuracoes/destaques_inicio), na mesma transação; essa saída fica no
+// histórico do painel Notícias (noticias_historico), onde está o carrossel.
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import {
-    collection, doc, getDoc, getDocs, limit, orderBy, query, serverTimestamp, where, writeBatch
+    collection, doc, getDoc, getDocs, limit, orderBy, query, runTransaction, serverTimestamp, where, writeBatch
 } from 'firebase/firestore';
 import { prepararGravacao } from './noticias-proprias-util.js';
+import { DOC_DESTAQUES, detalheComSaidaDoCarrossel, mudarListaDeDestaques } from './destaques-util.js';
 
 const PROPRIAS = 'noticias_proprias';
 const PUBLICADAS = 'noticias';
 const HISTORICO = 'noticias_proprias_historico';
+const HISTORICO_DO_PAINEL_NOTICIAS = 'noticias_historico';
 
 const ENVIAR_IMAGEM_URL = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
     ? 'http://127.0.0.1:5001/futuroplus-bce54/southamerica-east1/enviar_imagem_noticia'
@@ -125,40 +130,79 @@ function registroDoHistorico(usuario, noticiaId, titulo, acao, detalhe = '') {
     };
 }
 
+// A cópia do site vai ser apagada: lê o carrossel da Início e, se a notícia
+// estava lá, tira (na mesma transação), com o registro no histórico do
+// painel Notícias. motivo: o detalhe desse registro. Devolve true se tirou.
+async function tirarDoCarrosselNaTransacao(transacao, usuario, id, titulo, motivo) {
+    const carrossel = await transacao.get(doc(db, ...DOC_DESTAQUES));
+    const mudanca = mudarListaDeDestaques(carrossel.exists() ? carrossel.data().itens : [], 'tirar',
+        { id, titulo }, { motivo });
+    if (!mudanca) return false;
+    transacao.set(doc(db, ...DOC_DESTAQUES), {
+        itens: mudanca.itens,
+        atualizadoEm: serverTimestamp(),
+        atualizadoPor: usuario.email || ''
+    });
+    transacao.set(doc(collection(db, HISTORICO_DO_PAINEL_NOTICIAS)),
+        registroDoHistorico(usuario, id, mudanca.titulo, mudanca.acao, mudanca.detalhe));
+    return true;
+}
+
 // Salva a notícia (as ações estão em prepararGravacao, no util). noticia: o
 // que está no editor, junto com o que já estava guardado. Devolve a notícia
-// como ficou guardada.
+// como ficou guardada e, quando ela saiu do site, saiuDoCarrossel (true se
+// estava no carrossel da Início e saiu junto; não faz parte da notícia).
 export async function salvarNoticiaPropria(noticia, acao, opcoes = {}) {
     const usuario = usuarioLogado();
     const id = noticia.id || novoId();
     const { registro, publica, acaoHistorico, detalhe } = prepararGravacao(noticia, acao, opcoes, { email: usuario.email || '' });
 
+    // o mesmo em lote ou em transação (as duas têm set e delete)
+    const gravar = (escrita, detalheDoHistorico) => {
+        escrita.set(doc(db, PROPRIAS, id), registro);
+        // a cópia do site só muda na aprovação ou quando sai do ar
+        if (publica) escrita.set(doc(db, PUBLICADAS, id), publica);
+        else if (publica === null) escrita.delete(doc(db, PUBLICADAS, id));
+        escrita.set(doc(collection(db, HISTORICO)),
+            registroDoHistorico(usuario, id, registro.titulo, acaoHistorico, detalheDoHistorico));
+    };
+
+    if (publica === null) {
+        const saiuDoCarrossel = await runTransaction(db, async (transacao) => {
+            const tirou = await tirarDoCarrosselNaTransacao(transacao, usuario, id, registro.titulo, 'saiu do site');
+            gravar(transacao, tirou ? detalheComSaidaDoCarrossel(acaoHistorico, detalhe) : detalhe);
+            return tirou;
+        });
+        return { id, ...registro, saiuDoCarrossel };
+    }
+
     const lote = writeBatch(db);
-    lote.set(doc(db, PROPRIAS, id), registro);
-    // a cópia do site só muda na aprovação ou quando sai do ar
-    if (publica) lote.set(doc(db, PUBLICADAS, id), publica);
-    else if (publica === null) lote.delete(doc(db, PUBLICADAS, id));
-    lote.set(doc(collection(db, HISTORICO)),
-        registroDoHistorico(usuario, id, registro.titulo, acaoHistorico, detalhe));
+    gravar(lote, detalhe);
     await lote.commit();
     return { id, ...registro };
 }
 
-// Exclui a notícia (do painel e do site). O histórico fica, com o registro
-// da exclusão. As imagens são apagadas depois, sem travar se der errado.
+// Exclui a notícia (do painel, do site e do carrossel da Início). O
+// histórico fica, com o registro da exclusão. As imagens são apagadas
+// depois, sem travar se der errado. Devolve { saiuDoCarrossel }.
 export async function excluirNoticiaPropria(noticia) {
     const usuario = usuarioLogado();
-    const lote = writeBatch(db);
-    lote.delete(doc(db, PROPRIAS, noticia.id));
-    lote.delete(doc(db, PUBLICADAS, noticia.id));
-    lote.set(doc(collection(db, HISTORICO)), registroDoHistorico(usuario, noticia.id, noticia.titulo, 'excluiu'));
-    await lote.commit();
+    const saiuDoCarrossel = await runTransaction(db, async (transacao) => {
+        const tirou = await tirarDoCarrosselNaTransacao(transacao, usuario, noticia.id, noticia.titulo,
+            'a notícia foi excluída');
+        transacao.delete(doc(db, PROPRIAS, noticia.id));
+        transacao.delete(doc(db, PUBLICADAS, noticia.id));
+        transacao.set(doc(collection(db, HISTORICO)), registroDoHistorico(usuario, noticia.id, noticia.titulo,
+            'excluiu', tirou ? detalheComSaidaDoCarrossel('excluiu') : ''));
+        return tirou;
+    });
 
     try {
         await chamarFuncaoDeImagem({ id: noticia.id, acao: 'apagar' });
     } catch (erro) {
         console.warn('A notícia foi excluída, mas as imagens ficaram no Storage:', erro);
     }
+    return { saiuDoCarrossel };
 }
 
 // ========================================================

@@ -13,6 +13,9 @@ import { linkDaMateria } from './noticias-proprias-util.js';
 
 export const MAXIMO_DESTAQUES = 3;
 
+// Onde a lista fica no Firestore: doc(db, ...DOC_DESTAQUES)
+export const DOC_DESTAQUES = ['configuracoes', 'destaques_inicio'];
+
 // Os destaques de sempre, que apontam para partes do próprio site. Cada
 // destaque do carrossel tem este formato (o das notícias também, ver
 // destaqueDaNoticia):
@@ -122,6 +125,14 @@ export function mudarListaDeDestaques(itens, acao, noticia, { motivo = '' } = {}
         acao: 'reordenou',
         detalhe: motivo || `da vaga ${posicao + 1} para a ${destino + 1}`
     };
+}
+
+// Notícia do Futuro+ que sai do site (painel Notícias próprias) sai junto do
+// carrossel. No histórico dela a ação ganha o complemento: "tirou do site e
+// do carrossel da Início", "excluiu e tirou do carrossel da Início".
+export function detalheComSaidaDoCarrossel(acaoHistorico, detalhe = '') {
+    const extra = acaoHistorico === 'despublicou' ? 'e do carrossel da Início' : 'e tirou do carrossel da Início';
+    return detalhe ? `${detalhe}, ${extra}` : extra;
 }
 
 // Uma notícia no formato de destaque do carrossel. A do Futuro+ abre a

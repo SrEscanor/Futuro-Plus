@@ -13,7 +13,12 @@
 //   teste.falhar       'listar', 'gravar' ou 'imagem': as chamadas desse tipo dão erro
 //   teste.demora       milissegundos de cada chamada (padrão 200)
 //   teste.logado / teste.admin / teste.email
+//   teste.destaques    o carrossel da Início { itens: [{ id, titulo }] } (null =
+//                      nunca mexeram); a notícia que sai do site sai dele, e
+//                      essa saída vai para teste.historicoNoticias (o
+//                      histórico do painel Notícias)
 import { prepararGravacao } from '../assets/js/noticias-proprias-util.js';
+import { detalheComSaidaDoCarrossel, mudarListaDeDestaques } from '../assets/js/destaques-util.js';
 
 const estado = () => window.teste;
 let contador = 0;
@@ -82,25 +87,45 @@ function registrar(noticiaId, titulo, acao, detalhe = '') {
     });
 }
 
+// Como no site: a notícia que sai do site sai do carrossel, com o registro
+// no histórico do painel Notícias. Devolve true se ela estava lá.
+function tirarDoCarrossel(id, titulo, motivo) {
+    const mudanca = mudarListaDeDestaques(estado().destaques?.itens || [], 'tirar', { id, titulo }, { motivo });
+    if (!mudanca) return false;
+    estado().destaques = {
+        itens: mudanca.itens, atualizadoEm: new Date().toISOString(), atualizadoPor: estado().email || 'admin@teste'
+    };
+    const historico = estado().historicoNoticias || (estado().historicoNoticias = []);
+    historico.push({
+        id: `hn${historico.length + 1}`, noticiaId: id, titulo: mudanca.titulo, acao: mudanca.acao,
+        detalhe: mudanca.detalhe, email: estado().email || 'admin@teste', uid: 'u1', em: new Date().toISOString()
+    });
+    estado().gravacoes.push(['destaques', 'tirar', id, mudanca.itens.map((item) => item.id)]);
+    return true;
+}
+
 export async function salvarNoticiaPropria(noticia, acao, opcoes = {}) {
     await chamada('gravar');
     const id = noticia.id || novoId();
     const { registro, publica, acaoHistorico, detalhe } = prepararGravacao(
         noticia, acao, opcoes, { email: estado().email || 'admin@teste' });
+    const saiuDoCarrossel = publica === null ? tirarDoCarrossel(id, registro.titulo, 'saiu do site') : undefined;
     estado().proprias.set(id, { id, ...copia(registro) });
     if (publica) estado().publicadas.set(id, { id, ...copia(publica) });
     else if (publica === null) estado().publicadas.delete(id);
-    registrar(id, registro.titulo, acaoHistorico, detalhe);
+    registrar(id, registro.titulo, acaoHistorico, saiuDoCarrossel ? detalheComSaidaDoCarrossel(acaoHistorico, detalhe) : detalhe);
     estado().gravacoes.push([acao, id, registro.status]);
-    return { id, ...copia(registro) };
+    return publica === null ? { id, ...copia(registro), saiuDoCarrossel } : { id, ...copia(registro) };
 }
 
 export async function excluirNoticiaPropria(noticia) {
     await chamada('gravar');
+    const saiuDoCarrossel = tirarDoCarrossel(noticia.id, noticia.titulo, 'a notícia foi excluída');
     estado().proprias.delete(noticia.id);
     estado().publicadas.delete(noticia.id);
-    registrar(noticia.id, noticia.titulo, 'excluiu');
+    registrar(noticia.id, noticia.titulo, 'excluiu', saiuDoCarrossel ? detalheComSaidaDoCarrossel('excluiu') : '');
     estado().gravacoes.push(['excluir', noticia.id]);
+    return { saiuDoCarrossel };
 }
 
 // Não sobe nada: devolve uma das ilustrações do próprio site.

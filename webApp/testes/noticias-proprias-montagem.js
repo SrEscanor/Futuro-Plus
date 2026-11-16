@@ -19,14 +19,18 @@ async function conferirQueACopiaEstaCompleta() {
     if (faltando.length) throw new Error(`noticias-proprias-simulado.js não tem: ${faltando.join(', ')}`);
 }
 
-// opcoes: { vazio, falhar, demora, logado, admin, email }
+// opcoes: { vazio, falhar, demora, logado, admin, email, destaques (ids do
+// carrossel da Início, por exemplo ['np-publicada', 'n09']) }
 export function prepararEstado(opcoes = {}) {
     const exemplo = noticiasPropriasDeExemplo();
+    const tituloDe = (id) => exemplo.proprias.get(id)?.titulo || 'Notícia de outro site';
     window.teste = {
         ...(window.teste || {}),
         proprias: opcoes.vazio ? new Map() : exemplo.proprias,
         publicadas: opcoes.vazio ? new Map() : exemplo.publicadas,
         historico: opcoes.vazio ? [] : exemplo.historico,
+        destaques: opcoes.destaques ? { itens: opcoes.destaques.map((id) => ({ id, titulo: tituloDe(id) })) } : null,
+        historicoNoticias: [],
         gravacoes: [],
         falhar: opcoes.falhar || null,
         demora: opcoes.demora ?? 200,

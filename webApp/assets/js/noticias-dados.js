@@ -32,13 +32,11 @@ import {
     limit, orderBy, query, runTransaction, serverTimestamp, where, writeBatch
 } from 'firebase/firestore';
 import { INSTITUICOES, imagemSegura, linkSeguro, oQueFoiEditado } from './noticias-util.js';
-import { estaNoSite, itensDosDestaques, mudarListaDeDestaques } from './destaques-util.js';
+import { DOC_DESTAQUES, estaNoSite, itensDosDestaques, mudarListaDeDestaques } from './destaques-util.js';
 
 const PUBLICADAS = 'noticias';
 const FILA = 'noticias_fila';
 const HISTORICO = 'noticias_historico';
-const CONFIGURACOES = 'configuracoes';
-const DESTAQUES = 'destaques_inicio';
 
 // A função do servidor que lê os feeds (functions/main.py) — mesmo padrão de
 // troca localhost/produção das outras funções.
@@ -275,7 +273,7 @@ export async function salvarEdicao(noticia, campos) {
 // noticia }], atualizadoEm (ISO), atualizadoPor }. Custa 1 leitura, mais 1
 // por notícia escolhida.
 export async function lerDestaques() {
-    const registro = await getDoc(doc(db, CONFIGURACOES, DESTAQUES));
+    const registro = await getDoc(doc(db, ...DOC_DESTAQUES));
     const dados = registro.exists() ? registro.data() : {};
     const itens = itensDosDestaques(dados.itens);
 
@@ -307,7 +305,7 @@ export async function listarDestaquesDaInicio() {
 // junto. Devolve a lista como ficou ([{ id, titulo }]).
 export async function mudarDestaques(acao, noticia, opcoes = {}) {
     const usuario = usuarioLogado();
-    const ref = doc(db, CONFIGURACOES, DESTAQUES);
+    const ref = doc(db, ...DOC_DESTAQUES);
     return runTransaction(db, async (transacao) => {
         const atual = await transacao.get(ref);
         const itens = itensDosDestaques(atual.exists() ? atual.data().itens : []);
