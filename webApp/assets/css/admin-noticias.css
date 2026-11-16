@@ -1013,6 +1013,14 @@ body.modal-aberto {
     outline-offset: 2px;
 }
 
+/* ---- aba No site: a regra dos 90 dias, acima da lista ---- */
+.noticias-regra {
+    margin: 0 2px 12px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+}
+
 /* ---- aba Histórico ---- */
 .noticias-historico {
     margin-top: 6px;

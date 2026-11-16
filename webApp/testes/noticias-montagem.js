@@ -44,6 +44,7 @@ function historicoDeExemplo(lista) {
             noticiaId: n.id, titulo: n.titulo, acao: 'recusou', detalhe: '', email: 'ana@teste', horas: 20
         })),
         { noticiaId: '', titulo: '', acao: 'buscou', detalhe: '3 novas na fila', email: 'victor@teste', horas: 26 },
+        { noticiaId: '', titulo: '', acao: 'tirou_antigas', detalhe: '4 notícias com mais de 90 dias', email: 'automático', horas: 28 },
         { noticiaId: '', titulo: '', acao: 'limpou', detalhe: '2 recusadas com mais de 30 dias', email: 'automático', horas: 30 }
     ];
     return registros.map(({ horas, ...registro }, indice) => ({ id: `hx${indice + 1}`, uid: 'u1', em: em(horas), ...registro }));

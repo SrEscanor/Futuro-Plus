@@ -96,6 +96,7 @@ const ACOES_HISTORICO = {
     editou: ['editou', 'neutra'],
     buscou: ['buscou notícias agora', 'neutra'],
     limpou: ['apagou recusadas antigas', 'negativa'],
+    tirou_antigas: ['tirou do site as notícias antigas', 'negativa'],
     destacou: ['pôs no carrossel da Início', 'positiva'],
     tirou_destaque: ['tirou do carrossel da Início', 'negativa'],
     reordenou: ['mudou a ordem do carrossel', 'neutra']
@@ -474,8 +475,9 @@ function abrirAba(aba) {
     el('painel-historico').hidden = !historico;
     carregarPropriasPendentes(aba === 'pendente');
 
-    // o quadro do carrossel da Início fica no alto da aba No site
+    // o quadro do carrossel da Início e a regra dos 90 dias ficam no alto da aba No site
     el('destaques-painel').hidden = aba !== 'aprovada';
+    el('regra-no-site').hidden = aba !== 'aprovada';
     if (aba === 'aprovada' && !estado.destaques.gravando) carregarDestaques();
     if (historico) {
         estado.pedido += 1; // uma lista que ainda estava chegando não desenha mais
@@ -493,8 +495,8 @@ function abrirAba(aba) {
 
 function linhaDoHistorico(registro) {
     const [texto, cor] = ACOES_HISTORICO[registro.acao] || [registro.acao, 'neutra'];
-    // a busca e a limpeza não são de uma notícia só
-    const alvo = registro.titulo || (registro.acao === 'buscou' || registro.acao === 'limpou' ? '—' : '');
+    // a busca e as limpezas não são de uma notícia só
+    const alvo = registro.titulo || (['buscou', 'limpou', 'tirou_antigas'].includes(registro.acao) ? '—' : '');
     const quem = registro.email === 'automático' ? 'Automático (a cada 6 horas)' : registro.email || '—';
     return `
         <tr>

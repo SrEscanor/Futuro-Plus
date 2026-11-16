@@ -386,7 +386,8 @@ def _exigir_admin(req, db):
 
 def _registrar_historico_noticias(db, acao, detalhe, uid=None):
     """Grava no histórico do painel Admin · Notícias (noticias_historico) o
-    que o servidor faz: a busca do botão e a limpeza das recusadas. As ações
+    que o servidor faz: a busca do botão, a limpeza das recusadas e a saída
+    das notícias antigas do site. As ações
     do painel (aprovar, recusar...) quem grava é o próprio painel. uid None =
     feito sozinho pelo agendamento. Um erro aqui não desfaz a ação, só fica
     no log."""
@@ -752,7 +753,8 @@ def coletar_noticias_agendada(event: scheduler_fn.ScheduledEvent) -> None:
     """A mesma busca do botão, rodando sozinha. Nada vai para o site sem
     aprovação: as notícias novas só entram na fila do painel. Aproveita essa
     mesma agenda (a cada 6h) pra também apagar notícias recusadas há mais de
-    30 dias, sem precisar de um agendamento novo só para isso."""
+    30 dias e tirar do site as notícias de outros sites com mais de 90 dias,
+    sem precisar de um agendamento novo só para isso."""
     import noticias_firestore
 
     db = firestore.client()
@@ -769,3 +771,14 @@ def coletar_noticias_agendada(event: scheduler_fn.ScheduledEvent) -> None:
                 apagadas, "recusada com mais de 30 dias", "recusadas com mais de 30 dias", ""))
     except Exception as erro:
         print(f"Erro ao apagar notícias recusadas antigas: {erro}")
+
+    # as do Futuro+ e as que estão no carrossel da Início ficam
+    try:
+        dias = noticias_firestore.DIAS_NO_SITE
+        antigas = noticias_firestore.apagar_noticias_antigas_do_site(db)
+        if antigas:
+            print(f"{antigas} notícia(s) de outros sites com mais de {dias} dias saíram do site.")
+            _registrar_historico_noticias(db, "tirou_antigas", _texto_quantas(
+                antigas, f"notícia com mais de {dias} dias", f"notícias com mais de {dias} dias", ""))
+    except Exception as erro:
+        print(f"Erro ao tirar do site as notícias antigas: {erro}")
