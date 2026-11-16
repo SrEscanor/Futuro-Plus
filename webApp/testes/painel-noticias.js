@@ -20,14 +20,21 @@
 //     teste.mostrar({ semColeta: true })   // nenhuma busca rodou ainda
 //     teste.mostrar({ admin: false })      // conta que não é administradora
 //     teste.mostrar({ logado: false })     // ninguém logado: o painel manda para o login
+//     teste.mostrar({ noticias: [...] })   // a sua própria lista (ver noticias-exemplo.js)
 //     teste.mostrar({ propriasPendentes: [] })  // sem notícia do Futuro+ esperando aprovação
 //                                          // (por padrão vem a pendente de noticias-proprias-exemplo.js)
-import { montarTelaDeNoticias, prepararEstado, texto } from './noticias-montagem.js';
+//     teste.mostrar({ comPropria: true })  // a notícia do Futuro+ publicada também na aba No site
+//     teste.mostrar({ destaques: ['np-publicada', 'n09'] })  // o carrossel da Início já com essas
+//                                          // ('sumiu' = uma que saiu do site); teste.destaques
+import { montarTelaDeNoticias, prepararEstado, propriaNoSite, texto } from './noticias-montagem.js';
 import { noticiasDeExemplo } from './noticias-exemplo.js';
 import { noticiasPropriasDeExemplo } from './noticias-proprias-exemplo.js';
 
 async function mostrar(opcoes = {}) {
-    let noticias = noticiasDeExemplo();
+    // opcoes.noticias: a sua lista (para pôr notícias do Futuro+ na aba No
+    // site, por exemplo: status 'aprovada' e propria: true)
+    let noticias = opcoes.noticias || noticiasDeExemplo();
+    if (opcoes.comPropria) noticias = [propriaNoSite(), ...noticias];
 
     if (opcoes.pendentes !== undefined) {
         const modelo = noticias.filter((n) => n.status === 'pendente');
@@ -42,7 +49,7 @@ async function mostrar(opcoes = {}) {
         ?? [...noticiasPropriasDeExemplo().proprias.values()].filter((n) => n.status === 'pendente');
     const teste = prepararEstado({
         noticias, demora: opcoes.demora, logado: opcoes.logado, admin: opcoes.admin, semColeta: opcoes.semColeta,
-        propriasPendentes
+        propriasPendentes, destaques: opcoes.destaques
     });
     teste.mostrar = mostrar;
     teste.texto = texto;

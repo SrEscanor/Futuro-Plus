@@ -29,7 +29,9 @@ service cloud.firestore {
     // Conteúdo dos Termos de Uso e Política de Privacidade, editável pelo
     // admin em admin-termos.html. "versao" sobe a cada publicação; é isso
     // que faz o gate-termos.js pedir novo aceite de quem já tinha aceitado
-    // uma versão anterior.
+    // uma versão anterior. Aqui também ficam as capas dos eixos (capas) e
+    // as notícias do carrossel da Início (destaques_inicio), escolhidas no
+    // painel Admin · Notícias.
     match /configuracoes/{documentoId} {
       allow read: if true;
       allow write: if ehAdmin();
@@ -78,6 +80,19 @@ service cloud.firestore {
       allow write: if ehAdmin();
     }
 
+    // Histórico do painel Admin · Notificações (quem criou, editou ou
+    // excluiu cada aviso). Mesma regra do histórico das notícias próprias:
+    // só cresce, com o e-mail e o uid de quem está logado e a hora do
+    // servidor; ninguém edita nem apaga.
+    match /notificacoes_historico/{registroId} {
+      allow read: if ehAdmin();
+      allow create: if ehAdmin()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.em == request.time;
+      allow update, delete: if false;
+    }
+
     // Tokens de notificação push (FCM), registrados por
     // notificacoes-push.js. Visitante sem conta também pode ativar, então
     // qualquer um pode criar/atualizar o próprio — mas só com "uid" vazio
@@ -103,6 +118,19 @@ service cloud.firestore {
     // administrador lê e muda o status pelo painel. Visitante não lê.
     match /noticias_fila/{noticiaId} {
       allow read, write: if ehAdmin();
+    }
+
+    // Histórico do painel Admin · Notícias (aprovou, recusou, tirou do site,
+    // editou...). Mesma regra do histórico das notícias próprias. A busca e a
+    // limpeza feitas pelo servidor gravam pelo Admin SDK, que não passa por
+    // aqui.
+    match /noticias_historico/{registroId} {
+      allow read: if ehAdmin();
+      allow create: if ehAdmin()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.em == request.time;
+      allow update, delete: if false;
     }
 
     // Resumo da última coleta, mostrado no painel. Só a função grava.

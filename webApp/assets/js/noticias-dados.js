@@ -3,7 +3,7 @@
 // só através deste arquivo, e os roteiros de teste (webApp/testes/) trocam ele
 // por uma cópia de mentira com as mesmas funções.
 //
-// São duas coleções:
+// O que fica no Firestore:
 //
 //   noticias_fila   tudo o que a coleta automática trouxe (quem grava é o
 //                   servidor: functions/noticias_firestore.py), cada uma com
@@ -11,21 +11,34 @@
 //                   administrador lê.
 //   noticias        cópia do que foi aprovado. É a única que o site lê, então
 //                   nada pendente ou recusado chega ao visitante.
+//   noticias_historico  quem aprovou, recusou, tirou do site ou editou cada
+//                   notícia, e quem mexeu no carrossel da Início. Só cresce:
+//                   as regras do Firestore não deixam mudar nem apagar, e
+//                   cada registro leva o e-mail de quem está logado e a hora
+//                   do servidor.
+//   configuracoes/destaques_inicio  as notícias do carrossel "Destaques
+//                   para você" da Início: { itens: [{ id, titulo }],
+//                   atualizadoEm, atualizadoPor }, na ordem do carrossel.
+//                   Todo mundo lê; só administrador grava.
 //
 // Aprovar copia da fila para "noticias"; recusar ou devolver para pendentes
-// apaga de "noticias". As duas gravações vão no mesmo lote, para uma nunca
-// ficar sem a outra. A recusada continua guardada na fila de propósito: é
+// apaga de "noticias". As duas gravações e o registro do histórico vão no
+// mesmo lote, para um nunca ficar sem o outro. A recusada continua guardada na fila de propósito: é
 // isso que impede a mesma notícia de voltar na próxima coleta.
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import {
-    collection, deleteField, doc, getCountFromServer, getDoc, getDocs,
-    limit, orderBy, query, where, writeBatch
+    collection, deleteField, doc, documentId, getCountFromServer, getDoc, getDocs,
+    limit, orderBy, query, runTransaction, serverTimestamp, where, writeBatch
 } from 'firebase/firestore';
-import { INSTITUICOES, imagemSegura, linkSeguro } from './noticias-util.js';
+import { INSTITUICOES, imagemSegura, linkSeguro, oQueFoiEditado } from './noticias-util.js';
+import { estaNoSite, itensDosDestaques, mudarListaDeDestaques } from './destaques-util.js';
 
 const PUBLICADAS = 'noticias';
 const FILA = 'noticias_fila';
+const HISTORICO = 'noticias_historico';
+const CONFIGURACOES = 'configuracoes';
+const DESTAQUES = 'destaques_inicio';
 
 // A função do servidor que lê os feeds (functions/main.py) — mesmo padrão de
 // troca localhost/produção das outras funções.
@@ -66,11 +79,33 @@ function revisao() {
     };
 }
 
-// Cada notícia mexe em dois documentos e um lote aceita 500 gravações.
+function usuarioLogado() {
+    const usuario = auth.currentUser;
+    if (!usuario) throw new Error('Sua sessão terminou. Entre de novo com a conta de administrador.');
+    return usuario;
+}
+
+// O registro do histórico (as regras conferem o uid, o e-mail e a hora).
+function registroDoHistorico(usuario, noticia, acao, detalhe = '') {
+    return {
+        noticiaId: String(noticia.id ?? ''),
+        titulo: String(noticia.titulo || '').trim().slice(0, LIMITE_TITULO) || '(sem título)',
+        acao,
+        detalhe,
+        email: usuario.email || '',
+        uid: usuario.uid,
+        em: serverTimestamp()
+    };
+}
+
+const novoRegistro = () => doc(collection(db, HISTORICO));
+
+// Cada notícia mexe em três documentos (a fila, a cópia do site e o registro
+// do histórico) e um lote aceita 500 gravações.
 async function gravarEmLotes(noticias, porNoticia) {
-    for (let i = 0; i < noticias.length; i += 200) {
+    for (let i = 0; i < noticias.length; i += 150) {
         const lote = writeBatch(db);
-        noticias.slice(i, i + 200).forEach((noticia) => porNoticia(lote, noticia));
+        noticias.slice(i, i + 150).forEach((noticia) => porNoticia(lote, noticia));
         await lote.commit();
     }
 }
@@ -112,15 +147,28 @@ export async function listarFila(status) {
 }
 
 // { pendente, aprovada, recusada }: os números das abas do painel.
+// "No site" não conta a notícia própria agendada: ela já está na coleção,
+// mas ainda fora do site (publicarEm no futuro).
 export async function contarFila() {
     const fila = collection(db, FILA);
     const contar = async (consulta) => (await getCountFromServer(consulta)).data().count;
-    const [pendente, aprovada, recusada] = await Promise.all([
+    const [pendente, naColecao, agendadas, recusada] = await Promise.all([
         contar(query(fila, where('status', '==', 'pendente'))),
         contar(collection(db, PUBLICADAS)),
+        contar(query(collection(db, PUBLICADAS), where('publicarEm', '>', new Date().toISOString()))),
         contar(query(fila, where('status', '==', 'recusada')))
     ]);
-    return { pendente, aprovada, recusada };
+    return { pendente, aprovada: naColecao - agendadas, recusada };
+}
+
+// Os últimos registros do histórico, do mais novo para o mais antigo ("em"
+// em ISO).
+export async function listarHistoricoNoticias({ quantos = 100 } = {}) {
+    const snap = await getDocs(query(collection(db, HISTORICO), orderBy('em', 'desc'), limit(quantos)));
+    return lerDocs(snap).map((registro) => ({
+        ...registro,
+        em: registro.em?.toDate ? registro.em.toDate().toISOString() : registro.em || null
+    }));
 }
 
 // ========================================================
@@ -134,6 +182,7 @@ export async function aprovarNoticias(noticias) {
     const semLink = noticias.find((noticia) => !linkSeguro(noticia.link));
     if (semLink) throw new Error(`A notícia "${semLink.titulo || semLink.id}" está sem um link válido.`);
 
+    const usuario = usuarioLogado();
     const agora = revisao();
     await gravarEmLotes(noticias, (lote, noticia) => {
         const publica = camposPublicos(noticia);
@@ -144,22 +193,27 @@ export async function aprovarNoticias(noticias) {
             recusadaEm: deleteField(), recusadaPor: deleteField(),
             ...agora
         }, { merge: true });
+        lote.set(novoRegistro(), registroDoHistorico(usuario, noticia, 'aprovou'));
     });
 }
 
 // Tira do site (se estiver lá) e guarda como recusada.
 export async function recusarNoticias(noticias) {
+    const usuario = usuarioLogado();
     const agora = revisao();
     await gravarEmLotes(noticias, (lote, noticia) => {
         lote.delete(doc(db, PUBLICADAS, noticia.id));
         lote.set(doc(db, FILA, noticia.id), {
             status: 'recusada', recusadaEm: agora.revisadaEm, recusadaPor: agora.revisadaPor, ...agora
         }, { merge: true });
+        lote.set(novoRegistro(), registroDoHistorico(usuario, noticia, 'recusou'));
     });
 }
 
-// Tira do site (se estiver lá) e volta para a lista de pendentes.
-export async function devolverParaPendentes(noticias) {
+// Volta para a lista de pendentes, tirando do site se estiver lá. acao: o que
+// fica no histórico ("tirou" do site ou "voltou" das recusadas).
+async function voltarParaPendentes(noticias, acao) {
+    const usuario = usuarioLogado();
     const agora = revisao();
     await gravarEmLotes(noticias, (lote, noticia) => {
         lote.delete(doc(db, PUBLICADAS, noticia.id));
@@ -169,7 +223,18 @@ export async function devolverParaPendentes(noticias) {
             aprovadaEm: deleteField(), aprovadaPor: deleteField(),
             ...agora
         }, { merge: true });
+        lote.set(novoRegistro(), registroDoHistorico(usuario, noticia, acao));
     });
+}
+
+// Aba No site: sai do site e volta para as pendentes.
+export async function tirarDoSite(noticias) {
+    await voltarParaPendentes(noticias, 'tirou');
+}
+
+// Aba Recusadas: volta para as pendentes.
+export async function devolverParaPendentes(noticias) {
+    await voltarParaPendentes(noticias, 'voltou');
 }
 
 // Corrige título, resumo, imagem e etiquetas. campos: { titulo, resumo,
@@ -191,12 +256,73 @@ export async function salvarEdicao(noticia, campos) {
         instituicoes: etiquetasValidas(campos.instituicoes)
     };
 
+    const usuario = usuarioLogado();
     const lote = writeBatch(db);
     lote.set(doc(db, FILA, noticia.id), { ...novos, ...revisao() }, { merge: true });
     if (noticia.status === 'aprovada') lote.set(doc(db, PUBLICADAS, noticia.id), novos, { merge: true });
+    lote.set(novoRegistro(), registroDoHistorico(usuario, { ...noticia, ...novos }, 'editou', oQueFoiEditado(noticia, novos)));
     await lote.commit();
 
     return { ...noticia, ...novos };
+}
+
+// ========================================================
+// Carrossel "Destaques para você" da Início
+// ========================================================
+
+// A lista do carrossel, cada item com a notícia como está no site agora
+// (noticia: null quando ela saiu do site). Devolve { itens: [{ id, titulo,
+// noticia }], atualizadoEm (ISO), atualizadoPor }. Custa 1 leitura, mais 1
+// por notícia escolhida.
+export async function lerDestaques() {
+    const registro = await getDoc(doc(db, CONFIGURACOES, DESTAQUES));
+    const dados = registro.exists() ? registro.data() : {};
+    const itens = itensDosDestaques(dados.itens);
+
+    const noSite = new Map();
+    if (itens.length) {
+        const ids = itens.map((item) => item.id);
+        const snap = await getDocs(query(collection(db, PUBLICADAS), where(documentId(), 'in', ids)));
+        lerDocs(snap).forEach((noticia) => noSite.set(noticia.id, noticia));
+    }
+    return {
+        itens: itens.map((item) => ({ ...item, noticia: noSite.get(item.id) || null })),
+        atualizadoEm: dados.atualizadoEm?.toDate ? dados.atualizadoEm.toDate().toISOString() : null,
+        atualizadoPor: dados.atualizadoPor || ''
+    };
+}
+
+// O que a Início mostra: as notícias escolhidas que estão no site agora, na
+// ordem do carrossel (a própria agendada só entra quando chega a hora).
+export async function listarDestaquesDaInicio() {
+    const { itens } = await lerDestaques();
+    const agora = new Date();
+    return itens.map((item) => item.noticia).filter((noticia) => estaNoSite(noticia, agora));
+}
+
+// Muda o carrossel: acao 'destacar', 'tirar', 'antes' ou 'depois' (ver
+// mudarListaDeDestaques). A lista é lida de novo dentro de uma transação: se
+// outra pessoa mexeu no carrossel depois que o painel abriu, a mudança entra
+// na lista dela em vez de desfazer o que ela fez. O registro do histórico vai
+// junto. Devolve a lista como ficou ([{ id, titulo }]).
+export async function mudarDestaques(acao, noticia, opcoes = {}) {
+    const usuario = usuarioLogado();
+    const ref = doc(db, CONFIGURACOES, DESTAQUES);
+    return runTransaction(db, async (transacao) => {
+        const atual = await transacao.get(ref);
+        const itens = itensDosDestaques(atual.exists() ? atual.data().itens : []);
+        const mudanca = mudarListaDeDestaques(itens, acao, noticia, opcoes);
+        if (!mudanca) return itens;
+
+        transacao.set(ref, {
+            itens: mudanca.itens,
+            atualizadoEm: serverTimestamp(),
+            atualizadoPor: usuario.email || ''
+        });
+        transacao.set(novoRegistro(), registroDoHistorico(usuario,
+            { id: noticia.id, titulo: mudanca.titulo }, mudanca.acao, mudanca.detalhe));
+        return mudanca.itens;
+    });
 }
 
 // ========================================================

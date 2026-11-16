@@ -22,6 +22,15 @@
     --fatec-soft: var(--blue-soft);
     --cps: #4a5d82;
     --cps-soft: #eceff6;
+
+    /* carrossel da Início (aba No site): amarelo, para não confundir com o
+       azul das notícias do Futuro+ nem com aprovar e recusar */
+    --destaque-borda: #f5c04a;
+    --destaque-fundo: #fff7e3;
+    --destaque-selo: #fff3d6;
+    --destaque-ativo: #ffcf5c;
+    --destaque-ativo-hover: #ffc53d;
+    --destaque-ativo-texto: #5b3d00;
 }
 
 .btn:focus-visible,
@@ -787,13 +796,14 @@ body.modal-aberto {
    Ajustes do que vem de admin-instituicoes.css, só no celular
    ========================================================= */
 @media (max-width: 640px) {
-    /* com menos de 16 px o iPhone dá zoom ao tocar no campo */
-    .campo input,
-    .campo textarea {
+    /* com menos de 16 px o iPhone dá zoom ao tocar no campo (o modal na
+       frente das classes comuns: no build o CSS comum vem depois deste) */
+    .modal--noticia .campo input,
+    .modal--noticia .campo textarea {
         font-size: 16px;
     }
 
-    .modal-overlay {
+    .modal-overlay#modal-editar {
         padding: 12px 10px;
     }
 
@@ -933,5 +943,438 @@ body.modal-aberto {
     .propria-pendente-revisar {
         grid-column: 1 / -1;
         justify-content: center;
+    }
+}
+
+/* ---- botões que são links (Notificar, Abrir em Notícias próprias) ---- */
+.noticia-item-acoes a.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    text-decoration: none;
+}
+
+/* ---- Notícia do Futuro+ na aba No site: o mesmo azul do card do site ----
+   Tirar do site e editar são no painel Notícias próprias. */
+.noticia-item.noticia-item--propria {
+    border-color: transparent;
+    background: linear-gradient(160deg, #5c79ee 0%, var(--blue) 45%, var(--blue-dark) 100%);
+    box-shadow: 0 3px 8px rgba(27, 31, 59, 0.08), 0 18px 34px -18px rgba(59, 91, 219, 0.85);
+    color: #fff;
+}
+
+.noticia-item--propria .noticia-item-capa {
+    background: rgba(255, 255, 255, 0.16);
+}
+
+.noticia-item--propria .noticia-item-titulo,
+.noticia-item--propria .noticia-item-meta strong,
+.noticia-item--propria .noticia-item-link {
+    color: #fff;
+}
+
+.noticia-item--propria .noticia-item-meta,
+.noticia-item--propria .noticia-item-resumo {
+    color: rgba(255, 255, 255, 0.88);
+}
+
+.noticia-item--propria .noticia-etiqueta {
+    background: #fff;
+}
+
+.noticia-etiqueta.noticia-etiqueta--propria {
+    --etiqueta-cor: var(--blue);
+    color: var(--blue-dark);
+}
+
+.noticia-item--propria .noticia-item-acoes .btn-primario {
+    background: #fff;
+    color: var(--blue-dark);
+}
+
+.noticia-item--propria .noticia-item-acoes .btn-primario:hover {
+    background: var(--blue-soft);
+}
+
+.noticia-item--propria .noticia-item-acoes .btn-secundario {
+    border-color: rgba(255, 255, 255, 0.55);
+    background: transparent;
+    color: #fff;
+}
+
+.noticia-item--propria .noticia-item-acoes .btn-secundario:hover {
+    background: rgba(255, 255, 255, 0.14);
+}
+
+.noticia-item--propria .noticia-item-link:focus-visible,
+.noticia-item--propria .noticia-item-acoes .btn:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+}
+
+/* ---- aba Histórico ---- */
+.noticias-historico {
+    margin-top: 6px;
+}
+
+.noticias-historico[hidden] {
+    display: none;
+}
+
+/* =========================================================
+   Carrossel da Início (aba No site)
+   O quadro com as 3 vagas do "Destaques para você", na ordem, e o botão
+   Destacar dos cards. Regras que mexem em .btn repetem a classe (.btn.x):
+   no build o CSS comum vem depois deste.
+   ========================================================= */
+.destaques-painel {
+    margin-bottom: 16px;
+    padding: 16px 14px 18px;
+    border: 2px solid var(--destaque-borda);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-card);
+}
+
+.destaques-painel[hidden] {
+    display: none;
+}
+
+.destaques-painel:focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: 2px;
+}
+
+.destaques-painel-cabeca {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+/* o ícone fica ao lado da primeira linha; o número vai junto do texto */
+.destaques-painel-cabeca h2 {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 15.5px;
+    line-height: 1.5;
+    color: var(--ink);
+}
+
+.destaques-painel-cabeca h2 img {
+    flex: none;
+    width: 24px;
+    height: 24px;
+}
+
+.destaques-painel-contagem {
+    display: inline-block;
+    margin-left: 4px;
+    padding: 0 10px;
+    border-radius: 99px;
+    background: var(--destaque-selo);
+    color: var(--aviso-texto);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.7;
+    white-space: nowrap;
+    vertical-align: 1px;
+}
+
+.destaques-painel-contagem:empty {
+    display: none;
+}
+
+.destaques-painel-cabeca p {
+    margin-top: 4px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+}
+
+.destaques-painel-cabeca p strong {
+    color: var(--ink);
+}
+
+.destaques-painel-cabeca a.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    align-self: flex-start;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.destaques-painel-cabeca a.btn svg {
+    width: 15px;
+    height: 15px;
+}
+
+.destaques-vagas {
+    list-style: none;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px 14px;
+}
+
+.destaques-vagas-aviso {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 2px;
+    font-size: 13px;
+    color: var(--ink-soft);
+}
+
+.destaque-vaga {
+    position: relative;
+    display: grid;
+    grid-template-columns: 88px minmax(0, 1fr);
+    gap: 10px;
+    align-items: center;
+    padding: 14px 10px 10px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--bg);
+}
+
+/* o número da vaga, preso no canto */
+.destaque-vaga-numero {
+    position: absolute;
+    top: -10px;
+    left: -8px;
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--destaque-ativo);
+    color: var(--destaque-ativo-texto);
+    font-size: 12px;
+    font-weight: 800;
+    box-shadow: 0 2px 6px rgba(27, 31, 59, 0.15);
+}
+
+.destaque-vaga-capa {
+    width: 88px;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border-radius: 9px;
+    background: var(--blue-soft);
+}
+
+.destaque-vaga-capa img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.destaque-vaga-texto {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    min-width: 0;
+}
+
+.destaque-vaga-texto strong {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 13px;
+    line-height: 1.35;
+    color: var(--ink);
+    overflow-wrap: anywhere;
+}
+
+.destaque-vaga-texto small {
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--ink-soft);
+}
+
+.destaque-vaga-selo {
+    max-width: 100%;
+    padding: 2px 8px;
+    border: 1px solid var(--line);
+    border-radius: 99px;
+    background: var(--surface);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.destaque-vaga-selo--propria {
+    border-color: var(--blue);
+    background: var(--blue);
+    color: #fff;
+}
+
+.destaque-vaga-selo--aviso {
+    border-color: var(--destaque-borda);
+    background: var(--destaque-selo);
+    color: var(--aviso-texto);
+}
+
+.destaque-vaga-botoes {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 6px;
+}
+
+.btn.destaque-vaga-botao {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 6px 8px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--ink-soft);
+    font-size: 12.5px;
+}
+
+.btn.destaque-vaga-botao svg {
+    flex: none;
+    width: 14px;
+    height: 14px;
+}
+
+.btn.destaque-vaga-botao:hover:not(:disabled) {
+    border-color: var(--blue-soft);
+    background: var(--blue-soft);
+    color: var(--blue-dark);
+}
+
+.btn.destaque-vaga-botao--tirar {
+    color: var(--perigo-texto);
+}
+
+.btn.destaque-vaga-botao--tirar:hover:not(:disabled) {
+    border-color: var(--red-soft);
+    background: var(--red-soft);
+    color: var(--perigo-texto);
+}
+
+/* "Antes" na primeira vaga e "Depois" na última não fazem nada */
+.btn.destaque-vaga-botao:disabled {
+    cursor: default;
+}
+
+/* a notícia saiu do site: não aparece no carrossel até alguém tirar daqui */
+.destaque-vaga--fora {
+    grid-template-columns: minmax(0, 1fr);
+    border-color: var(--destaque-borda);
+    background: var(--destaque-fundo);
+}
+
+.destaque-vaga--livre {
+    grid-template-columns: minmax(0, 1fr);
+    align-content: center;
+    min-height: 100px;
+    padding: 16px 14px;
+    border: 2px dashed #d9dcec;
+    background: var(--surface);
+    text-align: center;
+}
+
+.destaque-vaga--livre .destaque-vaga-texto {
+    align-items: center;
+}
+
+.destaque-vaga--livre b {
+    font-size: 13px;
+    color: var(--ink);
+}
+
+.destaque-vaga--livre .destaque-vaga-numero {
+    background: #e3e6f3;
+    color: var(--ink-soft);
+}
+
+/* ---- botão Destacar dos cards ---- */
+.btn.btn-destacar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 1.5px solid var(--destaque-borda);
+    background: var(--surface);
+    color: var(--aviso-texto);
+}
+
+.btn.btn-destacar svg {
+    flex: none;
+    width: 16px;
+    height: 16px;
+}
+
+.btn.btn-destacar:hover:not(:disabled) {
+    background: var(--destaque-fundo);
+}
+
+.btn.btn-destacar.btn-destacar--ativo {
+    border-color: var(--destaque-ativo);
+    background: var(--destaque-ativo);
+    color: var(--destaque-ativo-texto);
+}
+
+.btn.btn-destacar.btn-destacar--ativo:hover:not(:disabled) {
+    border-color: var(--destaque-ativo-hover);
+    background: var(--destaque-ativo-hover);
+}
+
+@media (min-width: 640px) {
+    .destaques-painel {
+        padding: 18px 20px 20px;
+    }
+
+    .destaques-painel-cabeca {
+        flex-direction: row;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 20px;
+    }
+}
+
+@media (min-width: 900px) {
+    .destaques-vagas {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+/* Celular e tablet: as vagas ficam uma embaixo da outra (as setas apontam
+   para cima e para baixo) e, nos cards, o Destacar ganha a linha toda. */
+@media (max-width: 899px) {
+    .destaque-vaga-icone--antes,
+    .destaque-vaga-icone--depois {
+        transform: rotate(90deg);
+    }
+
+    .noticia-item-acoes {
+        flex-wrap: wrap;
+    }
+
+    .noticia-item-acoes .btn.btn-destacar {
+        flex: 1 1 100%;
+    }
+}
+
+@media (max-width: 640px) {
+    .btn.destaque-vaga-botao {
+        min-height: 44px;
     }
 }

@@ -1,0 +1,200 @@
+/* =========================================================
+   Futuro+ · Admin · Notificações
+   O resto (cabeçalho, botões, tabela, modal, abas e histórico) vem de
+   admin-instituicoes.css. No build esse arquivo entra DEPOIS deste: aqui só
+   há classes deste painel, e quem mexe numa classe de lá repete a classe no
+   seletor para vencer nas duas ordens.
+   ========================================================= */
+
+/* ---- na tabela: para qual notícia o aviso leva ---- */
+.notif-leva {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    width: fit-content;
+    max-width: min(100%, 280px);
+    margin-top: 6px;
+    padding: 3px 10px;
+    border-radius: 99px;
+    background: var(--blue-soft);
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--blue-dark);
+}
+
+.notif-leva b {
+    flex-shrink: 0;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.notif-leva span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ---- no formulário: a notícia escolhida ---- */
+.noticia-escolhida {
+    display: grid;
+    grid-template-columns: 104px minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+    padding: 10px;
+    border: 1.5px solid var(--blue);
+    border-radius: var(--radius-md);
+    background: var(--blue-soft);
+}
+
+.noticia-escolhida[hidden] {
+    display: none;
+}
+
+.noticia-capa {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    border-radius: 10px;
+    background: linear-gradient(160deg, #5c79ee, var(--blue-dark));
+}
+
+.noticia-escolhida-texto {
+    min-width: 0;
+}
+
+.noticia-escolhida-texto strong {
+    display: block;
+    margin: 5px 0 4px;
+    font-size: 13.5px;
+    line-height: 1.35;
+    color: var(--ink);
+}
+
+.noticia-escolhida-texto a {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--blue-dark);
+}
+
+.noticia-fonte {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 99px;
+    background: var(--surface);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink-soft);
+}
+
+.noticia-fonte--propria {
+    background: var(--blue);
+    color: #fff;
+}
+
+.noticia-escolhida-acoes {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.btn.noticia-botao {
+    min-height: 34px;
+    padding: 6px 14px;
+    font-size: 12.5px;
+}
+
+/* ---- no formulário: a lista para escolher ---- */
+.noticia-busca {
+    margin-top: 10px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+}
+
+.noticia-busca[hidden] {
+    display: none;
+}
+
+.noticia-busca .noticia-filtro {
+    display: block;
+    width: 100%;
+    padding: 11px 14px;
+    border: none;
+    border-bottom: 1px solid var(--line);
+    border-radius: 0;
+    background: var(--bg);
+    font-family: inherit;
+    /* com menos de 16 px o iPhone dá zoom ao tocar */
+    font-size: 16px;
+    color: var(--ink);
+}
+
+.noticia-busca .noticia-filtro:focus {
+    outline: 2px solid var(--blue);
+    outline-offset: -2px;
+}
+
+.noticia-opcoes {
+    max-height: 290px;
+    margin: 0;
+    padding: 6px;
+    overflow-y: auto;
+    list-style: none;
+}
+
+.noticia-opcao {
+    display: grid;
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 10px;
+    align-items: center;
+    width: 100%;
+    padding: 6px;
+    border: none;
+    border-radius: 10px;
+    background: none;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.noticia-opcao:hover {
+    background: var(--bg);
+}
+
+.noticia-opcao:focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: -2px;
+}
+
+.noticia-opcao strong {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    margin-top: 3px;
+    font-size: 13px;
+    line-height: 1.35;
+    color: var(--ink);
+}
+
+.noticia-opcao small {
+    margin-left: 6px;
+    font-size: 11.5px;
+    color: var(--ink-soft);
+}
+
+.noticia-opcoes-aviso {
+    padding: 14px 10px;
+    font-size: 13px;
+    color: var(--ink-soft);
+}
+
+@media (max-width: 520px) {
+    .noticia-escolhida {
+        grid-template-columns: 80px minmax(0, 1fr);
+    }
+}

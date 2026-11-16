@@ -1,13 +1,31 @@
-import { auth, db } from './firebase-config.js';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
+// Painel Admin · Notificações: os avisos que aparecem como modal ao entrar,
+// na lista do sino e (opcional) como notificação no dispositivo. Cada aviso
+// pode levar para uma notícia do site: no sino e no modal ele vira link, e no
+// push tocar abre a matéria. Tudo o que é feito fica no histórico, com o
+// e-mail de quem fez (aba Histórico).
+//
+// Os dados chegam só por notificacoes-dados.js (os roteiros de teste trocam
+// esse arquivo por uma cópia de mentira). O painel Notícias manda para cá
+// com ?noticia=<id> para criar um aviso já ligado à notícia.
 import {
-    collection, doc, getDoc, getDocs, setDoc, deleteDoc
-} from 'firebase/firestore';
-
-const COLECAO = 'notificacoes';
+    excluirNotificacao, lerNoticiaDoSite, listarHistorico, listarNoticiasDoSite, listarNotificacoes, novoId,
+    observarAdmin, sairDaConta, salvarNotificacao
+} from './notificacoes-dados.js';
+import {
+    ACOES_NOTIFICACAO, linkDaNoticia, noticiaLigada, oQueMudou, textoSugerido
+} from './notificacoes-util.js';
+import { dataHora } from './noticias-proprias-util.js';
 
 let notificacoesCache = [];
 let editandoId = null;
+let iniciado = false;
+
+// a notícia ligada ao aviso que está no formulário (o que fica guardado nele)
+let noticiaDoFormulario = null;
+// as notícias do site para escolher (lidas uma vez, na primeira escolha)
+let noticiasDoSite = null;
+
+const el = (id) => document.getElementById(id);
 
 function escapeHtml(str) {
     return String(str ?? '').replace(/[&<>"']/g, (c) => ({
@@ -19,6 +37,25 @@ function formatarDataHora(iso) {
     const data = new Date(iso || '');
     if (Number.isNaN(data.getTime())) return '';
     return data.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+function dataCurta(iso) {
+    const data = new Date(iso || '');
+    if (Number.isNaN(data.getTime())) return '';
+    return data.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+}
+
+// "há 13 horas", "há 2 dias"
+function haQuantoTempo(iso) {
+    const data = new Date(iso || '');
+    if (Number.isNaN(data.getTime())) return '';
+    const minutos = Math.max(0, Math.round((Date.now() - data) / 60000));
+    if (minutos < 2) return 'agora há pouco';
+    if (minutos < 60) return `há ${minutos} minutos`;
+    const horas = Math.round(minutos / 60);
+    if (horas < 24) return `há ${horas} ${horas === 1 ? 'hora' : 'horas'}`;
+    const dias = Math.round(horas / 24);
+    return dias === 1 ? 'há 1 dia' : `há ${dias} dias`;
 }
 
 // <input type="datetime-local"> trabalha em horário local, sem fuso — as
@@ -51,26 +88,30 @@ const LABEL_PUBLICO = {
 };
 
 function mostrarStatus(mensagem, tipo) {
-    const status = document.getElementById('status-notificacoes');
+    const status = el('status-notificacoes');
     status.style.display = 'block';
     status.textContent = mensagem;
     status.className = tipo ? `status-importacao status-importacao--${tipo}` : 'status-importacao';
 }
 
 // ========================================================
-// Firestore
+// Lista de notificações
 // ========================================================
 
 async function carregarNotificacoes() {
-    const snap = await getDocs(collection(db, COLECAO));
-    notificacoesCache = snap.docs
-        .map((d) => ({ id: d.id, ...d.data() }))
-        .sort((a, b) => (b.criadoEm || '').localeCompare(a.criadoEm || ''));
+    notificacoesCache = await listarNotificacoes();
     renderizarTabela();
 }
 
+// "Leva para: título da notícia" (ou o endereço, se não tiver a notícia guardada)
+function levaParaHtml(n) {
+    if (!n.link) return '';
+    const nome = n.noticia?.titulo || n.link;
+    return `<span class="notif-leva" title="${escapeHtml(nome)}"><b>Leva para:</b><span>${escapeHtml(nome)}</span></span>`;
+}
+
 function renderizarTabela() {
-    const corpo = document.getElementById('tabela-notificacoes-corpo');
+    const corpo = el('tabela-notificacoes-corpo');
 
     if (!notificacoesCache.length) {
         corpo.innerHTML = `<tr><td colspan="9" class="tabela-vazia">Nenhuma notificação cadastrada ainda.</td></tr>`;
@@ -90,7 +131,7 @@ function renderizarTabela() {
         return `
         <tr>
             <td>${escapeHtml(n.titulo)}</td>
-            <td>${escapeHtml((n.mensagem || '').slice(0, 80))}${(n.mensagem || '').length > 80 ? '…' : ''}</td>
+            <td>${escapeHtml((n.mensagem || '').slice(0, 80))}${(n.mensagem || '').length > 80 ? '…' : ''}${levaParaHtml(n)}</td>
             <td>${escapeHtml(LABEL_PUBLICO[n.publico || 'logados'])}</td>
             <td>${n.mostrarModal ? '✓' : '—'}</td>
             <td>${n.mostrarSino ? '✓' : '—'}</td>
@@ -105,17 +146,73 @@ function renderizarTabela() {
     }).join('');
 }
 
-async function salvarNotificacao(event) {
+// ========================================================
+// Histórico
+// ========================================================
+
+const COR_DA_ACAO = {
+    criou: 'positiva',
+    ativou: 'positiva',
+    editou: 'neutra',
+    desativou: 'negativa',
+    excluiu: 'negativa'
+};
+
+function linhaDoHistorico(registro) {
+    const acao = ACOES_NOTIFICACAO[registro.acao] || registro.acao;
+    return `
+        <tr>
+            <td class="historico-quando"><strong>${escapeHtml(dataHora(registro.em))}</strong><small>${escapeHtml(haQuantoTempo(registro.em))}</small></td>
+            <td class="historico-quem">${escapeHtml(registro.email || '—')}</td>
+            <td><span class="historico-acao historico-acao--${COR_DA_ACAO[registro.acao] || 'neutra'}">${escapeHtml(acao)}</span>${registro.detalhe
+                ? ` <small class="historico-detalhe">${escapeHtml(registro.detalhe)}</small>` : ''}</td>
+            <td>${escapeHtml(registro.titulo || '')}</td>
+        </tr>`;
+}
+
+async function carregarHistorico() {
+    const corpo = el('historico-corpo');
+    corpo.innerHTML = '<tr><td colspan="4" class="tabela-vazia">Carregando histórico...</td></tr>';
+    try {
+        const registros = await listarHistorico({ quantos: 100 });
+        corpo.innerHTML = registros.length
+            ? registros.map(linhaDoHistorico).join('')
+            : '<tr><td colspan="4" class="tabela-vazia">Nada registrado ainda. O histórico começa na próxima notificação salva.</td></tr>';
+    } catch (erro) {
+        console.error('Erro ao carregar o histórico das notificações:', erro);
+        corpo.innerHTML = '<tr><td colspan="4" class="tabela-vazia">Não foi possível carregar o histórico agora.</td></tr>';
+    }
+}
+
+function abrirAba(aba) {
+    const abas = ['avisos', 'historico'];
+    if (!abas.includes(aba)) return;
+    for (const nome of abas) {
+        const botao = el(`aba-${nome}`);
+        const ativa = nome === aba;
+        botao.classList.toggle('aba-admin--ativa', ativa);
+        botao.setAttribute('aria-selected', String(ativa));
+        botao.tabIndex = ativa ? 0 : -1;
+        el(`painel-${nome}`).hidden = !ativa;
+    }
+    if (aba === 'historico') carregarHistorico();
+}
+
+// ========================================================
+// Gravação
+// ========================================================
+
+async function salvarFormulario(event) {
     event.preventDefault();
 
-    const titulo = document.getElementById('f-titulo').value.trim();
-    const mensagem = document.getElementById('f-mensagem').value.trim();
+    const titulo = el('f-titulo').value.trim();
+    const mensagem = el('f-mensagem').value.trim();
     if (!titulo || !mensagem) {
         alert('Preencha o título e a mensagem da notificação.');
         return;
     }
 
-    const publicarEm = deDatetimeLocal(document.getElementById('f-agendar').value);
+    const publicarEm = deDatetimeLocal(el('f-agendar').value);
     // Só barra data no futuro próximo demais — uma já publicada no passado
     // (editando uma notificação antiga sem mexer no agendamento) não conta.
     if (publicarEm && publicarEm > new Date().toISOString() && publicarEm < minimoAgendamentoIso()) {
@@ -124,7 +221,7 @@ async function salvarNotificacao(event) {
     }
 
     const existente = editandoId ? notificacoesCache.find((n) => n.id === editandoId) : null;
-    const id = editandoId || doc(collection(db, COLECAO)).id;
+    const id = editandoId || novoId();
 
     const dados = {
         titulo,
@@ -132,32 +229,49 @@ async function salvarNotificacao(event) {
         publico: document.querySelector('input[name="f-publico"]:checked').value,
         // agendada não pode virar modal (o checkbox já fica travado na tela,
         // isso aqui é só reforço contra um estado de formulário desatualizado)
-        mostrarModal: publicarEm ? false : document.getElementById('f-modal').checked,
-        mostrarSino: document.getElementById('f-sino').checked,
-        enviarPush: document.getElementById('f-push').checked,
-        ativo: document.getElementById('f-ativa').checked,
+        mostrarModal: publicarEm ? false : el('f-modal').checked,
+        mostrarSino: el('f-sino').checked,
+        enviarPush: el('f-push').checked,
+        ativo: el('f-ativa').checked,
         publicarEm,
+        // a notícia para onde o aviso leva (link vazio = não leva a lugar nenhum)
+        link: noticiaDoFormulario ? linkDaNoticia(noticiaDoFormulario) : '',
+        noticia: noticiaDoFormulario ? noticiaLigada(noticiaDoFormulario) : null,
         criadoEm: existente?.criadoEm || new Date().toISOString(),
-        criadoPor: existente?.criadoPor || auth.currentUser.uid
+        // a nova recebe o uid de quem está logado em salvarNotificacao()
+        criadoPor: existente?.criadoPor || null
     };
 
+    const historico = oQueMudou(existente, dados);
+    if (!historico) {
+        fecharFormulario();
+        mostrarStatus('Nada mudou nesta notificação.', '');
+        return;
+    }
+
+    const botao = document.querySelector('#form-notificacao [type="submit"]');
+    botao.disabled = true;
     try {
-        await setDoc(doc(db, COLECAO, id), dados);
+        await salvarNotificacao(id, dados, historico);
         fecharFormulario();
         await carregarNotificacoes();
-        mostrarStatus('Notificação salva.', 'ok');
+        mostrarStatus(existente ? 'Notificação salva.' : 'Notificação criada.', 'ok');
     } catch (err) {
         console.error('Erro ao salvar notificação:', err);
         alert('Erro ao salvar a notificação: ' + err.message);
+    } finally {
+        botao.disabled = false;
     }
 }
 
-async function excluirNotificacao(id) {
+async function excluir(id) {
     const notificacao = notificacoesCache.find((n) => n.id === id);
-    if (!confirm(`Excluir a notificação "${notificacao ? notificacao.titulo : id}"? Essa ação não pode ser desfeita.`)) return;
+    if (!notificacao) return;
+    if (!confirm(`Excluir a notificação "${notificacao.titulo}"? Ela some do site, mas o registro no histórico continua guardado.`)) return;
     try {
-        await deleteDoc(doc(db, COLECAO, id));
+        await excluirNotificacao(notificacao);
         await carregarNotificacoes();
+        mostrarStatus('Notificação excluída.', 'ok');
     } catch (err) {
         console.error('Erro ao excluir notificação:', err);
         alert('Erro ao excluir a notificação: ' + err.message);
@@ -171,86 +285,216 @@ async function excluirNotificacao(id) {
 // Notificação agendada não pode aparecer como modal (ver campo-dica no
 // formulário) — trava o checkbox e desmarca enquanto houver data escolhida.
 function atualizarDisponibilidadeModal() {
-    const agendada = !!document.getElementById('f-agendar').value;
-    const checkboxModal = document.getElementById('f-modal');
+    const agendada = !!el('f-agendar').value;
+    const checkboxModal = el('f-modal');
     checkboxModal.disabled = agendada;
     if (agendada) checkboxModal.checked = false;
 }
 
-function abrirFormulario(notificacao) {
+// noticiaInicial: a notícia já escolhida (vinda do painel Notícias)
+function abrirFormulario(notificacao, noticiaInicial = null) {
     editandoId = notificacao ? notificacao.id : null;
-    document.getElementById('form-titulo').textContent = notificacao ? 'Editar notificação' : 'Nova notificação';
-    document.getElementById('form-notificacao').reset();
+    el('form-titulo').textContent = notificacao ? 'Editar notificação' : 'Nova notificação';
+    el('form-notificacao').reset();
 
-    document.getElementById('f-titulo').value = notificacao?.titulo || '';
-    document.getElementById('f-mensagem').value = notificacao?.mensagem || '';
-    document.getElementById(`f-publico-${notificacao?.publico || 'logados'}`).checked = true;
+    el('f-titulo').value = notificacao?.titulo || '';
+    el('f-mensagem').value = notificacao?.mensagem || '';
+    el(`f-publico-${notificacao?.publico || 'logados'}`).checked = true;
     // Se já tem uma data agendada no passado (notificação já publicada), o
     // "min" não pode ficar maior que o valor atual, senão o navegador marca
     // o campo como inválido só por mostrar o que já estava salvo.
     const minimo = notificacao?.publicarEm && notificacao.publicarEm < minimoAgendamentoIso()
         ? notificacao.publicarEm
         : minimoAgendamentoIso();
-    document.getElementById('f-agendar').min = paraDatetimeLocal(minimo);
-    document.getElementById('f-agendar').value = paraDatetimeLocal(notificacao?.publicarEm);
-    document.getElementById('f-modal').checked = notificacao?.mostrarModal || false;
-    document.getElementById('f-sino').checked = notificacao ? !!notificacao.mostrarSino : true;
-    document.getElementById('f-push').checked = notificacao?.enviarPush || false;
-    document.getElementById('f-ativa').checked = notificacao ? notificacao.ativo !== false : true;
+    el('f-agendar').min = paraDatetimeLocal(minimo);
+    el('f-agendar').value = paraDatetimeLocal(notificacao?.publicarEm);
+    el('f-modal').checked = notificacao?.mostrarModal || false;
+    el('f-sino').checked = notificacao ? !!notificacao.mostrarSino : true;
+    el('f-push').checked = notificacao?.enviarPush || false;
+    el('f-ativa').checked = notificacao ? notificacao.ativo !== false : true;
     atualizarDisponibilidadeModal();
 
-    document.getElementById('modal-form').classList.add('aberto');
+    // a notícia guardada no aviso (com o link que ele já tinha)
+    noticiaDoFormulario = notificacao?.noticia && notificacao.link
+        ? { ...notificacao.noticia, link: notificacao.link }
+        : null;
+    fecharEscolhaDeNoticia();
+    if (noticiaInicial) escolherNoticia(noticiaInicial);
+    else desenharNoticiaEscolhida();
+
+    el('modal-form').classList.add('aberto');
+    // título já preenchido (vindo da notícia): o cursor vai para o começo,
+    // senão o campo mostra só o fim do texto
+    el('f-titulo').focus();
+    el('f-titulo').setSelectionRange(0, 0);
+    el('f-titulo').scrollLeft = 0;
 }
 
 function fecharFormulario() {
-    document.getElementById('modal-form').classList.remove('aberto');
+    el('modal-form').classList.remove('aberto');
     editandoId = null;
+    noticiaDoFormulario = null;
+}
+
+// ---- a notícia para onde o aviso leva ----
+
+// https (Storage e sites de notícia), arquivo do próprio site ("/capa.webp")
+// e, no computador de quem desenvolve, http://localhost
+function capaHtml(imagem) {
+    const texto = String(imagem || '');
+    return /^https:\/\//i.test(texto) || /^\/[^/]/.test(texto) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?\//i.test(texto)
+        ? `<img class="noticia-capa" src="${escapeHtml(imagem)}" alt="" loading="lazy" referrerpolicy="no-referrer">`
+        : '<span class="noticia-capa" aria-hidden="true"></span>';
+}
+
+function fonteHtml(noticia) {
+    return noticia.propria
+        ? '<span class="noticia-fonte noticia-fonte--propria">Futuro+</span>'
+        : `<span class="noticia-fonte">${escapeHtml(noticia.fonte || 'Outro site')}</span>`;
+}
+
+function desenharNoticiaEscolhida() {
+    const caixa = el('f-noticia-escolhida');
+    const botao = el('f-noticia-escolher');
+    if (!noticiaDoFormulario) {
+        caixa.hidden = true;
+        caixa.innerHTML = '';
+        botao.hidden = false;
+        return;
+    }
+    const link = linkDaNoticia(noticiaDoFormulario) || noticiaDoFormulario.link || '';
+    caixa.innerHTML = `
+        ${capaHtml(noticiaDoFormulario.imagem)}
+        <div class="noticia-escolhida-texto">
+            ${fonteHtml(noticiaDoFormulario)}
+            <strong>${escapeHtml(noticiaDoFormulario.titulo || 'Notícia')}</strong>
+            ${link ? `<a href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">Abrir a matéria ↗</a>` : ''}
+        </div>
+        <div class="noticia-escolhida-acoes">
+            <button type="button" class="btn btn-secundario noticia-botao" data-acao="trocar-noticia">Trocar notícia</button>
+            <button type="button" class="btn btn-secundario noticia-botao" data-acao="tirar-noticia">Não levar para notícia</button>
+        </div>`;
+    caixa.hidden = false;
+    botao.hidden = true;
+}
+
+function escolherNoticia(noticia) {
+    noticiaDoFormulario = noticia;
+    // título e mensagem vazios ganham os da notícia
+    const sugerido = textoSugerido(noticia);
+    if (!el('f-titulo').value.trim()) el('f-titulo').value = sugerido.titulo;
+    if (!el('f-mensagem').value.trim()) el('f-mensagem').value = sugerido.mensagem;
+    fecharEscolhaDeNoticia();
+    desenharNoticiaEscolhida();
+}
+
+function opcoesHtml(lista) {
+    if (!lista.length) return '<li class="noticia-opcoes-aviso">Nenhuma notícia com esse título.</li>';
+    return lista.map((noticia) => `
+        <li>
+            <button type="button" class="noticia-opcao" data-id="${escapeHtml(noticia.id)}">
+                ${capaHtml(noticia.imagem)}
+                <span>
+                    ${fonteHtml(noticia)}<small>${escapeHtml(dataCurta(noticia.publicadaEm))}</small>
+                    <strong>${escapeHtml(noticia.titulo || 'Notícia sem título')}</strong>
+                </span>
+            </button>
+        </li>`).join('');
+}
+
+function desenharOpcoes() {
+    const filtro = el('f-noticia-filtro').value.trim().toLowerCase();
+    // só as que têm para onde levar (a de fora precisa de um link https)
+    const lista = (noticiasDoSite || [])
+        .filter((noticia) => linkDaNoticia(noticia))
+        .filter((noticia) => !filtro || String(noticia.titulo || '').toLowerCase().includes(filtro));
+    el('f-noticia-lista').innerHTML = opcoesHtml(lista);
+}
+
+async function abrirEscolhaDeNoticia() {
+    el('f-noticia-busca').hidden = false;
+    el('f-noticia-escolher').hidden = true;
+    el('f-noticia-escolhida').hidden = true;
+    el('f-noticia-filtro').value = '';
+    el('f-noticia-filtro').focus();
+    if (noticiasDoSite) {
+        desenharOpcoes();
+        return;
+    }
+    el('f-noticia-lista').innerHTML = '<li class="noticia-opcoes-aviso">Carregando as notícias do site...</li>';
+    try {
+        noticiasDoSite = await listarNoticiasDoSite(80);
+        desenharOpcoes();
+    } catch (erro) {
+        console.error('Erro ao carregar as notícias do site:', erro);
+        el('f-noticia-lista').innerHTML = '<li class="noticia-opcoes-aviso">Não foi possível carregar as notícias agora.</li>';
+    }
+}
+
+function fecharEscolhaDeNoticia() {
+    el('f-noticia-busca').hidden = true;
+}
+
+// Veio do painel Notícias com ?noticia=<id>: abre uma notificação nova já
+// ligada a ela.
+async function abrirComNoticiaDoEndereco() {
+    const id = new URLSearchParams(location.search).get('noticia');
+    if (!id) return;
+    // recarregar a página não abre o formulário de novo
+    history.replaceState(null, '', location.pathname);
+    try {
+        const noticia = await lerNoticiaDoSite(id);
+        if (noticia && linkDaNoticia(noticia)) abrirFormulario(null, noticia);
+        else mostrarStatus('Essa notícia não está no site (ou não tem um link para abrir).', 'erro');
+    } catch (erro) {
+        console.error('Erro ao ler a notícia:', erro);
+        mostrarStatus('Não foi possível abrir essa notícia agora.', 'erro');
+    }
 }
 
 // ========================================================
 // Inicialização
 // ========================================================
 
-document.addEventListener('DOMContentLoaded', () => {
+async function aoMudarLogin({ usuario, ehAdmin }) {
+    if (!usuario) {
+        window.location.href = 'login.html';
+        return;
+    }
+    if (!ehAdmin) {
+        el('admin-app').style.display = 'none';
+        el('acesso-negado').style.display = 'flex';
+        return;
+    }
 
-    onAuthStateChanged(auth, async (user) => {
-        if (!user) {
-            window.location.href = 'login.html';
-            return;
-        }
+    el('acesso-negado').style.display = 'none';
+    el('admin-email').textContent = usuario.email || '';
+    el('admin-app').style.display = 'block';
 
-        try {
-            const snap = await getDoc(doc(db, 'usuarios', user.uid));
-            const ehAdmin = snap.exists() && snap.data().admin === true;
+    if (iniciado) return;
+    iniciado = true;
+    try {
+        await carregarNotificacoes();
+    } catch (err) {
+        console.error('Erro ao carregar as notificações:', err);
+        el('tabela-notificacoes-corpo').innerHTML = '<tr><td colspan="9" class="tabela-vazia">Não foi possível carregar as notificações agora.</td></tr>';
+    }
+    abrirComNoticiaDoEndereco();
+}
 
-            if (!ehAdmin) {
-                document.getElementById('admin-app').style.display = 'none';
-                document.getElementById('acesso-negado').style.display = 'flex';
-                return;
-            }
-
-            document.getElementById('admin-email').textContent = user.email || '';
-            document.getElementById('admin-app').style.display = 'block';
-            await carregarNotificacoes();
-        } catch (err) {
-            console.error('Erro ao verificar acesso de administrador:', err);
-            document.getElementById('admin-app').style.display = 'none';
-            document.getElementById('acesso-negado').style.display = 'flex';
-        }
-    });
-
-    document.getElementById('logout-btn').addEventListener('click', async () => {
-        await signOut(auth);
+function ligarEventos() {
+    el('logout-btn').addEventListener('click', async () => {
+        await sairDaConta();
         window.location.href = 'login.html';
     });
 
-    document.getElementById('btn-nova-notificacao').addEventListener('click', () => abrirFormulario(null));
-    document.getElementById('btn-fechar-form').addEventListener('click', fecharFormulario);
-    document.getElementById('btn-cancelar-form').addEventListener('click', fecharFormulario);
-    document.getElementById('form-notificacao').addEventListener('submit', salvarNotificacao);
-    document.getElementById('f-agendar').addEventListener('input', atualizarDisponibilidadeModal);
+    el('btn-nova-notificacao').addEventListener('click', () => abrirFormulario(null));
+    el('btn-fechar-form').addEventListener('click', fecharFormulario);
+    el('btn-cancelar-form').addEventListener('click', fecharFormulario);
+    el('form-notificacao').addEventListener('submit', salvarFormulario);
+    el('f-agendar').addEventListener('input', atualizarDisponibilidadeModal);
 
-    document.getElementById('tabela-notificacoes-corpo').addEventListener('click', (e) => {
+    el('tabela-notificacoes-corpo').addEventListener('click', (e) => {
         const btn = e.target.closest('.btn-icone');
         if (!btn) return;
         const id = btn.dataset.id;
@@ -258,7 +502,52 @@ document.addEventListener('DOMContentLoaded', () => {
             const notificacao = notificacoesCache.find((n) => n.id === id);
             if (notificacao) abrirFormulario(notificacao);
         } else if (btn.dataset.acao === 'excluir') {
-            excluirNotificacao(id);
+            excluir(id);
         }
     });
-});
+
+    // abas: clique ou setas do teclado
+    const abas = [...document.querySelectorAll('.aba-admin')];
+    abas.forEach((aba, indice) => {
+        aba.addEventListener('click', () => abrirAba(aba.dataset.aba));
+        aba.addEventListener('keydown', (evento) => {
+            const passo = { ArrowRight: 1, ArrowLeft: -1 }[evento.key];
+            if (!passo) return;
+            evento.preventDefault();
+            const vizinha = abas[(indice + passo + abas.length) % abas.length];
+            vizinha.focus();
+            abrirAba(vizinha.dataset.aba);
+        });
+    });
+
+    // escolha da notícia
+    el('f-noticia-escolher').addEventListener('click', abrirEscolhaDeNoticia);
+    el('f-noticia-filtro').addEventListener('input', desenharOpcoes);
+    el('f-noticia-filtro').addEventListener('keydown', (evento) => {
+        // Enter na busca não pode enviar o formulário; Esc fecha a lista
+        if (evento.key === 'Enter') evento.preventDefault();
+        if (evento.key === 'Escape') {
+            evento.preventDefault();
+            evento.stopPropagation();
+            fecharEscolhaDeNoticia();
+            desenharNoticiaEscolhida();
+        }
+    });
+    el('f-noticia-lista').addEventListener('click', (evento) => {
+        const opcao = evento.target.closest('.noticia-opcao');
+        const noticia = opcao && (noticiasDoSite || []).find((n) => n.id === opcao.dataset.id);
+        if (noticia) escolherNoticia(noticia);
+    });
+    el('f-noticia-escolhida').addEventListener('click', (evento) => {
+        const botao = evento.target.closest('[data-acao]');
+        if (!botao) return;
+        if (botao.dataset.acao === 'trocar-noticia') abrirEscolhaDeNoticia();
+        if (botao.dataset.acao === 'tirar-noticia') {
+            noticiaDoFormulario = null;
+            desenharNoticiaEscolhida();
+        }
+    });
+}
+
+ligarEventos();
+observarAdmin(aoMudarLogin);

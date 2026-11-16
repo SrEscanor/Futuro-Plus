@@ -445,10 +445,13 @@ body:not([data-sessao="visitante"]) .home-hero-acoes {
 }
 
 /* Um destaque por vez, deslizando para o lado: no celular dá para arrastar
-   com o dedo, e o encaixe (scroll-snap) para sempre num destaque inteiro. */
+   com o dedo, e o encaixe (scroll-snap) para sempre num destaque inteiro.
+   O vão entre eles esconde a beirada do próximo, que aparecia como uma
+   linha fina na tela com zoom do sistema (125%, 150%). */
 .destaques-trilho {
     flex: 1 1 auto;
     display: flex;
+    gap: 24px;
     min-height: 200px;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
@@ -508,7 +511,13 @@ body:not([data-sessao="visitante"]) .home-hero-acoes {
     padding-right: 6px;
 }
 
+/* Notícia pode ter título e resumo compridos: no máximo 3 linhas de cada,
+   para o carrossel não crescer (os destaques padrão cabem com folga). */
 .destaque-titulo-item {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
     font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
     font-size: 19px;
     font-weight: 700;
@@ -518,9 +527,70 @@ body:not([data-sessao="visitante"]) .home-hero-acoes {
 }
 
 .destaque-texto p {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
     font-size: 13.5px;
     line-height: 1.5;
     color: var(--ink-soft);
+    overflow-wrap: anywhere;
+}
+
+/* de onde a notícia vem e quando ("Agência SP · há 3 horas") */
+.destaque-meta {
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--ink-soft);
+    overflow-wrap: anywhere;
+}
+
+/* notícia sem foto: a capa desenhada da página Notícias */
+.destaque-imagem .noticia-arte {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* enquanto a lista do painel chega */
+.destaque--esqueleto .destaque-imagem,
+.destaque-esqueleto-linha {
+    background: linear-gradient(90deg, #e9edf9 0%, #f5f7fd 50%, #e9edf9 100%);
+    background-size: 200% 100%;
+    animation: destaques-brilho 1.4s ease-in-out infinite;
+}
+
+.destaque--esqueleto .destaque-texto {
+    align-items: stretch;
+    gap: 12px;
+}
+
+.destaque-esqueleto-linha {
+    display: block;
+    height: 16px;
+    border-radius: 8px;
+}
+
+.destaque-esqueleto-linha--curta {
+    width: 45%;
+    height: 22px;
+}
+
+.destaque-esqueleto-linha--media {
+    width: 70%;
+}
+
+@keyframes destaques-brilho {
+    from { background-position: 100% 0; }
+    to { background-position: -100% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .destaque--esqueleto .destaque-imagem,
+    .destaque-esqueleto-linha {
+        animation: none;
+    }
 }
 
 .destaque-botao {

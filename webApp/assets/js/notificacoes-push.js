@@ -8,6 +8,7 @@
 import { getMessaging, getToken, onMessage, isSupported } from 'firebase/messaging';
 import { doc, setDoc } from 'firebase/firestore';
 import { app, auth, db } from './firebase-config.js';
+import { linkSeguroDaNotificacao } from './notificacoes-util.js';
 
 // Gerada no Console do Firebase: Configurações do projeto (⚙️) > Cloud
 // Messaging > aba "Web Push certificates" > "Generate key pair". É uma
@@ -57,11 +58,20 @@ export async function ativarNotificacoesPush() {
 
         // Com a aba aberta, o FCM não desenha nada sozinho — isso aqui é o
         // que faz uma mensagem chegando em primeiro plano virar notificação.
+        // Vai pelo service worker (e não por new Notification()): assim o
+        // clique abre a notícia do mesmo jeito que com o site fechado (ver
+        // firebase-messaging-sw.js), e funciona também no Android, onde
+        // new Notification() não existe. O servidor manda tudo em "data".
         onMessage(messaging, (payload) => {
-            const { title, body, icon } = payload.notification || {};
-            if (Notification.permission === 'granted') {
-                new Notification(title || 'Futuro+', { body: body || '', icon: icon || '/favicon.svg' });
-            }
+            if (Notification.permission !== 'granted') return;
+            const dados = payload.data || {};
+            const { title, body } = payload.notification || {};
+            registration.showNotification(dados.titulo || title || 'Futuro+', {
+                body: dados.mensagem || body || '',
+                icon: '/favicon.svg',
+                badge: '/favicon.svg',
+                data: { link: linkSeguroDaNotificacao(dados.link) }
+            });
         });
 
         return 'concedida';

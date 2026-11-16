@@ -76,6 +76,23 @@ export function tempoRelativo(iso, agora = new Date()) {
     return dataCurta(iso);
 }
 
+// "mudou o título e as etiquetas", para o histórico da edição (painel
+// Admin · Notícias)
+export function oQueFoiEditado(antes, novos) {
+    const nomes = [
+        ['titulo', 'o título'], ['resumo', 'o resumo'], ['imagem', 'a imagem'], ['instituicoes', 'as etiquetas']
+    ];
+    // a imagem é comparada já normalizada ("/capa.webp" e o endereço completo
+    // dela são a mesma imagem)
+    const valor = (noticia, campo) => JSON.stringify(
+        campo === 'instituicoes' ? [...(noticia.instituicoes || [])].sort()
+            : campo === 'imagem' ? imagemSegura(noticia.imagem)
+                : String(noticia[campo] || '').trim());
+    const mudou = nomes.filter(([campo]) => valor(antes, campo) !== valor(novos, campo)).map(([, nome]) => nome);
+    if (!mudou.length) return 'sem mudanças';
+    return `mudou ${mudou.length < 2 ? mudou[0] : `${mudou.slice(0, -1).join(', ')} e ${mudou.at(-1)}`}`;
+}
+
 // ========================================================
 // Capa desenhada
 // ========================================================

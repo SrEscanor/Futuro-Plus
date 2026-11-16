@@ -6,15 +6,25 @@
 // arquivo por uma cópia de mentira). Título, resumo, link e imagem vêm de
 // sites de fora: passam por escapeHtml, linkSeguro e imagemSegura antes de
 // entrar na página.
+//
+// A aba No site mostra também as notícias do Futuro+ (painel Notícias
+// próprias), com o card azul: elas não têm os botões das de fora, porque
+// tirar do site e editar são lá, onde fica o histórico delas. Toda notícia no
+// site tem "Notificar", que abre o painel Notificações com ela escolhida, e
+// "Destacar", que põe ela no carrossel "Destaques para você" da Início (até
+// 3; o quadro no alto da aba mostra a ordem e as vagas livres). A aba
+// Histórico mostra quem fez o quê, com o e-mail.
 import {
     LIMITE_RESUMO, LIMITE_TITULO, aprovarNoticias, buscarNoticiasAgora, contarFila, devolverParaPendentes,
-    lerUltimaColeta, limparRecusadasAntigas, listarFila, listarNoticiasPropriasPendentes, observarAdmin, recusarNoticias,
-    sairDaConta, salvarEdicao
+    lerDestaques, lerUltimaColeta, limparRecusadasAntigas, listarFila, listarHistoricoNoticias,
+    listarNoticiasPropriasPendentes, mudarDestaques, observarAdmin, recusarNoticias, sairDaConta, salvarEdicao,
+    tirarDoSite
 } from './noticias-dados.js';
 import {
     capaDesenhada, dataCurta, dominioDoLink, escapeHtml, imagemSegura, linkSeguro, rotulosDaNoticia, tempoRelativo
 } from './noticias-util.js';
-import { haQuantoTempo } from './noticias-proprias-util.js';
+import { ETIQUETAS, dataHora, haQuantoTempo, linkDaMateria } from './noticias-proprias-util.js';
+import { MAXIMO_DESTAQUES, destaquesDoCarrossel, estaNoSite } from './destaques-util.js';
 
 // O que cada aba diz quando está vazia e os botões de cada notícia dela:
 // [ação, texto do botão, classes].
@@ -62,7 +72,7 @@ const ACOES = {
         varias: (quantas) => `${quantas} notícias recusadas.`
     },
     tirar: {
-        gravar: devolverParaPendentes,
+        gravar: tirarDoSite,
         numeros: { aprovada: -1, pendente: 1 },
         gravando: 'Tirando…',
         uma: (titulo) => `Fora do site e de volta nas pendentes: ${titulo}`,
@@ -77,10 +87,38 @@ const ACOES = {
     }
 };
 
+// Histórico: o texto de cada ação e a cor (verde, vermelho ou azul).
+const ACOES_HISTORICO = {
+    aprovou: ['aprovou e pôs no site', 'positiva'],
+    recusou: ['recusou', 'negativa'],
+    tirou: ['tirou do site', 'negativa'],
+    voltou: ['voltou para as pendentes', 'neutra'],
+    editou: ['editou', 'neutra'],
+    buscou: ['buscou notícias agora', 'neutra'],
+    limpou: ['apagou recusadas antigas', 'negativa'],
+    destacou: ['pôs no carrossel da Início', 'positiva'],
+    tirou_destaque: ['tirou do carrossel da Início', 'negativa'],
+    reordenou: ['mudou a ordem do carrossel', 'neutra']
+};
+
 // Ícone de traço de "abre outro site", o mesmo da página Notícias.
 const ICONE_SAIR = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
     <path d="M18 13.5V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4.5M14 4h6v6M20 4l-9 9"/></svg>`;
+
+// Carrossel da Início: a estrela do botão Destacar (vazia ou cheia) e os
+// ícones de mover e tirar das vagas. No celular as vagas ficam uma embaixo
+// da outra e as setas giram para cima e para baixo (admin-noticias.css).
+const ESTRELA = (cheia) => `<svg viewBox="0 0 24 24" fill="${cheia ? 'currentColor' : 'none'}" stroke="currentColor"
+    stroke-width="2" stroke-linejoin="round" aria-hidden="true">
+    <path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5-4.8-4.6 6.6-.9z"/></svg>`;
+const ICONE_VAGA = {
+    antes: '<path d="M19 12H5M11 6l-6 6 6 6"/>',
+    depois: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+    tirar: '<path d="M7 7l10 10M17 7L7 17"/>'
+};
+const iconeDaVaga = (acao) => `<svg class="destaque-vaga-icone destaque-vaga-icone--${acao}" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONE_VAGA[acao]}</svg>`;
 
 const ESQUELETO = `
     <li class="noticia-item noticia-item--esqueleto" aria-hidden="true">
@@ -110,7 +148,14 @@ const estado = {
     salvando: false,
     focoAntesDoModal: null,
     relogioDoStatus: 0,
-    relogioDaPrevia: 0
+    relogioDaPrevia: 0,
+    // o carrossel da Início (aba No site)
+    destaques: {
+        situacao: 'carregando', // 'carregando', 'pronta' ou 'erro'
+        itens: [],              // [{ id, titulo, noticia }] na ordem do carrossel; noticia null = saiu do site
+        gravando: false,
+        pedido: 0
+    }
 };
 
 // O navegador (e o roteiro de teste) carrega este arquivo com a página já
@@ -163,6 +208,9 @@ function iniciar() {
             abrirAba(vizinha.dataset.aba);
         });
     });
+
+    el('destaques-vagas').addEventListener('click', aoClicarNasVagas);
+    el('destaques-vagas').addEventListener('error', trocarFotoQuebrada, true);
 
     const lista = el('lista-noticias');
     lista.addEventListener('click', aoClicarNaLista);
@@ -408,7 +456,7 @@ async function limparRecusadas() {
 // ========================================================
 
 function abrirAba(aba) {
-    if (!(aba in ABAS)) return;
+    if (!(aba in ABAS) && aba !== 'historico') return;
     estado.aba = aba;
     estado.selecionadas.clear();
     el('noticias-recusadas-acoes').hidden = aba !== 'recusada';
@@ -419,10 +467,58 @@ function abrirAba(aba) {
         botao.setAttribute('aria-selected', String(ativa));
         botao.tabIndex = ativa ? 0 : -1;
     });
-    el('painel-noticias').setAttribute('aria-labelledby', `aba-${aba}`);
 
+    // Histórico: uma tabela no lugar da lista
+    const historico = aba === 'historico';
+    el('painel-noticias').hidden = historico;
+    el('painel-historico').hidden = !historico;
     carregarPropriasPendentes(aba === 'pendente');
+
+    // o quadro do carrossel da Início fica no alto da aba No site
+    el('destaques-painel').hidden = aba !== 'aprovada';
+    if (aba === 'aprovada' && !estado.destaques.gravando) carregarDestaques();
+    if (historico) {
+        estado.pedido += 1; // uma lista que ainda estava chegando não desenha mais
+        desenharSelecao();
+        carregarHistorico();
+        return;
+    }
+    el('painel-noticias').setAttribute('aria-labelledby', `aba-${aba}`);
     carregarLista();
+}
+
+// ========================================================
+// Histórico
+// ========================================================
+
+function linhaDoHistorico(registro) {
+    const [texto, cor] = ACOES_HISTORICO[registro.acao] || [registro.acao, 'neutra'];
+    // a busca e a limpeza não são de uma notícia só
+    const alvo = registro.titulo || (registro.acao === 'buscou' || registro.acao === 'limpou' ? '—' : '');
+    const quem = registro.email === 'automático' ? 'Automático (a cada 6 horas)' : registro.email || '—';
+    return `
+        <tr>
+            <td class="historico-quando"><strong>${escapeHtml(dataHora(registro.em))}</strong><small>${escapeHtml(haQuantoTempo(registro.em))}</small></td>
+            <td class="historico-quem">${escapeHtml(quem)}</td>
+            <td><span class="historico-acao historico-acao--${cor}">${escapeHtml(texto)}</span>${registro.detalhe
+                ? ` <small class="historico-detalhe">${escapeHtml(registro.detalhe)}</small>` : ''}</td>
+            <td>${escapeHtml(alvo)}</td>
+        </tr>`;
+}
+
+async function carregarHistorico() {
+    const corpo = el('historico-corpo');
+    corpo.innerHTML = '<tr><td colspan="4" class="tabela-vazia">Carregando histórico...</td></tr>';
+    try {
+        const registros = await listarHistoricoNoticias({ quantos: 100 });
+        if (estado.aba !== 'historico') return;
+        corpo.innerHTML = registros.length
+            ? registros.map(linhaDoHistorico).join('')
+            : '<tr><td colspan="4" class="tabela-vazia">Nada registrado ainda. O histórico começa na próxima aprovação, recusa ou edição.</td></tr>';
+    } catch (erro) {
+        console.error('Erro ao carregar o histórico das notícias:', erro);
+        corpo.innerHTML = '<tr><td colspan="4" class="tabela-vazia">Não foi possível carregar o histórico agora.</td></tr>';
+    }
 }
 
 // As notícias próprias que esperam aprovação ficam no alto da aba Pendentes,
@@ -518,7 +614,51 @@ function avisoHtml(titulo, texto, comBotao) {
         </li>`;
 }
 
+// "Notificar": abre o painel Notificações com uma notificação nova já ligada
+// a esta notícia (quem clicar no aviso vai para ela).
+function botaoNotificarHtml(noticia) {
+    return `<a class="btn btn-secundario" href="admin-notificacoes.html?noticia=${encodeURIComponent(idDe(noticia))}">Notificar</a>`;
+}
+
+// Notícia do Futuro+ na aba No site: card azul, com o link da matéria no
+// próprio site. Tirar do site e editar são no painel Notícias próprias (que
+// também cuida da cópia do site e do histórico dela).
+function itemProprioHtml(noticia) {
+    const titulo = tituloDe(noticia);
+    const resumo = String(noticia.resumo || '').trim();
+    const foto = imagemSegura(noticia.imagem);
+    const etiquetas = (noticia.instituicoes || []).filter((id) => id in ETIQUETAS)
+        .map((id) => `<span class="noticia-etiqueta noticia-etiqueta--${id}">${escapeHtml(ETIQUETAS[id])}</span>`)
+        .join('');
+    const data = dataCurta(noticia.publicadaEm);
+    const relativo = tempoRelativo(noticia.publicadaEm);
+    const quando = data && relativo && relativo !== data ? `${data} (${relativo})` : data;
+    return `
+        <li class="noticia-item noticia-item--propria" data-id="${escapeHtml(idDe(noticia))}" tabindex="-1">
+            <div class="noticia-item-capa">${foto
+                ? `<img src="${escapeHtml(foto)}" alt="" loading="lazy" decoding="async">`
+                : capaDesenhada(noticia)}</div>
+            <div class="noticia-item-topo">
+                <div class="noticia-item-etiquetas"><span class="noticia-etiqueta noticia-etiqueta--propria">Notícia do Futuro+</span>${etiquetas}</div>
+                <p class="noticia-item-meta"><strong>${escapeHtml(noticia.autor || 'Futuro+')}</strong>${quando ? ` · ${escapeHtml(quando)}` : ''}</p>
+            </div>
+            <div class="noticia-item-texto">
+                <h3 class="noticia-item-titulo">${escapeHtml(titulo)}</h3>
+                <p class="noticia-item-resumo">${resumo ? escapeHtml(resumo) : '<em>Sem linha de apoio.</em>'}</p>
+                <p class="noticia-item-origem">
+                    <a class="noticia-item-link" href="${escapeHtml(linkDaMateria(idDe(noticia)))}" target="_blank" rel="noopener">Ver no site ${ICONE_SAIR}</a>
+                </p>
+            </div>
+            <div class="noticia-item-acoes">
+                ${botaoDestacarHtml(noticia)}
+                ${botaoNotificarHtml(noticia)}
+                <a class="btn btn-primario" href="admin-noticias-proprias.html?revisar=${encodeURIComponent(idDe(noticia))}">Abrir em Notícias próprias</a>
+            </div>
+        </li>`;
+}
+
 function itemHtml(noticia) {
+    if (noticia.propria) return itemProprioHtml(noticia);
     const comCaixa = estado.aba === 'pendente';
     const marcada = comCaixa && estado.selecionadas.has(idDe(noticia));
     const titulo = tituloDe(noticia);
@@ -547,7 +687,7 @@ function itemHtml(noticia) {
            <span>${escapeHtml(dominioDoLink(link))}</span>`
         : 'Sem link válido: não dá para aprovar.';
 
-    const botoes = ABAS[estado.aba].botoes
+    const botoes = (estado.aba === 'aprovada' ? botaoDestacarHtml(noticia) + botaoNotificarHtml(noticia) : '') + ABAS[estado.aba].botoes
         .map(([acao, texto, classes]) => `<button type="button" class="btn ${classes}" data-acao="${acao}">${texto}</button>`)
         .join('');
 
@@ -583,11 +723,17 @@ function noticiaDoItem(elemento) {
     return id === undefined ? null : estado.lista.find((noticia) => idDe(noticia) === id) || null;
 }
 
-// Foto que não carregou: entra a capa desenhada no lugar.
+// Foto que não carregou: entra a capa desenhada no lugar (no card ou na vaga
+// do carrossel).
 function trocarFotoQuebrada(evento) {
-    const caixa = evento.target instanceof HTMLImageElement ? evento.target.closest('.noticia-item-capa') : null;
+    const caixa = evento.target instanceof HTMLImageElement
+        ? evento.target.closest('.noticia-item-capa, .destaque-vaga-capa')
+        : null;
     if (!caixa) return;
-    caixa.innerHTML = capaDesenhada(noticiaDoItem(caixa) || {});
+    const noticia = caixa.classList.contains('destaque-vaga-capa')
+        ? itemDoCarrossel(caixa.closest('.destaque-vaga')?.dataset.id)?.noticia
+        : noticiaDoItem(caixa);
+    caixa.innerHTML = capaDesenhada(noticia || {});
 }
 
 // ========================================================
@@ -606,7 +752,8 @@ function aoClicarNaLista(evento) {
 
     const noticia = noticiaDoItem(botao);
     if (!noticia) return;
-    if (acao === 'editar') abrirEdicao(noticia, botao);
+    if (acao === 'destacar') mexerNoCarrossel(posicaoNoCarrossel(noticia) === -1 ? 'destacar' : 'tirar', noticia);
+    else if (acao === 'editar') abrirEdicao(noticia, botao);
     else if (acao in ACOES) executar(acao, [noticia], botao);
 }
 
@@ -641,7 +788,9 @@ async function executar(nome, noticias, botao) {
         estado.selecionadas.delete(id);
     });
     mexerNosNumeros(acao.numeros, ids.length);
-    mostrarStatus(ids.length === 1 ? acao.uma(entreAspas(tituloDe(noticias[0]))) : acao.varias(ids.length), 'ok');
+    const mensagem = ids.length === 1 ? acao.uma(entreAspas(tituloDe(noticias[0]))) : acao.varias(ids.length);
+    mostrarStatus(mensagem, 'ok');
+    if (nome === 'tirar') tirarDoCarrossel(noticias, mensagem);
 
     // a pessoa trocou de aba enquanto gravava: a lista aberta é lida de novo
     if (abaDaAcao !== estado.aba) {
@@ -660,6 +809,7 @@ function marcarOcupadas() {
         else item.removeAttribute('aria-busy');
         item.querySelectorAll('button, input').forEach((controle) => { controle.disabled = ocupada; });
     });
+    atualizarBotoesDestacar();
     desenharSelecao();
 }
 
@@ -915,8 +1065,277 @@ async function salvarFormulario(evento) {
         }
     }
 
+    // no carrossel, a vaga dela mostra o título e a imagem novos
+    const destacada = itemDoCarrossel(id);
+    if (destacada?.noticia) {
+        destacada.noticia = { ...destacada.noticia, ...salva };
+        desenharDestaques();
+    }
+
     fecharEdicao();
     mostrarStatus(salva?.status === 'aprovada'
         ? 'Alterações salvas. A notícia no site já foi atualizada.'
         : 'Alterações salvas.', 'ok');
+}
+
+// ========================================================
+// Carrossel "Destaques para você" da Início (aba No site)
+// ========================================================
+// O quadro no alto da aba mostra as 3 vagas do carrossel, na ordem; cada
+// card tem o botão Destacar (ou "Na Início (2)", que tira). Cada mudança é
+// gravada na hora, com o registro do histórico (noticias-dados.js). Vaga
+// livre mostra um destaque padrão do site (destaques-util.js).
+
+function itemDoCarrossel(id) {
+    return estado.destaques.itens.find((item) => item.id === String(id ?? '')) || null;
+}
+
+function posicaoNoCarrossel(noticia) {
+    const id = idDe(noticia);
+    return estado.destaques.itens.findIndex((item) => item.id === id);
+}
+
+// Enquanto a lista não chegou ou uma mudança está sendo gravada, os botões
+// do carrossel ficam parados.
+function carrosselTravado() {
+    return estado.destaques.situacao !== 'pronta' || estado.destaques.gravando;
+}
+
+async function carregarDestaques() {
+    const destaques = estado.destaques;
+    const pedido = destaques.pedido += 1;
+    destaques.situacao = 'carregando';
+    desenharDestaques();
+    try {
+        const { itens } = await lerDestaques();
+        if (pedido !== destaques.pedido) return;
+        destaques.itens = itens;
+        destaques.situacao = 'pronta';
+    } catch (erro) {
+        if (pedido !== destaques.pedido) return;
+        console.error('Erro ao ler o carrossel da Início:', erro);
+        destaques.situacao = 'erro';
+    }
+    desenharDestaques();
+}
+
+// ---- botão dos cards ----
+
+function estadoDoBotaoDestacar(posicao) {
+    if (posicao === -1) {
+        return { classe: '', conteudo: `${ESTRELA(false)}Destacar`, rotulo: 'Destacar no carrossel da Início', dica: '' };
+    }
+    return {
+        classe: ' btn-destacar--ativo',
+        conteudo: `${ESTRELA(true)}Na Início (${posicao + 1})`,
+        rotulo: `Na vaga ${posicao + 1} do carrossel da Início. Tirar do carrossel`,
+        dica: 'Tirar do carrossel da Início'
+    };
+}
+
+function botaoDestacarHtml(noticia) {
+    const { classe, conteudo, rotulo, dica } = estadoDoBotaoDestacar(posicaoNoCarrossel(noticia));
+    return `<button type="button" class="btn btn-destacar${classe}" data-acao="destacar" aria-label="${rotulo}"${
+        dica ? ` title="${dica}"` : ''}${carrosselTravado() ? ' disabled' : ''}>${conteudo}</button>`;
+}
+
+// Atualiza o botão no lugar (sem trocar o elemento): quem usa teclado não
+// perde o foco ao destacar ou tirar.
+function atualizarBotoesDestacar() {
+    const travado = carrosselTravado();
+    itensDaTela().forEach((item) => {
+        const botao = item.querySelector('.btn-destacar');
+        if (!botao) return;
+        const { classe, conteudo, rotulo, dica } = estadoDoBotaoDestacar(posicaoNoCarrossel({ id: item.dataset.id }));
+        botao.className = `btn btn-destacar${classe}`;
+        botao.innerHTML = conteudo;
+        botao.setAttribute('aria-label', rotulo);
+        if (dica) botao.title = dica;
+        else botao.removeAttribute('title');
+        botao.disabled = travado || estado.ocupadas.has(item.dataset.id);
+    });
+}
+
+// ---- o quadro com as vagas ----
+
+function desenharDestaques() {
+    const { situacao, itens } = estado.destaques;
+    const vagas = el('destaques-vagas');
+    el('destaques-contagem').textContent = situacao === 'pronta' ? `${itens.length} de ${MAXIMO_DESTAQUES}` : '';
+
+    if (situacao === 'carregando') {
+        vagas.innerHTML = '<li class="destaques-vagas-aviso">Lendo o carrossel da Início…</li>';
+    } else if (situacao === 'erro') {
+        vagas.innerHTML = `
+            <li class="destaques-vagas-aviso">Não deu para ler o carrossel agora.
+                <button type="button" class="btn btn-secundario" data-vaga="tentar">Tentar de novo</button></li>`;
+    } else {
+        const agora = new Date();
+        // o que a Início mostra em cada posição: diz qual destaque padrão
+        // aparece na vaga livre
+        const naInicio = destaquesDoCarrossel(itens.map((item) => item.noticia), agora);
+        vagas.innerHTML = Array.from({ length: MAXIMO_DESTAQUES }, (_, posicao) => (itens[posicao]
+            ? vagaHtml(itens[posicao], posicao, itens.length, agora)
+            : vagaLivreHtml(posicao, naInicio[posicao]))).join('');
+    }
+    atualizarBotoesDestacar();
+}
+
+function vagaHtml(item, posicao, quantas, agora) {
+    const noticia = item.noticia;
+    const titulo = String(noticia?.titulo || item.titulo || '').trim() || 'Notícia sem título';
+    let selo;
+    let aviso = '';
+    if (!noticia) {
+        selo = '<span class="destaque-vaga-selo destaque-vaga-selo--aviso">Saiu do site</span>';
+        aviso = 'Não aparece no carrossel. Tire daqui para liberar a vaga.';
+    } else if (!estaNoSite(noticia, agora)) {
+        selo = '<span class="destaque-vaga-selo destaque-vaga-selo--aviso">Agendada</span>';
+        aviso = `Entra no carrossel quando for publicada (${dataHora(noticia.publicarEm)}).`;
+    } else if (noticia.propria) {
+        selo = '<span class="destaque-vaga-selo destaque-vaga-selo--propria">Futuro+</span>';
+    } else {
+        selo = `<span class="destaque-vaga-selo">${escapeHtml(String(noticia.fonte || '').trim() || 'Notícia')}</span>`;
+    }
+
+    const foto = noticia ? imagemSegura(noticia.imagem) : '';
+    const capa = noticia
+        ? `<span class="destaque-vaga-capa">${foto
+            ? `<img src="${escapeHtml(foto)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">`
+            : capaDesenhada(noticia)}</span>`
+        : '';
+
+    const travado = carrosselTravado();
+    const nome = entreAspas(titulo);
+    const botao = (acao, texto, rotulo, desligado) => `
+        <button type="button" class="btn destaque-vaga-botao destaque-vaga-botao--${acao}" data-vaga="${acao}"
+            aria-label="${escapeHtml(rotulo)}"${desligado || travado ? ' disabled' : ''}>${acao === 'depois'
+            ? `<span>${texto}</span>${iconeDaVaga(acao)}` : `${iconeDaVaga(acao)}<span>${texto}</span>`}</button>`;
+
+    return `
+        <li class="destaque-vaga${noticia ? '' : ' destaque-vaga--fora'}" data-id="${escapeHtml(item.id)}">
+            <span class="destaque-vaga-numero" aria-hidden="true">${posicao + 1}</span>
+            ${capa}
+            <div class="destaque-vaga-texto">
+                ${selo}
+                <strong>${escapeHtml(titulo)}</strong>
+                ${aviso ? `<small>${escapeHtml(aviso)}</small>` : ''}
+            </div>
+            <div class="destaque-vaga-botoes">
+                ${botao('antes', 'Antes', `Passar ${nome} para a vaga ${posicao}`, posicao === 0)}
+                ${botao('depois', 'Depois', `Passar ${nome} para a vaga ${posicao + 2}`, posicao >= quantas - 1)}
+                ${botao('tirar', 'Tirar', `Tirar ${nome} do carrossel`, false)}
+            </div>
+        </li>`;
+}
+
+function vagaLivreHtml(posicao, padrao) {
+    return `
+        <li class="destaque-vaga destaque-vaga--livre">
+            <span class="destaque-vaga-numero" aria-hidden="true">${posicao + 1}</span>
+            <div class="destaque-vaga-texto">
+                <b>Vaga livre</b>
+                <small>Enquanto estiver livre, o carrossel mostra o destaque padrão
+                    “${escapeHtml(padrao?.titulo || '')}”.</small>
+            </div>
+        </li>`;
+}
+
+function aoClicarNasVagas(evento) {
+    const botao = evento.target.closest('button[data-vaga]');
+    if (!botao || botao.disabled) return;
+    const acao = botao.dataset.vaga;
+    if (acao === 'tentar') {
+        carregarDestaques();
+        return;
+    }
+    const item = itemDoCarrossel(botao.closest('.destaque-vaga')?.dataset.id);
+    if (!item) return;
+    mexerNoCarrossel(acao, item.noticia || { id: item.id, titulo: item.titulo }, { foco: acao });
+}
+
+// ---- gravação ----
+
+// A lista que volta da gravação só tem { id, titulo }: a notícia de cada um
+// vem do que o quadro já tinha ou da lista da aba No site.
+function juntarComNoticias(itens) {
+    const conhecidas = new Map(estado.destaques.itens.map((item) => [item.id, item.noticia]));
+    if (estado.aba === 'aprovada') estado.lista.forEach((noticia) => conhecidas.set(idDe(noticia), noticia));
+    return itens.map((item) => ({ ...item, noticia: conhecidas.get(item.id) ?? null }));
+}
+
+function avisoDoCarrossel(acao, noticia) {
+    const nome = entreAspas(tituloDe(noticia));
+    const posicao = posicaoNoCarrossel(noticia);
+    if (acao === 'tirar') return `Fora do carrossel da Início: ${nome}`;
+    if (posicao === -1) return `O carrossel da Início foi atualizado.`;
+    if (acao === 'destacar') return `Na vaga ${posicao + 1} do carrossel da Início: ${nome}`;
+    return `${nome} agora está na vaga ${posicao + 1} do carrossel.`;
+}
+
+// acao: 'destacar', 'tirar', 'antes' ou 'depois'. opcoes: { motivo (vai
+// para o histórico), quieto (sem aviso), foco (botão da vaga que volta a ter
+// o foco) }. Devolve true se gravou.
+async function mexerNoCarrossel(acao, noticia, opcoes = {}) {
+    const destaques = estado.destaques;
+    if (carrosselTravado()) return false;
+    if (acao === 'destacar' && posicaoNoCarrossel(noticia) === -1 && destaques.itens.length >= MAXIMO_DESTAQUES) {
+        mostrarStatus(`O carrossel da Início já tem ${MAXIMO_DESTAQUES} notícias. Tire uma delas no quadro do `
+            + 'carrossel, no alto desta aba, para destacar esta.', 'erro');
+        return false;
+    }
+
+    destaques.gravando = true;
+    desenharDestaques();
+    try {
+        const itens = await mudarDestaques(acao, noticia, { motivo: opcoes.motivo || '' });
+        destaques.itens = juntarComNoticias(itens);
+    } catch (erro) {
+        console.error('Erro ao mudar o carrossel da Início:', erro);
+        destaques.gravando = false;
+        desenharDestaques();
+        if (!opcoes.quieto) mostrarStatus(erro?.message || 'Não foi possível mudar o carrossel. Tente de novo.', 'erro');
+        return false;
+    }
+    destaques.gravando = false;
+    desenharDestaques();
+    if (opcoes.foco) devolverFocoNaVaga(idDe(noticia), opcoes.foco);
+    if (!opcoes.quieto) mostrarStatus(avisoDoCarrossel(acao, noticia), 'ok');
+    return true;
+}
+
+// Depois de mover ou tirar, o quadro é desenhado de novo: o foco volta para
+// o mesmo botão (a notícia mudou de vaga), para o outro de mover ou para o
+// quadro, em vez de sumir.
+function devolverFocoNaVaga(id, acao) {
+    const vaga = [...el('destaques-vagas').querySelectorAll('.destaque-vaga[data-id]')]
+        .find((elemento) => elemento.dataset.id === id);
+    const alvo = vaga && [acao, acao === 'antes' ? 'depois' : 'antes', 'tirar']
+        .map((nome) => vaga.querySelector(`[data-vaga="${nome}"]`))
+        .find((botao) => botao && !botao.disabled);
+    (alvo || el('destaques-painel')).focus();
+}
+
+// Notícia que sai do site sai também do carrossel da Início. Se não der para
+// tirar, o quadro mostra a vaga como "Saiu do site" e a Início já não mostra
+// a notícia (ela não está mais no site).
+async function tirarDoCarrossel(noticias, mensagem) {
+    const ids = noticias.map(idDe);
+    estado.destaques.itens.forEach((item) => {
+        if (ids.includes(item.id)) item.noticia = null;
+    });
+    const destacadas = noticias.filter((noticia) => posicaoNoCarrossel(noticia) !== -1);
+    if (!destacadas.length) return;
+
+    let deuCerto = true;
+    for (const noticia of destacadas) {
+        deuCerto = (await mexerNoCarrossel('tirar', noticia, { motivo: 'saiu do site', quieto: true })) && deuCerto;
+    }
+    desenharDestaques();
+    const frase = /[.!?]$/.test(mensagem) ? mensagem : `${mensagem}.`;
+    if (deuCerto) {
+        mostrarStatus(`${frase} ${destacadas.length === 1 ? 'Ela também saiu' : 'Elas também saíram'} do carrossel da Início.`, 'ok');
+    } else {
+        mostrarStatus(`${frase} Mas não deu para tirar do carrossel da Início: use “Tirar” no quadro do carrossel.`, 'erro');
+    }
 }

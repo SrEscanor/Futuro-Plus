@@ -286,6 +286,18 @@ def excluir_contas_agendadas(event: scheduler_fn.ScheduledEvent) -> None:
         except Exception as erro:
             print(f"Erro ao excluir a conta {doc_usuario.id}: {erro}")
 
+def _link_seguro_da_notificacao(link):
+    """O link que vai no push: uma página do próprio site ("noticia.html?id=...")
+    ou um endereço https (notícia de outro site). Qualquer outra coisa vira
+    vazio, e o clique só abre o Futuro+. Mesma regra de notificacoes-util.js."""
+    texto = str(link or "").strip()
+    if re.fullmatch(r"[a-z0-9-]+\.html(\?[^\s#]*)?", texto, flags=re.IGNORECASE):
+        return texto
+    if re.fullmatch(r"https://[^\s]+", texto, flags=re.IGNORECASE) and len(texto) <= 1000:
+        return texto
+    return ""
+
+
 @firestore_fn.on_document_created(
     document="notificacoes/{id}",
     region=options.SupportedRegion.SOUTHAMERICA_EAST1,
@@ -323,12 +335,20 @@ def enviar_push_da_notificacao(event: firestore_fn.Event) -> None:
 
     titulo = str(dados.get("titulo") or "Futuro+")[:200]
     corpo = str(dados.get("mensagem") or "")[:400]
+    link = _link_seguro_da_notificacao(dados.get("link"))
     invalidos = []
 
     for inicio in range(0, len(tokens), 500):
         lote = tokens[inicio:inicio + 500]
         resposta = messaging.send_each_for_multicast(messaging.MulticastMessage(
-            notification=messaging.Notification(title=titulo, body=corpo),
+            # Só "data", sem "notification": com "notification", o SDK do
+            # Firebase desenha uma notificação sozinho e ainda chama o
+            # onBackgroundMessage do service worker, que desenhava outra (saía
+            # repetida, e nenhuma das duas abria nada). Assim quem desenha é
+            # só o firebase-messaging-sw.js, que guarda o link (a notícia,
+            # quando o aviso tem uma) e abre no clique.
+            data={"titulo": titulo, "mensagem": corpo, "link": link},
+            webpush=messaging.WebpushConfig(headers={"Urgency": "high"}),
             tokens=lote,
         ))
         for token, resultado in zip(lote, resposta.responses):
@@ -362,6 +382,39 @@ def _exigir_admin(req, db):
     if not perfil.exists or perfil.to_dict().get("admin") is not True:
         return None, https_fn.Response(json.dumps({"erro": "Acesso restrito a administradores."}), status=403)
     return uid, None
+
+
+def _registrar_historico_noticias(db, acao, detalhe, uid=None):
+    """Grava no histórico do painel Admin · Notícias (noticias_historico) o
+    que o servidor faz: a busca do botão e a limpeza das recusadas. As ações
+    do painel (aprovar, recusar...) quem grava é o próprio painel. uid None =
+    feito sozinho pelo agendamento. Um erro aqui não desfaz a ação, só fica
+    no log."""
+    try:
+        email = "automático"
+        if uid:
+            try:
+                email = firebase_auth.get_user(uid).email or ""
+            except Exception:
+                email = ""
+        db.collection("noticias_historico").add({
+            "noticiaId": "",
+            "titulo": "",
+            "acao": acao,
+            "detalhe": detalhe,
+            "email": email,
+            "uid": uid or "",
+            "em": firestore.SERVER_TIMESTAMP,
+        })
+    except Exception as erro:
+        print(f"Erro ao registrar no histórico das notícias: {erro}")
+
+
+def _texto_quantas(quantas, uma, varias, nenhuma):
+    """"nenhuma ...", "1 ..." ou "N ...", para o detalhe do histórico."""
+    if not quantas:
+        return nenhuma
+    return f"1 {uma}" if quantas == 1 else f"{quantas} {varias}"
 
 
 @https_fn.on_request(
@@ -636,13 +689,16 @@ def coletar_noticias(req: https_fn.Request) -> https_fn.Response:
     cabecalho_json = {"Content-Type": "application/json"}
     try:
         db = firestore.client()
-        _, erro = _exigir_admin(req, db)
+        uid, erro = _exigir_admin(req, db)
         if erro:
             return erro
 
         import noticias_firestore
 
         resumo = noticias_firestore.coletar_e_gravar(db, "painel")
+        novas = resumo.get("novas", 0) if isinstance(resumo, dict) else 0
+        _registrar_historico_noticias(
+            db, "buscou", _texto_quantas(novas, "nova na fila", "novas na fila", "nenhuma notícia nova"), uid)
         return https_fn.Response(json.dumps(resumo), status=200, headers=cabecalho_json)
 
     except Exception as e:
@@ -667,13 +723,16 @@ def limpar_noticias_recusadas(req: https_fn.Request) -> https_fn.Response:
     cabecalho_json = {"Content-Type": "application/json"}
     try:
         db = firestore.client()
-        _, erro = _exigir_admin(req, db)
+        uid, erro = _exigir_admin(req, db)
         if erro:
             return erro
 
         import noticias_firestore
 
         apagadas = noticias_firestore.apagar_recusadas_antigas(db)
+        _registrar_historico_noticias(db, "limpou", _texto_quantas(
+            apagadas, "recusada com mais de 30 dias", "recusadas com mais de 30 dias",
+            "nenhuma recusada com mais de 30 dias"), uid)
         return https_fn.Response(json.dumps({"apagadas": apagadas}), status=200, headers=cabecalho_json)
 
     except Exception as e:
@@ -704,5 +763,9 @@ def coletar_noticias_agendada(event: scheduler_fn.ScheduledEvent) -> None:
         apagadas = noticias_firestore.apagar_recusadas_antigas(db)
         if apagadas:
             print(f"{apagadas} notícia(s) recusada(s) há mais de 30 dias foram apagadas.")
+            # apagar é o que precisa ficar registrado; a busca automática em si,
+            # quatro vezes por dia, só encheria o histórico
+            _registrar_historico_noticias(db, "limpou", _texto_quantas(
+                apagadas, "recusada com mais de 30 dias", "recusadas com mais de 30 dias", ""))
     except Exception as erro:
         print(f"Erro ao apagar notícias recusadas antigas: {erro}")

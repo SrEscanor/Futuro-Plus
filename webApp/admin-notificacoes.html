@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Futuro+ | Admin · Notificações</title>
     <link rel="stylesheet" href="assets/css/admin-instituicoes.css">
+    <link rel="stylesheet" href="assets/css/admin-notificacoes.css">
     <link rel="icon" href="/favicon.ico" sizes="48x48">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -53,29 +54,56 @@
                 </div>
             </div>
 
-            <div id="status-notificacoes" class="status-importacao"></div>
+            <div id="status-notificacoes" class="status-importacao" role="status" aria-live="polite"></div>
 
-            <div class="tabela-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Título</th>
-                            <th>Mensagem</th>
-                            <th>Público</th>
-                            <th title="Aparece como modal ao entrar, uma vez por conta/visitante">Modal</th>
-                            <th title="Aparece na lista do sino no topo">Sino</th>
-                            <th>Ativa</th>
-                            <th title="Quando a notificação passa a aparecer no site">Publicação</th>
-                            <th>Criada em</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabela-notificacoes-corpo">
-                        <tr>
-                            <td colspan="9" class="tabela-vazia">Carregando notificações...</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="abas-admin" role="tablist" aria-label="Notificações e histórico">
+                <button type="button" class="aba-admin aba-admin--ativa" role="tab" id="aba-avisos" data-aba="avisos"
+                    aria-selected="true" aria-controls="painel-avisos">Notificações</button>
+                <button type="button" class="aba-admin" role="tab" id="aba-historico" data-aba="historico"
+                    aria-selected="false" aria-controls="painel-historico" tabindex="-1">Histórico</button>
+            </div>
+
+            <div id="painel-avisos" role="tabpanel" aria-labelledby="aba-avisos">
+                <div class="tabela-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Título</th>
+                                <th>Mensagem</th>
+                                <th>Público</th>
+                                <th title="Aparece como modal ao entrar, uma vez por conta/visitante">Modal</th>
+                                <th title="Aparece na lista do sino no topo">Sino</th>
+                                <th>Ativa</th>
+                                <th title="Quando a notificação passa a aparecer no site">Publicação</th>
+                                <th>Criada em</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-notificacoes-corpo">
+                            <tr>
+                                <td colspan="9" class="tabela-vazia">Carregando notificações...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="painel-historico" role="tabpanel" aria-labelledby="aba-historico" hidden>
+                <p class="historico-dica">Tudo o que foi feito nas notificações, com o e-mail de quem fez. Ninguém
+                    consegue apagar ou mudar estes registros, nem quando a notificação é excluída.</p>
+                <div class="tabela-container">
+                    <table class="tabela-historico">
+                        <thead>
+                            <tr>
+                                <th>Quando</th>
+                                <th>Quem</th>
+                                <th>O que fez</th>
+                                <th>Notificação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historico-corpo"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </main>
@@ -98,6 +126,20 @@
                         <label for="f-mensagem">Mensagem *</label>
                         <textarea id="f-mensagem" required></textarea>
                     </div>
+                    <fieldset class="campo grupo-opcoes">
+                        <legend>Ao clicar, abrir uma notícia (opcional)</legend>
+                        <div id="f-noticia-escolhida" class="noticia-escolhida" hidden></div>
+                        <button type="button" id="f-noticia-escolher" class="btn btn-secundario noticia-botao">Escolher
+                            notícia do site</button>
+                        <div id="f-noticia-busca" class="noticia-busca" hidden>
+                            <input type="search" id="f-noticia-filtro" class="noticia-filtro"
+                                placeholder="Buscar pelo título" aria-label="Buscar notícia pelo título" autocomplete="off">
+                            <ul id="f-noticia-lista" class="noticia-opcoes" aria-label="Notícias do site"></ul>
+                        </div>
+                        <small class="campo-dica">No sino e no aviso, a notificação vira um link para a matéria; na
+                            notificação do dispositivo, tocar abre a matéria. Título e mensagem vazios são preenchidos
+                            com os da notícia.</small>
+                    </fieldset>
                     <fieldset class="campo grupo-opcoes">
                         <legend>Para quem</legend>
                         <div class="opcoes-cartao">

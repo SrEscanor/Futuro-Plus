@@ -1817,3 +1817,131 @@ tbody tr:hover {
         flex-direction: column;
     }
 }
+
+/* ---- ABAS E HISTÓRICO DOS PAINÉIS (Notificações e Notícias) ----
+   As abas têm o mesmo jeito das do painel Notícias. O histórico mostra quem
+   fez o quê, com o e-mail, como o das notícias próprias (que tem o seu em
+   admin-noticias-proprias.css). */
+.abas-admin {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid var(--line);
+}
+
+.aba-admin {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 46px;
+    margin-bottom: -1px;
+    padding: 8px 14px;
+    border: none;
+    border-bottom: 3px solid transparent;
+    background: none;
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    cursor: pointer;
+}
+
+.aba-admin:hover {
+    color: var(--ink);
+}
+
+.aba-admin--ativa {
+    border-bottom-color: var(--blue);
+    color: var(--ink);
+}
+
+.aba-admin:focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: 2px;
+}
+
+.historico-dica {
+    margin-bottom: 12px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+}
+
+.tabela-historico td {
+    vertical-align: top;
+}
+
+.tabela-historico td small {
+    display: block;
+    font-size: 11.5px;
+    color: var(--ink-soft);
+}
+
+.tabela-historico td small.historico-detalhe {
+    display: inline;
+}
+
+.historico-quando {
+    white-space: nowrap;
+}
+
+.historico-quem {
+    overflow-wrap: anywhere;
+}
+
+.historico-acao {
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.historico-acao--positiva {
+    color: #1d865a;
+}
+
+.historico-acao--negativa {
+    color: var(--red);
+}
+
+.historico-acao--neutra {
+    color: var(--blue-dark);
+}
+
+.historico-mais {
+    display: block;
+    margin: 14px auto 0;
+}
+
+@media (max-width: 640px) {
+    .aba-admin {
+        flex: 1 1 0;
+        justify-content: center;
+        padding: 8px 4px;
+    }
+
+    /* no celular a tabela vira uma lista: um registro por cartão */
+    .tabela-historico thead {
+        display: none;
+    }
+
+    .tabela-historico,
+    .tabela-historico tbody,
+    .tabela-historico tr,
+    .tabela-historico td {
+        display: block;
+        width: 100%;
+    }
+
+    .tabela-historico tr {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--line);
+    }
+
+    .tabela-historico td {
+        padding: 2px 0;
+        border: none;
+    }
+
+    .tabela-historico .historico-quando {
+        white-space: normal;
+    }
+}

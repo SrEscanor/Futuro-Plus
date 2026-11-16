@@ -5,6 +5,7 @@
 import { collection, getDocs, doc, setDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { auth, db } from './firebase-config.js';
 import { calcularCompletudePerfil } from './perfil-completude.js';
+import { ehLinkExterno, linkSeguroDaNotificacao } from './notificacoes-util.js';
 
 const COLECAO = 'notificacoes';
 
@@ -140,8 +141,10 @@ function injetarEstilosModal() {
             color: var(--ink-soft, #5b6084);
             white-space: pre-line;
         }
-        .nt-acoes { padding: 0 22px 22px; }
-        .nt-btn-primario {
+        .nt-acoes { display: flex; flex-direction: column; gap: 8px; padding: 0 22px 22px; }
+        .nt-btn-primario,
+        .nt-btn-secundario {
+            display: block;
             width: 100%;
             padding: 12px 18px;
             border-radius: 99px;
@@ -151,8 +154,16 @@ function injetarEstilosModal() {
             font-family: 'Sora', sans-serif;
             font-size: 13.5px;
             font-weight: 700;
+            text-align: center;
+            text-decoration: none;
             cursor: pointer;
         }
+        .nt-btn-secundario {
+            background: transparent;
+            color: var(--ink-soft, #5b6084);
+            box-shadow: inset 0 0 0 1.5px var(--line, #e6e8f5);
+        }
+        .nt-btn-primario[hidden] { display: none; }
     `;
     document.head.appendChild(estilo);
 }
@@ -164,7 +175,10 @@ function montarModal() {
     modal.innerHTML = `
         <div class="nt-cabecalho"><h2 id="nt-titulo"></h2></div>
         <div class="nt-corpo" id="nt-corpo"></div>
-        <div class="nt-acoes"><button type="button" id="nt-fechar" class="nt-btn-primario">Entendi</button></div>
+        <div class="nt-acoes">
+            <a id="nt-ler" class="nt-btn-primario" hidden>Ler a notícia</a>
+            <button type="button" id="nt-fechar" class="nt-btn-primario">Entendi</button>
+        </div>
     `;
     document.body.appendChild(modal);
     return modal;
@@ -200,6 +214,32 @@ async function mostrarModalPendente(notificacoes, vistas, marcarVista) {
 
     modal.querySelector('#nt-fechar').addEventListener('click', fechar);
     modal.addEventListener('cancel', (e) => { e.preventDefault(); fechar(); });
+
+    // Aviso que leva para uma notícia: "Ler a notícia" em destaque e o
+    // fechar vira "Agora não". Antes de sair da página, espera o "já vi"
+    // ser gravado (no máximo 1,5 s), senão o aviso voltaria na próxima.
+    const link = linkSeguroDaNotificacao(pendente.link);
+    if (link) {
+        const ler = modal.querySelector('#nt-ler');
+        const botaoFechar = modal.querySelector('#nt-fechar');
+        ler.href = link;
+        ler.hidden = false;
+        botaoFechar.textContent = 'Agora não';
+        botaoFechar.className = 'nt-btn-secundario';
+        if (ehLinkExterno(link)) {
+            // abre em outra aba: o site continua aqui, só fecha o aviso
+            ler.target = '_blank';
+            ler.rel = 'noopener noreferrer';
+            // fecha logo depois do clique, com o link ainda na página
+            ler.addEventListener('click', () => { setTimeout(fechar, 0); });
+        } else {
+            ler.addEventListener('click', async (evento) => {
+                evento.preventDefault();
+                await Promise.race([fechar(), new Promise((r) => setTimeout(r, 1500))]);
+                window.location.href = link;
+            });
+        }
+    }
     modal.showModal();
 }
 
@@ -268,15 +308,21 @@ function acoesHtml(acoes) {
 }
 
 function itemHtml(n) {
+    // link do aviso: perfil.html (lembrete do perfil) ou a notícia escolhida no
+    // painel; qualquer outra coisa é ignorada (ver notificacoes-util.js)
+    const link = linkSeguroDaNotificacao(n.link);
     const conteudo = `
             <strong class="notif-item-titulo">${escapeHtml(n.titulo || 'Aviso')}</strong>
             <p class="notif-item-mensagem">${escapeHtml(n.mensagem || '')}</p>
             ${acoesHtml(n.acoes)}
+            ${link && n.noticia ? '<span class="notif-item-ler">Ler a notícia →</span>' : ''}
             <span class="notif-item-data">${formatarData(n.criadoEm)}</span>`;
     // Um item com botões próprios não pode virar link (não dá pra aninhar
-    // <a> dentro de <a>, e os botões já cobrem a ação).
-    return n.link && !n.acoes
-        ? `<a class="notif-item notif-item--link" href="${escapeHtml(n.link)}">${conteudo}</a>`
+    // <a> dentro de <a>, e os botões já cobrem a ação). Notícia de outro
+    // site abre em outra aba.
+    const outraAba = ehLinkExterno(link) ? ' target="_blank" rel="noopener noreferrer"' : '';
+    return link && !n.acoes
+        ? `<a class="notif-item notif-item--link" href="${escapeHtml(link)}"${outraAba}>${conteudo}</a>`
         : `<div class="notif-item">${conteudo}</div>`;
 }
 

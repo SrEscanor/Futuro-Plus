@@ -73,6 +73,10 @@
                     aria-selected="false" aria-controls="painel-noticias" tabindex="-1">
                     Recusadas <span class="noticias-aba-numero" id="numero-recusada">…</span>
                 </button>
+                <button type="button" class="noticias-aba" role="tab" id="aba-historico" data-aba="historico"
+                    aria-selected="false" aria-controls="painel-historico" tabindex="-1">
+                    Histórico
+                </button>
             </div>
 
             <!-- Fica preso no alto da tela enquanto a lista rola: o aviso do que
@@ -116,7 +120,53 @@
 
             <!-- ---------- LISTA DA ABA ABERTA ---------- -->
             <section id="painel-noticias" class="noticias-painel" role="tabpanel" aria-labelledby="aba-pendente" tabindex="-1">
+                <!-- Só na aba No site: as notícias do carrossel "Destaques para
+                     você" da Início, escolhidas com o botão Destacar dos cards
+                     (admin-noticias.js). -->
+                <section class="destaques-painel" id="destaques-painel" aria-labelledby="destaques-painel-titulo"
+                    tabindex="-1" hidden>
+                    <div class="destaques-painel-cabeca">
+                        <div>
+                            <h2 id="destaques-painel-titulo">
+                                <img src="assets/icones/menu/destaques.svg" alt="" width="24" height="24">
+                                <span>Carrossel da Início · “Destaques para você”
+                                    <span class="destaques-painel-contagem" id="destaques-contagem"></span></span>
+                            </h2>
+                            <p>Escolha até 3 notícias com o botão <strong>Destacar</strong> nos cards abaixo. A ordem
+                                aqui é a ordem do carrossel; vaga livre mostra um destaque padrão do site.</p>
+                        </div>
+                        <a class="btn btn-secundario" href="index.html#destaques-inicio" target="_blank" rel="noopener"
+                            aria-label="Ver na Início (abre em outra aba)">Ver na Início
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M18 13.5V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4.5M14 4h6v6M20 4l-9 9" />
+                            </svg></a>
+                    </div>
+                    <ol class="destaques-vagas" id="destaques-vagas"></ol>
+                </section>
+
                 <ul class="lista-noticias" id="lista-noticias" aria-busy="true"></ul>
+            </section>
+
+            <!-- ---------- HISTÓRICO ---------- -->
+            <section id="painel-historico" class="noticias-historico" role="tabpanel" aria-labelledby="aba-historico" hidden>
+                <p class="historico-dica">Quem aprovou, recusou, tirou do site ou editou cada notícia e quem mexeu no
+                    carrossel da Início, com o e-mail de quem fez, e as buscas e limpezas. Ninguém consegue apagar ou
+                    mudar estes registros. A criação e a edição das notícias do Futuro+ ficam no histórico do painel
+                    Notícias próprias.</p>
+                <div class="tabela-container">
+                    <table class="tabela-historico">
+                        <thead>
+                            <tr>
+                                <th>Quando</th>
+                                <th>Quem</th>
+                                <th>O que fez</th>
+                                <th>Notícia</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historico-corpo"></tbody>
+                    </table>
+                </div>
             </section>
         </div>
     </main>
