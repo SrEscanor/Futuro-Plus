@@ -12,6 +12,7 @@
 //
 //     await import('/testes/painel-cursos.js');     // Admin · Cursos
 //     await import('/testes/painel-unidades.js');   // Admin · Unidades
+//     await import('/testes/pagina-mural.js');      // Mural (visitante, login e leitura do certificado)
 //
 // e, a partir de http://localhost:5173/curso.html?c=<id do curso>:
 //

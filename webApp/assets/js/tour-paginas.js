@@ -61,7 +61,9 @@ const CONFIGS = {
     },
     mural: {
         chaveVisto: 'futuroplus_tour_mural_visto',
-        esperarVisivel: '#mural-app',
+        // o botão só aparece para quem está logado; visitante vê a parede
+        // com o quadro de "Entrar" e não tem o que o tour mostrar
+        esperarVisivel: '#btn-novo-certificado',
         passos: [
             {
                 seletor: '#btn-novo-certificado',

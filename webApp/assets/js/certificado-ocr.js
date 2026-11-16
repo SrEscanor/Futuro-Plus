@@ -53,16 +53,6 @@ export function analisarTexto(texto) {
     };
 }
 
-// O nome do certificado bate com o nome da conta? Comparamos por partes,
-// porque OCR erra letras e o certificado às vezes traz o nome completo.
-export function nomeAparece(texto, nomeDaConta) {
-    const limpo = normalizarTexto(texto);
-    const partes = normalizarTexto(nomeDaConta).split(' ').filter((parte) => parte.length > 2);
-    if (!partes.length) return false;
-    const encontradas = partes.filter((parte) => limpo.includes(parte));
-    return encontradas.length >= Math.min(2, partes.length);
-}
-
 // Palavras que o Tesseract devolveu com posição: usamos para achar o CPF na
 // imagem e cobrir só aquele pedaço.
 export function areasDeCpf(palavras) {
@@ -127,6 +117,31 @@ export function canvasParaArquivo(canvas, nome) {
     });
 }
 
+// Imagem pequena (print de tela, foto que veio pelo WhatsApp) lê mal: cada
+// letra fica com poucos pixels. Num certificado de Etec com 900 px de
+// largura, a leitura direta trouxe só a primeira linha do texto; ampliado,
+// veio o parágrafo inteiro. A ampliação é só para a leitura: o arquivo que
+// vai para o mural continua o original.
+const LARGURA_PARA_LEITURA = 1800;
+const AMPLIACAO_MAXIMA = 2.5;
+
+async function prepararParaLeitura(arquivo) {
+    const imagem = new Image();
+    imagem.src = URL.createObjectURL(arquivo);
+    await imagem.decode();
+
+    const escala = Math.min(AMPLIACAO_MAXIMA, LARGURA_PARA_LEITURA / imagem.naturalWidth);
+    if (escala <= 1.15) return { alvo: arquivo, escala: 1 };
+
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(imagem.naturalWidth * escala);
+    canvas.height = Math.round(imagem.naturalHeight * escala);
+    const contexto = canvas.getContext('2d');
+    contexto.imageSmoothingQuality = 'high';
+    contexto.drawImage(imagem, 0, 0, canvas.width, canvas.height);
+    return { alvo: canvas, escala };
+}
+
 // Lê a imagem e devolve texto, palavras (com posição) e a análise.
 export async function lerCertificado(arquivo, aoProgresso = () => {}) {
     const worker = await createWorker('por', 1, {
@@ -136,11 +151,23 @@ export async function lerCertificado(arquivo, aoProgresso = () => {}) {
     });
 
     try {
-        const { data } = await worker.recognize(arquivo, {}, { blocks: true, text: true });
+        const { alvo, escala } = await prepararParaLeitura(arquivo);
+        const { data } = await worker.recognize(alvo, {}, { blocks: true, text: true });
         const palavras = (data.blocks || [])
             .flatMap((bloco) => bloco.paragraphs || [])
             .flatMap((paragrafo) => paragrafo.lines || [])
-            .flatMap((linha) => linha.words || []);
+            .flatMap((linha) => linha.words || [])
+            // as posições voltam para o tamanho da imagem original, que é
+            // onde o CPF vai ser coberto
+            .map((palavra) => (escala === 1 ? palavra : {
+                ...palavra,
+                bbox: {
+                    x0: palavra.bbox.x0 / escala,
+                    y0: palavra.bbox.y0 / escala,
+                    x1: palavra.bbox.x1 / escala,
+                    y1: palavra.bbox.y1 / escala
+                }
+            }));
 
         return { texto: data.text || '', palavras, analise: analisarTexto(data.text || '') };
     } finally {

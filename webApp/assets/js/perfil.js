@@ -308,6 +308,7 @@ function lerEdicao() {
 }
 
 const DIAS_PARA_EXCLUIR = 30;
+let saindoPorExclusao = false;
 
 // Não apaga na hora: marca a conta para exclusão daqui a 30 dias e
 // desconecta. Se a pessoa entrar de novo antes do prazo, dashboard.js
@@ -330,6 +331,8 @@ async function excluirConta() {
             { exclusao: { solicitadoEm: new Date().toISOString(), executarEm } },
             { merge: true }
         );
+        // quem leva para a Início aqui é este fluxo, depois do aviso
+        saindoPorExclusao = true;
         await signOut(auth);
         alert(`Pronto. Se você não entrar de novo em ${DIAS_PARA_EXCLUIR} dias, sua conta é apagada.`);
         window.location.href = 'index.html';
@@ -418,15 +421,16 @@ async function carregarCatalogo() {
 }
 
 onAuthStateChanged(auth, async (usuario) => {
+    // Perfil só existe para quem tem conta: sem login (ou ao sair da conta
+    // com esta página aberta) a pessoa volta para a Início, que já tem os
+    // botões de Entrar e Cadastro. "replace" para o Voltar do navegador não
+    // cair aqui de novo e ficar num vai e vem.
     if (!usuario) {
-        elemento('perfil-precisa-login').hidden = false;
-        elemento('perfil-visualizacao').hidden = true;
-        elemento('perfil-edicao').hidden = true;
+        if (!saindoPorExclusao) window.location.replace('index.html');
         return;
     }
 
     usuarioAtual = usuario;
-    elemento('perfil-precisa-login').hidden = true;
     await carregarCatalogo();
 
     try {

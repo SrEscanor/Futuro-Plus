@@ -8,19 +8,20 @@
     <link rel="icon" href="./favicon.ico" sizes="48x48">
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="./apple-touch-icon.png">
-  <script type="module" crossorigin src="./assets/perfil-Cl5FmsvU.js"></script>
-  <link rel="modulepreload" crossorigin href="./assets/firebase-config-DZ7_vqDZ.js">
+  <script type="module" crossorigin src="./assets/perfil-VWtwArcx.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/firebase-config-CIJUxFH5.js">
   <link rel="modulepreload" crossorigin href="./assets/preload-helper-PPVm8Dsz.js">
   <link rel="modulepreload" crossorigin href="./assets/conteudo-legal-padrao-DcxCgRAC.js">
-  <link rel="modulepreload" crossorigin href="./assets/resultado-teste-DG2OeZfm.js">
-  <link rel="modulepreload" crossorigin href="./assets/dashboard-j0_VvYFf.js">
+  <link rel="modulepreload" crossorigin href="./assets/resultado-teste-CF19jvmT.js">
+  <link rel="modulepreload" crossorigin href="./assets/notificacoes-util-BMqxtxne.js">
+  <link rel="modulepreload" crossorigin href="./assets/dashboard-CC7_x2WJ.js">
   <link rel="modulepreload" crossorigin href="./assets/tour-motor-BeDtj6px.js">
-  <link rel="modulepreload" crossorigin href="./assets/tour-paginas-COru7OUt.js">
-  <link rel="modulepreload" crossorigin href="./assets/tour-pagina-auto-CU98x62v.js">
+  <link rel="modulepreload" crossorigin href="./assets/tour-paginas-CDKwbsfw.js">
+  <link rel="modulepreload" crossorigin href="./assets/tour-pagina-auto-DRxfIOeD.js">
   <link rel="modulepreload" crossorigin href="./assets/card-unidade-C3eEs3Rs.js">
   <link rel="modulepreload" crossorigin href="./assets/categorias-teste-82RqXHiT.js">
   <link rel="modulepreload" crossorigin href="./assets/geocodificacao-Dyu2Eb0t.js">
-  <link rel="stylesheet" crossorigin href="./assets/dashboard-Bf1sbWIO.css">
+  <link rel="stylesheet" crossorigin href="./assets/dashboard-CX1RACq1.css">
   <link rel="stylesheet" crossorigin href="./assets/perfil-C3Y8AyWw.css">
   <link rel="stylesheet" crossorigin href="./assets/ondas-Cp6OP_7e.css">
 </head>
@@ -61,6 +62,7 @@
             <a href="admin-termos.html" id="menu-admin-termos" class="menu-item menu-admin-area" data-icone="📜" hidden>Termos e Privacidade</a>
             <a href="admin-notificacoes.html" id="menu-admin-notificacoes" class="menu-item menu-admin-area" data-icone="🔔" hidden>Notificações</a>
             <a href="admin-noticias.html" id="menu-admin-noticias" class="menu-item menu-admin-area" data-icone="🗞️" hidden>Notícias</a>
+            <a href="admin-noticias-proprias.html" id="menu-admin-noticias-proprias" class="menu-item menu-admin-area" data-icone="✍️" hidden>Notícias próprias</a>
         </nav>
 
         <a href="testes.html" class="menu-cartao">
@@ -151,14 +153,6 @@
 
     <div class="main">
 
-        <div id="perfil-precisa-login" class="perfil-cartao perfil-cartao--estreito" hidden>
-            <p class="perfil-texto">Entre na sua conta para ver e completar seu perfil.</p>
-            <div class="perfil-acoes">
-                <a class="btn-perfil" href="login.html">Entrar</a>
-                <a class="btn-perfil btn-perfil--secundario" href="cadastro.html">Criar conta</a>
-            </div>
-        </div>
-
         <!-- ============ MODO VISUALIZAÇÃO (é o que outras pessoas veriam) ============ -->
         <div id="perfil-visualizacao" hidden>
             <div class="perfil-layout">
@@ -218,6 +212,14 @@
                             <h3>Objetivo <span class="perfil-so-voce" data-campo="objetivo" hidden>só você vê</span></h3>
                             <p class="perfil-objetivo-texto" id="ver-objetivo"></p>
                         </div>
+                    </section>
+
+                    <section class="perfil-cartao" id="perfil-cartao-push">
+                        <h2>Notificações do navegador</h2>
+                        <p class="perfil-objetivo-texto" id="push-status-texto">Ative para receber avisos do
+                            Futuro+ mesmo com o site fechado.</p>
+                        <button type="button" id="btn-ativar-push" class="btn-perfil btn-perfil--pequeno">Ativar
+                            notificações</button>
                     </section>
 
                     <!-- Testes em destaque, com o gráfico do teste rápido -->

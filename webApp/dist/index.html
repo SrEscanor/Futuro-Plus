@@ -10,21 +10,23 @@
     <link rel="apple-touch-icon" href="./apple-touch-icon.png">
     <link rel="icon" href="./favicon.ico" sizes="48x48">
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
-  <script type="module" crossorigin src="./assets/main-Yklwus3G.js"></script>
-  <link rel="modulepreload" crossorigin href="./assets/firebase-config-DZ7_vqDZ.js">
+  <script type="module" crossorigin src="./assets/main-BbQ4QokG.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/firebase-config-CIJUxFH5.js">
   <link rel="modulepreload" crossorigin href="./assets/preload-helper-PPVm8Dsz.js">
   <link rel="modulepreload" crossorigin href="./assets/conteudo-legal-padrao-DcxCgRAC.js">
-  <link rel="modulepreload" crossorigin href="./assets/resultado-teste-DG2OeZfm.js">
-  <link rel="modulepreload" crossorigin href="./assets/dashboard-j0_VvYFf.js">
+  <link rel="modulepreload" crossorigin href="./assets/resultado-teste-CF19jvmT.js">
+  <link rel="modulepreload" crossorigin href="./assets/notificacoes-util-BMqxtxne.js">
+  <link rel="modulepreload" crossorigin href="./assets/dashboard-CC7_x2WJ.js">
   <link rel="modulepreload" crossorigin href="./assets/categorias-teste-82RqXHiT.js">
   <link rel="modulepreload" crossorigin href="./assets/card-unidade-C3eEs3Rs.js">
   <link rel="modulepreload" crossorigin href="./assets/geocodificacao-Dyu2Eb0t.js">
-  <link rel="modulepreload" crossorigin href="./assets/recomendacao-cursos-EECZPvfX.js">
-  <link rel="modulepreload" crossorigin href="./assets/noticias-dados-CLLgc4U3.js">
+  <link rel="modulepreload" crossorigin href="./assets/recomendacao-cursos-C9iul00M.js">
+  <link rel="modulepreload" crossorigin href="./assets/destaques-util-CLcdY04S.js">
+  <link rel="modulepreload" crossorigin href="./assets/noticias-dados-eCcbMbNN.js">
   <link rel="modulepreload" crossorigin href="./assets/tour-motor-BeDtj6px.js">
   <link rel="modulepreload" crossorigin href="./assets/tour-boas-vindas-Bosq5K8y.js">
-  <link rel="stylesheet" crossorigin href="./assets/dashboard-Bf1sbWIO.css">
-  <link rel="stylesheet" crossorigin href="./assets/main-CSyX3UxR.css">
+  <link rel="stylesheet" crossorigin href="./assets/dashboard-CX1RACq1.css">
+  <link rel="stylesheet" crossorigin href="./assets/main-CiZQUrM9.css">
   <link rel="stylesheet" crossorigin href="./assets/ondas-Cp6OP_7e.css">
   <link rel="stylesheet" crossorigin href="./assets/cursos-etec-e3Mb4nvL.css">
 </head>
@@ -65,6 +67,7 @@
             <a href="admin-termos.html" id="menu-admin-termos" class="menu-item menu-admin-area" data-icone="📜" hidden>Termos e Privacidade</a>
             <a href="admin-notificacoes.html" id="menu-admin-notificacoes" class="menu-item menu-admin-area" data-icone="🔔" hidden>Notificações</a>
             <a href="admin-noticias.html" id="menu-admin-noticias" class="menu-item menu-admin-area" data-icone="🗞️" hidden>Notícias</a>
+            <a href="admin-noticias-proprias.html" id="menu-admin-noticias-proprias" class="menu-item menu-admin-area" data-icone="✍️" hidden>Notícias próprias</a>
         </nav>
 
         <a href="testes.html" class="menu-cartao">
@@ -261,7 +264,7 @@
                     <use href="#onda-b-baixa" class="onda-baixa" mask="url(#onda-some-baixo)" filter="url(#onda-macia)" />
                     <use href="#onda-b-faixa" class="onda-faixa" filter="url(#onda-mais-macia)" />
                 </svg>
-                <img class="atalho-icone" src="./assets/mural-DniGEUbK.webp" alt="" width="56" height="56">
+                <img class="atalho-icone" src="./assets/mural-C2rWxn0P.webp" alt="" width="56" height="56">
                 <span class="atalho-rodape">
                     <span class="atalho-texto"><strong>Mural</strong><span>Guarde seus certificados</span></span>
                     <span class="atalho-seta" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg></span>
@@ -284,8 +287,9 @@
 
         <div class="inicio-destaques">
             <!-- Destaques para você: carrossel de até 3 destaques, montado por
-                 inicio-destaques.js. Por enquanto são fixos; a parte lógica
-                 entra depois chamando montarDestaques(lista). -->
+                 inicio-destaques.js. As notícias escolhidas no painel Admin ·
+                 Notícias (aba No site) vêm primeiro; as vagas livres mostram
+                 os destaques padrão (destaques-util.js). -->
             <section class="destaques-inicio" id="destaques-inicio" aria-roledescription="carrossel" aria-labelledby="destaques-titulo">
                 <h3 class="destaques-titulo" id="destaques-titulo"><img class="titulo-icone" src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3e%3cdefs%3e%3clinearGradient%20id='az'%20x1='0'%20y1='0'%20x2='0'%20y2='1'%3e%3cstop%20offset='0'%20stop-color='%237090ff'/%3e%3cstop%20offset='1'%20stop-color='%233150dc'/%3e%3c/linearGradient%3e%3clinearGradient%20id='az2'%20x1='0'%20y1='0'%20x2='0'%20y2='1'%3e%3cstop%20offset='0'%20stop-color='%234f6cf0'/%3e%3cstop%20offset='1'%20stop-color='%232440c4'/%3e%3c/linearGradient%3e%3cmask%20id='m'%20maskUnits='userSpaceOnUse'%20x='0'%20y='0'%20width='24'%20height='24'%3e%3crect%20width='24'%20height='24'%20fill='%23fff'/%3e%3cpath%20d='M9.9%209.5%20L12%2011.9%20L14.1%209.5%20M12%2011.9%20V15.6'%20fill='none'%20stroke='%23000'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/mask%3e%3c/defs%3e%3cpath%20d='M12%203.4C8.5%203.4%205.9%206.1%205.9%209.4C5.9%2011.6%207%2013.3%208.5%2014.5C9.1%2015%209.4%2015.6%209.4%2016.4V17.2H14.6V16.4C14.6%2015.6%2014.9%2015%2015.5%2014.5C17%2013.3%2018.1%2011.6%2018.1%209.4C18.1%206.1%2015.5%203.4%2012%203.4Z'%20fill='url(%23az)'%20mask='url(%23m)'/%3e%3crect%20x='9.2'%20y='18.3'%20width='5.6'%20height='1.7'%20rx='.85'%20fill='url(%23az2)'/%3e%3crect%20x='10.1'%20y='20.6'%20width='3.8'%20height='1.6'%20rx='.8'%20fill='url(%23az2)'/%3e%3cpath%20d='M1.8%209.4H3.5M20.5%209.4H22.2M4.1%203.3L5.3%204.5M19.9%203.3L18.7%204.5M12%20.7V1.9'%20fill='none'%20stroke='%23f7a21b'%20stroke-width='1.5'%20stroke-linecap='round'/%3e%3c/svg%3e" alt="">Destaques para você</h3>
                 <div class="destaques-trilho" id="destaques-trilho"></div>
@@ -386,7 +390,7 @@
             <section class="mural-mini" id="mural-mini" aria-labelledby="mural-mini-titulo" hidden>
                 <div class="mural-mini-cabecalho">
                     <div>
-                        <h3 id="mural-mini-titulo"><img class="titulo-icone" src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3e%3cdefs%3e%3clinearGradient%20id='az'%20x1='0'%20y1='0'%20x2='0'%20y2='1'%3e%3cstop%20offset='0'%20stop-color='%237090ff'/%3e%3cstop%20offset='1'%20stop-color='%233150dc'/%3e%3c/linearGradient%3e%3clinearGradient%20id='az3'%20x1='0'%20y1='0'%20x2='0'%20y2='1'%3e%3cstop%20offset='0'%20stop-color='%23a3b6ff'/%3e%3cstop%20offset='1'%20stop-color='%235f7cf0'/%3e%3c/linearGradient%3e%3clinearGradient%20id='ve'%20x1='0'%20y1='0'%20x2='0'%20y2='1'%3e%3cstop%20offset='0'%20stop-color='%233fd68f'/%3e%3cstop%20offset='1'%20stop-color='%23169a5c'/%3e%3c/linearGradient%3e%3clinearGradient%20id='la'%20x1='0'%20y1='0'%20x2='0'%20y2='1'%3e%3cstop%20offset='0'%20stop-color='%23ffbe4d'/%3e%3cstop%20offset='1'%20stop-color='%23f28c0c'/%3e%3c/linearGradient%3e%3cmask%20id='m'%20maskUnits='userSpaceOnUse'%20x='0'%20y='0'%20width='24'%20height='24'%3e%3crect%20width='24'%20height='24'%20fill='%23fff'/%3e%3cpath%20d='M15.6%201.4%20C13.3%201.4%2011.6%203.2%2011.6%205.4%20C11.6%208.2%2015.6%2012.2%2015.6%2012.2%20C15.6%2012.2%2019.6%208.2%2019.6%205.4%20C19.6%203.2%2017.9%201.4%2015.6%201.4%20Z'%20fill='%23000'%20stroke='%23000'%20stroke-width='2'%20stroke-linejoin='round'/%3e%3c/mask%3e%3cmask%20id='mp'%20maskUnits='userSpaceOnUse'%20x='0'%20y='0'%20width='24'%20height='24'%3e%3crect%20width='24'%20height='24'%20fill='%23fff'/%3e%3ccircle%20cx='15.6'%20cy='5.4'%20r='1.35'%20fill='%23000'/%3e%3c/mask%3e%3c/defs%3e%3cg%20mask='url(%23m)'%3e%3cpath%20d='M2.6%208.6%20L7.95%206.75%20V20.15%20L2.6%2022%20Z'%20fill='url(%23az)'/%3e%3cpath%20d='M8.85%206.75%20L15.15%208.5%20V21.85%20L8.85%2020.1%20Z'%20fill='url(%23az3)'/%3e%3cpath%20d='M16.05%208.5%20L21.4%206.6%20V20%20L16.05%2021.9%20Z'%20fill='url(%23ve)'/%3e%3c/g%3e%3cpath%20d='M15.6%201.4%20C13.3%201.4%2011.6%203.2%2011.6%205.4%20C11.6%208.2%2015.6%2012.2%2015.6%2012.2%20C15.6%2012.2%2019.6%208.2%2019.6%205.4%20C19.6%203.2%2017.9%201.4%2015.6%201.4%20Z'%20fill='url(%23la)'%20mask='url(%23mp)'/%3e%3c/svg%3e" alt="">Seu mural</h3>
+                        <h3 id="mural-mini-titulo"><img class="titulo-icone" src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3e%3cdefs%3e%3clinearGradient%20id='az'%20x1='0'%20y1='0'%20x2='0'%20y2='1'%3e%3cstop%20offset='0'%20stop-color='%237090ff'/%3e%3cstop%20offset='1'%20stop-color='%233150dc'/%3e%3c/linearGradient%3e%3clinearGradient%20id='la'%20x1='0'%20y1='0'%20x2='0'%20y2='1'%3e%3cstop%20offset='0'%20stop-color='%23ffbe4d'/%3e%3cstop%20offset='1'%20stop-color='%23f28c0c'/%3e%3c/linearGradient%3e%3clinearGradient%20id='la2'%20x1='0'%20y1='0'%20x2='0'%20y2='1'%3e%3cstop%20offset='0'%20stop-color='%23f6a232'/%3e%3cstop%20offset='1'%20stop-color='%23d46d06'/%3e%3c/linearGradient%3e%3cmask%20id='m'%20maskUnits='userSpaceOnUse'%20x='0'%20y='0'%20width='24'%20height='24'%3e%3crect%20width='24'%20height='24'%20fill='%23fff'/%3e%3crect%20x='5.1'%20y='6.6'%20width='11.4'%20height='2.2'%20rx='1.1'%20fill='%23000'/%3e%3cpath%20d='M5.6%2011.6%20H11.8%20M5.6%2014.6%20H9.4'%20stroke='%23000'%20stroke-width='1.7'%20stroke-linecap='round'/%3e%3ccircle%20cx='17.3'%20cy='15.4'%20r='4'%20fill='%23000'%20stroke='%23000'%20stroke-width='2.4'/%3e%3cpath%20d='M14.9%2017.8%20L13.6%2022.5%20L15.5%2021.7%20L16.6%2023.2%20L17.6%2019.3%20Z%20M19.7%2017.8%20L21%2022.5%20L19.1%2021.7%20L18%2023.2%20L17%2019.3%20Z'%20fill='%23000'%20stroke='%23000'%20stroke-width='2.4'%20stroke-linejoin='round'/%3e%3c/mask%3e%3cmask%20id='mm'%20maskUnits='userSpaceOnUse'%20x='0'%20y='0'%20width='24'%20height='24'%3e%3crect%20width='24'%20height='24'%20fill='%23fff'/%3e%3ccircle%20cx='17.3'%20cy='15.4'%20r='1.6'%20fill='%23000'/%3e%3c/mask%3e%3c/defs%3e%3crect%20x='2'%20y='3.4'%20width='17.6'%20height='14.6'%20rx='2.2'%20fill='url(%23az)'%20mask='url(%23m)'/%3e%3cpath%20d='M14.9%2017.8%20L13.6%2022.5%20L15.5%2021.7%20L16.6%2023.2%20L17.6%2019.3%20Z%20M19.7%2017.8%20L21%2022.5%20L19.1%2021.7%20L18%2023.2%20L17%2019.3%20Z'%20fill='url(%23la2)'/%3e%3ccircle%20cx='17.3'%20cy='15.4'%20r='4'%20fill='url(%23la)'%20mask='url(%23mm)'/%3e%3c/svg%3e" alt="">Seu mural</h3>
                         <p id="mural-mini-contagem"></p>
                     </div>
                     <a class="btn-mural" href="mural.html">Ver meu mural</a>

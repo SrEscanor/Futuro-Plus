@@ -8,11 +8,12 @@
     <link rel="icon" href="./favicon.ico" sizes="48x48">
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="./apple-touch-icon.png">
-  <script type="module" crossorigin src="./assets/adminNoticias-CVlQ6Ks_.js"></script>
-  <link rel="modulepreload" crossorigin href="./assets/firebase-config-DZ7_vqDZ.js">
-  <link rel="modulepreload" crossorigin href="./assets/noticias-dados-CLLgc4U3.js">
-  <link rel="stylesheet" crossorigin href="./assets/adminNoticias-B9lfDGXH.css">
-  <link rel="stylesheet" crossorigin href="./assets/admin-instituicoes-BoS5LrJM.css">
+  <script type="module" crossorigin src="./assets/adminNoticias-XKtmdbsT.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/firebase-config-CIJUxFH5.js">
+  <link rel="modulepreload" crossorigin href="./assets/destaques-util-CLcdY04S.js">
+  <link rel="modulepreload" crossorigin href="./assets/noticias-dados-eCcbMbNN.js">
+  <link rel="stylesheet" crossorigin href="./assets/adminNoticias-BFqwgPtd.css">
+  <link rel="stylesheet" crossorigin href="./assets/admin-instituicoes-BgZAo3X1.css">
 </head>
 
 <body>
@@ -31,6 +32,7 @@
                 <a href="admin-cursos.html" class="admin-nav-item"><span class="admin-nav-longo">Catálogo de cursos</span><span class="admin-nav-curto">Catálogo</span></a>
                 <a href="admin-notificacoes.html" class="admin-nav-item">Notificações</a>
                 <a href="admin-noticias.html" class="admin-nav-item" aria-current="page">Notícias</a>
+                <a href="admin-noticias-proprias.html" class="admin-nav-item">Notícias próprias</a>
             </div>
             <a href="index.html" class="admin-nav-voltar">Voltar ao site</a>
         </nav>
@@ -75,6 +77,10 @@
                     aria-selected="false" aria-controls="painel-noticias" tabindex="-1">
                     Recusadas <span class="noticias-aba-numero" id="numero-recusada">…</span>
                 </button>
+                <button type="button" class="noticias-aba" role="tab" id="aba-historico" data-aba="historico"
+                    aria-selected="false" aria-controls="painel-historico" tabindex="-1">
+                    Histórico
+                </button>
             </div>
 
             <!-- Fica preso no alto da tela enquanto a lista rola: o aviso do que
@@ -97,9 +103,79 @@
                 </div>
             </div>
 
+            <!-- Só aparece na aba Recusadas (ver admin-noticias.js) -->
+            <section class="noticias-busca" id="noticias-recusadas-acoes" hidden>
+                <div class="noticias-busca-texto">
+                    <h2>Limpeza automática</h2>
+                    <p>Recusadas com mais de 30 dias são apagadas sozinhas a cada coleta automática (a cada 6h).
+                        Para apagar agora, sem esperar:</p>
+                </div>
+                <button type="button" id="btn-limpar-recusadas" class="btn btn-secundario">Limpar recusadas
+                    antigas agora</button>
+            </section>
+
+            <!-- Notícias próprias esperando aprovação: no alto da aba Pendentes,
+                 sempre em primeiro e com o card azul (admin-noticias.js). A
+                 revisão e a aprovação são no painel Notícias próprias. -->
+            <section class="proprias-pendentes" id="proprias-pendentes" aria-labelledby="proprias-pendentes-titulo" hidden>
+                <h2 id="proprias-pendentes-titulo">Notícias do Futuro+ esperando aprovação <span id="proprias-pendentes-numero"></span></h2>
+                <ul class="proprias-pendentes-lista" id="proprias-pendentes-lista"></ul>
+            </section>
+
             <!-- ---------- LISTA DA ABA ABERTA ---------- -->
             <section id="painel-noticias" class="noticias-painel" role="tabpanel" aria-labelledby="aba-pendente" tabindex="-1">
+                <!-- Só na aba No site: as notícias do carrossel "Destaques para
+                     você" da Início, escolhidas com o botão Destacar dos cards
+                     (admin-noticias.js). -->
+                <section class="destaques-painel" id="destaques-painel" aria-labelledby="destaques-painel-titulo"
+                    tabindex="-1" hidden>
+                    <div class="destaques-painel-cabeca">
+                        <div>
+                            <h2 id="destaques-painel-titulo">
+                                <img src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3e%3cdefs%3e%3clinearGradient%20id='az'%20x1='0'%20y1='0'%20x2='0'%20y2='1'%3e%3cstop%20offset='0'%20stop-color='%237090ff'/%3e%3cstop%20offset='1'%20stop-color='%233150dc'/%3e%3c/linearGradient%3e%3clinearGradient%20id='az2'%20x1='0'%20y1='0'%20x2='0'%20y2='1'%3e%3cstop%20offset='0'%20stop-color='%234f6cf0'/%3e%3cstop%20offset='1'%20stop-color='%232440c4'/%3e%3c/linearGradient%3e%3cmask%20id='m'%20maskUnits='userSpaceOnUse'%20x='0'%20y='0'%20width='24'%20height='24'%3e%3crect%20width='24'%20height='24'%20fill='%23fff'/%3e%3cpath%20d='M9.9%209.5%20L12%2011.9%20L14.1%209.5%20M12%2011.9%20V15.6'%20fill='none'%20stroke='%23000'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/mask%3e%3c/defs%3e%3cpath%20d='M12%203.4C8.5%203.4%205.9%206.1%205.9%209.4C5.9%2011.6%207%2013.3%208.5%2014.5C9.1%2015%209.4%2015.6%209.4%2016.4V17.2H14.6V16.4C14.6%2015.6%2014.9%2015%2015.5%2014.5C17%2013.3%2018.1%2011.6%2018.1%209.4C18.1%206.1%2015.5%203.4%2012%203.4Z'%20fill='url(%23az)'%20mask='url(%23m)'/%3e%3crect%20x='9.2'%20y='18.3'%20width='5.6'%20height='1.7'%20rx='.85'%20fill='url(%23az2)'/%3e%3crect%20x='10.1'%20y='20.6'%20width='3.8'%20height='1.6'%20rx='.8'%20fill='url(%23az2)'/%3e%3cpath%20d='M1.8%209.4H3.5M20.5%209.4H22.2M4.1%203.3L5.3%204.5M19.9%203.3L18.7%204.5M12%20.7V1.9'%20fill='none'%20stroke='%23f7a21b'%20stroke-width='1.5'%20stroke-linecap='round'/%3e%3c/svg%3e" alt="" width="24" height="24">
+                                <span>Carrossel da Início · “Destaques para você”
+                                    <span class="destaques-painel-contagem" id="destaques-contagem"></span></span>
+                            </h2>
+                            <p>Escolha até 3 notícias com o botão <strong>Destacar</strong> nos cards abaixo. A ordem
+                                aqui é a ordem do carrossel; vaga livre mostra um destaque padrão do site.</p>
+                        </div>
+                        <a class="btn btn-secundario" href="index.html#destaques-inicio" target="_blank" rel="noopener"
+                            aria-label="Ver na Início (abre em outra aba)">Ver na Início
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M18 13.5V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4.5M14 4h6v6M20 4l-9 9" />
+                            </svg></a>
+                    </div>
+                    <ol class="destaques-vagas" id="destaques-vagas"></ol>
+                </section>
+
+                <!-- A limpeza é da função coletar_noticias_agendada (functions/main.py) -->
+                <p class="noticias-regra" id="regra-no-site" hidden>Notícias de outros sites saem do site sozinhas 90 dias
+                    depois de publicadas, na busca automática (a cada 6 horas). As do Futuro+ e as que estão no
+                    carrossel ficam.</p>
+
                 <ul class="lista-noticias" id="lista-noticias" aria-busy="true"></ul>
+            </section>
+
+            <!-- ---------- HISTÓRICO ---------- -->
+            <section id="painel-historico" class="noticias-historico" role="tabpanel" aria-labelledby="aba-historico" hidden>
+                <p class="historico-dica">Quem aprovou, recusou, tirou do site ou editou cada notícia e quem mexeu no
+                    carrossel da Início, com o e-mail de quem fez, e as buscas e limpezas. Ninguém consegue apagar ou
+                    mudar estes registros. A criação e a edição das notícias do Futuro+ ficam no histórico do painel
+                    Notícias próprias.</p>
+                <div class="tabela-container">
+                    <table class="tabela-historico">
+                        <thead>
+                            <tr>
+                                <th>Quando</th>
+                                <th>Quem</th>
+                                <th>O que fez</th>
+                                <th>Notícia</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historico-corpo"></tbody>
+                    </table>
+                </div>
             </section>
         </div>
     </main>

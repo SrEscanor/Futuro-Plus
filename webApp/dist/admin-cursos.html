@@ -8,12 +8,12 @@
     <link rel="icon" href="./favicon.ico" sizes="48x48">
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="./apple-touch-icon.png">
-  <script type="module" crossorigin src="./assets/adminCursos-BZsM_WJt.js"></script>
-  <link rel="modulepreload" crossorigin href="./assets/firebase-config-DZ7_vqDZ.js">
+  <script type="module" crossorigin src="./assets/adminCursos-BFzep-QG.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/firebase-config-CIJUxFH5.js">
   <link rel="modulepreload" crossorigin href="./assets/importacao-csv-C6XbO7FN.js">
   <link rel="modulepreload" crossorigin href="./assets/preload-helper-PPVm8Dsz.js">
-  <link rel="modulepreload" crossorigin href="./assets/capas-eixos-ChK66xHm.js">
-  <link rel="stylesheet" crossorigin href="./assets/admin-instituicoes-BoS5LrJM.css">
+  <link rel="modulepreload" crossorigin href="./assets/capas-eixos-BDGueOl1.js">
+  <link rel="stylesheet" crossorigin href="./assets/admin-instituicoes-BgZAo3X1.css">
 </head>
 
 <body>
@@ -32,6 +32,7 @@
                 <a href="admin-cursos.html" class="admin-nav-item" aria-current="page"><span class="admin-nav-longo">Catálogo de cursos</span><span class="admin-nav-curto">Catálogo</span></a>
                 <a href="admin-notificacoes.html" class="admin-nav-item">Notificações</a>
                 <a href="admin-noticias.html" class="admin-nav-item">Notícias</a>
+                <a href="admin-noticias-proprias.html" class="admin-nav-item">Notícias próprias</a>
             </div>
             <a href="index.html" class="admin-nav-voltar">Voltar ao site</a>
         </nav>
@@ -185,12 +186,12 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Curso</th>
-                            <th>Eixo</th>
-                            <th>Duração</th>
-                            <th>Carga horária</th>
-                            <th>Demanda</th>
-                            <th>Unidades</th>
+                            <th class="th-ordenavel" data-coluna="nome">Curso<span class="seta-ordenacao"></span></th>
+                            <th class="th-ordenavel" data-coluna="eixo">Eixo<span class="seta-ordenacao"></span></th>
+                            <th class="th-ordenavel" data-coluna="duracao">Duração<span class="seta-ordenacao"></span></th>
+                            <th class="th-ordenavel" data-coluna="cargaHoraria">Carga horária<span class="seta-ordenacao"></span></th>
+                            <th class="th-ordenavel" data-coluna="demanda">Demanda<span class="seta-ordenacao"></span></th>
+                            <th class="th-ordenavel" data-coluna="unidades">Unidades<span class="seta-ordenacao"></span></th>
                             <th></th>
                         </tr>
                     </thead>

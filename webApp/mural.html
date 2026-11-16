@@ -140,14 +140,6 @@
 
     <div class="main mural-main">
 
-        <div id="mural-precisa-login" class="mural-aviso-login" hidden>
-            <p>Entre na sua conta para guardar seus certificados aqui.</p>
-            <div class="mural-acoes">
-                <a class="btn-mural-acao" href="login.html">Entrar</a>
-                <a class="btn-mural-acao btn-mural-acao--secundario" href="cadastro.html">Criar conta</a>
-            </div>
-        </div>
-
         <div id="mural-app" hidden>
             <header class="mural-cabecalho">
                 <p id="mural-contagem">Nenhum certificado ainda</p>
@@ -156,7 +148,20 @@
             <section class="mural-parede">
                 <!-- a parede, com as pessoas e o piso, é a imagem de fundo (mural-parede.webp) -->
                 <div class="mural-quadros" id="mural-quadros">
-                    <button type="button" class="mural-quadro mural-quadro--novo" id="btn-novo-certificado">
+                    <!-- sem login, este quadro fica no lugar do "Adicionar certificado" -->
+                    <div class="mural-quadro mural-quadro--entrar" id="mural-quadro-entrar" hidden>
+                        <svg class="mural-entrar-icone" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <rect x="5" y="11" width="14" height="9" rx="2.5" />
+                            <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+                        </svg>
+                        <strong>Entre para pendurar seus certificados</strong>
+                        <span>O mural fica guardado na sua conta e só você vê.</span>
+                        <a class="btn-mural-acao" href="login.html">Entrar</a>
+                        <a class="mural-entrar-criar" href="cadastro.html">Criar conta</a>
+                    </div>
+
+                    <button type="button" class="mural-quadro mural-quadro--novo" id="btn-novo-certificado" hidden>
                         <span class="mural-mais">+</span>
                         <span>Adicionar certificado</span>
                     </button>
@@ -166,8 +171,9 @@
 
             </section>
 
-            <p class="mural-rodape">Seus certificados ficam guardados de forma privada. O CPF é borrado
-                automaticamente antes do envio; o nome continua visível, porque a conquista é sua.</p>
+            <p class="mural-rodape">Seus certificados ficam guardados de forma privada. O CPF é coberto
+                automaticamente antes do envio; o nome continua visível, porque a conquista é sua — e é por ele
+                que conferimos se o certificado é mesmo seu.</p>
         </div>
     </div>
 
@@ -202,13 +208,16 @@
 
                 <div class="mural-campos" id="campos-certificado" hidden>
                     <label for="cert-titulo">Nome do curso ou do evento</label>
-                    <input type="text" id="cert-titulo" placeholder="Ex: Semana Tecnológica 2026">
+                    <input type="text" id="cert-titulo" list="lista-cursos-mural" autocomplete="off"
+                        placeholder="Ex: Desenvolvimento de Sistemas ou Semana Tecnológica 2026">
+                    <datalist id="lista-cursos-mural"></datalist>
+                    <small class="mural-ligado" id="cert-titulo-ligado" hidden></small>
 
-                    <label for="cert-instituicao">Instituição</label>
-                    <input type="text" id="cert-instituicao" placeholder="Ex: Etec de Carapicuíba ou Fatec de Sorocaba">
-
-                    <label for="cert-horas">Carga horária (horas)</label>
-                    <input type="number" id="cert-horas" min="0" step="1" placeholder="Ex: 20">
+                    <label for="cert-instituicao">Etec, Fatec ou outra instituição</label>
+                    <input type="text" id="cert-instituicao" list="lista-unidades-mural" autocomplete="off"
+                        placeholder="Ex: Etec de Carapicuíba ou Fatec Sorocaba">
+                    <datalist id="lista-unidades-mural"></datalist>
+                    <small class="mural-ligado" id="cert-instituicao-ligado" hidden></small>
                 </div>
             </div>
 

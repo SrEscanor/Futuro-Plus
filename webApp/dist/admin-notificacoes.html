@@ -8,9 +8,13 @@
     <link rel="icon" href="./favicon.ico" sizes="48x48">
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="./apple-touch-icon.png">
-  <script type="module" crossorigin src="./assets/adminNotificacoes-DqtN0uYX.js"></script>
-  <link rel="modulepreload" crossorigin href="./assets/firebase-config-DZ7_vqDZ.js">
-  <link rel="stylesheet" crossorigin href="./assets/admin-instituicoes-BoS5LrJM.css">
+  <script type="module" crossorigin src="./assets/adminNotificacoes-BOu5pJjq.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/firebase-config-CIJUxFH5.js">
+  <link rel="modulepreload" crossorigin href="./assets/destaques-util-CLcdY04S.js">
+  <link rel="modulepreload" crossorigin href="./assets/noticias-dados-eCcbMbNN.js">
+  <link rel="modulepreload" crossorigin href="./assets/notificacoes-util-BMqxtxne.js">
+  <link rel="stylesheet" crossorigin href="./assets/adminNotificacoes-DgBgysCw.css">
+  <link rel="stylesheet" crossorigin href="./assets/admin-instituicoes-BgZAo3X1.css">
 </head>
 
 <body>
@@ -29,6 +33,7 @@
                 <a href="admin-cursos.html" class="admin-nav-item"><span class="admin-nav-longo">Catálogo de cursos</span><span class="admin-nav-curto">Catálogo</span></a>
                 <a href="admin-notificacoes.html" class="admin-nav-item" aria-current="page">Notificações</a>
                 <a href="admin-noticias.html" class="admin-nav-item">Notícias</a>
+                <a href="admin-noticias-proprias.html" class="admin-nav-item">Notícias próprias</a>
             </div>
             <a href="index.html" class="admin-nav-voltar">Voltar ao site</a>
         </nav>
@@ -54,28 +59,56 @@
                 </div>
             </div>
 
-            <div id="status-notificacoes" class="status-importacao"></div>
+            <div id="status-notificacoes" class="status-importacao" role="status" aria-live="polite"></div>
 
-            <div class="tabela-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Título</th>
-                            <th>Mensagem</th>
-                            <th>Público</th>
-                            <th title="Aparece como modal ao entrar, uma vez por conta/visitante">Modal</th>
-                            <th title="Aparece na lista do sino no topo">Sino</th>
-                            <th>Ativa</th>
-                            <th>Criada em</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabela-notificacoes-corpo">
-                        <tr>
-                            <td colspan="8" class="tabela-vazia">Carregando notificações...</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="abas-admin" role="tablist" aria-label="Notificações e histórico">
+                <button type="button" class="aba-admin aba-admin--ativa" role="tab" id="aba-avisos" data-aba="avisos"
+                    aria-selected="true" aria-controls="painel-avisos">Notificações</button>
+                <button type="button" class="aba-admin" role="tab" id="aba-historico" data-aba="historico"
+                    aria-selected="false" aria-controls="painel-historico" tabindex="-1">Histórico</button>
+            </div>
+
+            <div id="painel-avisos" role="tabpanel" aria-labelledby="aba-avisos">
+                <div class="tabela-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Título</th>
+                                <th>Mensagem</th>
+                                <th>Público</th>
+                                <th title="Aparece como modal ao entrar, uma vez por conta/visitante">Modal</th>
+                                <th title="Aparece na lista do sino no topo">Sino</th>
+                                <th>Ativa</th>
+                                <th title="Quando a notificação passa a aparecer no site">Publicação</th>
+                                <th>Criada em</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-notificacoes-corpo">
+                            <tr>
+                                <td colspan="9" class="tabela-vazia">Carregando notificações...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="painel-historico" role="tabpanel" aria-labelledby="aba-historico" hidden>
+                <p class="historico-dica">Tudo o que foi feito nas notificações, com o e-mail de quem fez. Ninguém
+                    consegue apagar ou mudar estes registros, nem quando a notificação é excluída.</p>
+                <div class="tabela-container">
+                    <table class="tabela-historico">
+                        <thead>
+                            <tr>
+                                <th>Quando</th>
+                                <th>Quem</th>
+                                <th>O que fez</th>
+                                <th>Notificação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historico-corpo"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </main>
@@ -99,6 +132,20 @@
                         <textarea id="f-mensagem" required></textarea>
                     </div>
                     <fieldset class="campo grupo-opcoes">
+                        <legend>Ao clicar, abrir uma notícia (opcional)</legend>
+                        <div id="f-noticia-escolhida" class="noticia-escolhida" hidden></div>
+                        <button type="button" id="f-noticia-escolher" class="btn btn-secundario noticia-botao">Escolher
+                            notícia do site</button>
+                        <div id="f-noticia-busca" class="noticia-busca" hidden>
+                            <input type="search" id="f-noticia-filtro" class="noticia-filtro"
+                                placeholder="Buscar pelo título" aria-label="Buscar notícia pelo título" autocomplete="off">
+                            <ul id="f-noticia-lista" class="noticia-opcoes" aria-label="Notícias do site"></ul>
+                        </div>
+                        <small class="campo-dica">No sino e no aviso, a notificação vira um link para a matéria; na
+                            notificação do dispositivo, tocar abre a matéria. Título e mensagem vazios são preenchidos
+                            com os da notícia.</small>
+                    </fieldset>
+                    <fieldset class="campo grupo-opcoes">
                         <legend>Para quem</legend>
                         <div class="opcoes-cartao">
                             <label class="opcao-cartao">
@@ -115,16 +162,29 @@
                             </label>
                         </div>
                     </fieldset>
+                    <div class="campo">
+                        <label for="f-agendar">Agendar publicação (opcional)</label>
+                        <input type="datetime-local" id="f-agendar">
+                        <small class="campo-dica">Deixe em branco para já valer assim que salvar, ou escolha uma data
+                            com pelo menos 1 hora de distância do horário atual. Enquanto a data não chega, a
+                            notificação fica guardada sem aparecer em lugar nenhum do site — e não pode aparecer
+                            como modal (só na lista do sino, depois que for publicada).</small>
+                    </div>
                     <fieldset class="campo grupo-opcoes">
                         <legend>Onde aparece</legend>
                         <div class="opcoes-cartao opcoes-cartao--2">
-                            <label class="opcao-cartao">
+                            <label class="opcao-cartao" id="opcao-modal">
                                 <input type="checkbox" id="f-modal">
                                 <span>Modal ao entrar no site<small>Uma vez por conta ou visitante</small></span>
                             </label>
                             <label class="opcao-cartao">
                                 <input type="checkbox" id="f-sino" checked>
                                 <span>Lista do sino no topo<small>Junto com os outros avisos</small></span>
+                            </label>
+                            <label class="opcao-cartao">
+                                <input type="checkbox" id="f-push">
+                                <span>Notificação no dispositivo<small>Só pra quem já permitiu notificações do
+                                        navegador (opcional)</small></span>
                             </label>
                         </div>
                     </fieldset>

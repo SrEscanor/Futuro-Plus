@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Futuro+ | Admin · Notícias próprias</title>
+    <!-- o "Ver como fica" usa o mesmo visual da matéria no site -->
+    <link rel="icon" href="./favicon.ico" sizes="48x48">
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <script type="module" crossorigin src="./assets/adminNoticiasProprias-BNh7xbtr.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/firebase-config-CIJUxFH5.js">
+  <link rel="modulepreload" crossorigin href="./assets/destaques-util-CLcdY04S.js">
+  <link rel="modulepreload" crossorigin href="./assets/noticia-materia-BUKFWeRf.js">
+  <link rel="stylesheet" crossorigin href="./assets/noticia-materia-Bp7tI1f0.css">
+  <link rel="stylesheet" crossorigin href="./assets/adminNoticiasProprias-D2eDKAf6.css">
+  <link rel="stylesheet" crossorigin href="./assets/admin-instituicoes-BgZAo3X1.css">
+</head>
+
+<body>
+
+    <header class="topo-admin">
+        <div class="titulo-area">
+            <h1>Painel Admin · Notícias próprias</h1>
+        </div>
+        <div class="usuario-area">
+            <span id="admin-email"></span>
+            <button id="logout-btn" class="btn-sair-admin">Sair</button>
+        </div>
+        <nav class="admin-nav" aria-label="Páginas do painel">
+            <div class="admin-nav-paginas">
+                <a href="admin-instituicoes.html" class="admin-nav-item">Unidades</a>
+                <a href="admin-cursos.html" class="admin-nav-item"><span class="admin-nav-longo">Catálogo de cursos</span><span class="admin-nav-curto">Catálogo</span></a>
+                <a href="admin-notificacoes.html" class="admin-nav-item">Notificações</a>
+                <a href="admin-noticias.html" class="admin-nav-item">Notícias</a>
+                <a href="admin-noticias-proprias.html" class="admin-nav-item" aria-current="page">Notícias próprias</a>
+            </div>
+            <a href="index.html" class="admin-nav-voltar">Voltar ao site</a>
+        </nav>
+    </header>
+
+    <div id="acesso-negado" class="acesso-negado">
+        <h2>Acesso restrito</h2>
+        <p>Esta área é exclusiva para administradores do Futuro+. Se você acredita que deveria ter acesso, fale com
+            quem administra o projeto.</p>
+        <a href="index.html" class="btn btn-secundario">Voltar ao início</a>
+    </div>
+    <main id="admin-app" style="display:none;">
+        <div class="container-admin">
+            <p id="np-status" class="status-importacao np-aviso" role="status" aria-live="polite" hidden></p>
+
+            <!-- ---------- LISTA ---------- -->
+            <section id="np-lista-tela" aria-labelledby="np-lista-titulo">
+                <div class="np-barra">
+                    <div>
+                        <h2 id="np-lista-titulo">Notícias próprias</h2>
+                        <p>Escritas pela equipe do Futuro+. Salve como rascunho ou mande para aprovação: só a aprovada
+                            vai para a página Notícias, com o card azul.</p>
+                    </div>
+                    <button type="button" id="np-nova" class="btn btn-primario">+ Nova notícia</button>
+                </div>
+
+                <!-- Em aprovação vem primeiro: é o que precisa de alguém agora -->
+                <div class="np-abas" role="tablist" aria-label="Notícias por situação">
+                    <button type="button" role="tab" id="np-aba-pendentes" class="np-aba np-aba--ativa" aria-selected="true"
+                        aria-controls="np-painel-noticias">Em aprovação <span id="np-contagem-pendentes"></span></button>
+                    <button type="button" role="tab" id="np-aba-rascunhos" class="np-aba" aria-selected="false"
+                        aria-controls="np-painel-noticias">Rascunhos <span id="np-contagem-rascunhos"></span></button>
+                    <button type="button" role="tab" id="np-aba-nosite" class="np-aba" aria-selected="false"
+                        aria-controls="np-painel-noticias">No site <span id="np-contagem-nosite"></span></button>
+                    <button type="button" role="tab" id="np-aba-historico" class="np-aba" aria-selected="false"
+                        aria-controls="np-painel-historico">Histórico</button>
+                </div>
+
+                <div id="np-painel-noticias" role="tabpanel">
+                    <ul id="np-lista" class="np-lista"></ul>
+                </div>
+
+                <div id="np-painel-historico" role="tabpanel" aria-labelledby="np-aba-historico" hidden>
+                    <p class="np-historico-dica">Tudo o que foi feito nas notícias próprias, com o e-mail de quem fez.
+                        Ninguém consegue apagar ou mudar estes registros, nem quando a notícia é excluída.</p>
+                    <div class="tabela-container">
+                        <table class="np-tabela-historico">
+                            <thead>
+                                <tr>
+                                    <th>Quando</th>
+                                    <th>Quem</th>
+                                    <th>O que fez</th>
+                                    <th>Notícia</th>
+                                </tr>
+                            </thead>
+                            <tbody id="np-historico-corpo"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ---------- EDITOR ---------- -->
+            <section id="np-editor-tela" aria-labelledby="np-editor-titulo" hidden>
+                <div class="np-barra">
+                    <div>
+                        <h2 id="np-editor-titulo">Nova notícia</h2>
+                        <p>Depois de aprovada, ela entra na página Notícias com o card azul do Futuro+.</p>
+                    </div>
+                    <button type="button" id="np-voltar" class="btn btn-secundario">&larr; Todas as notícias próprias</button>
+                </div>
+
+                <div class="np-editor">
+                    <section class="np-papel" aria-label="Texto da notícia">
+                        <label class="np-rotulo" for="np-titulo">Título</label>
+                        <textarea id="np-titulo" class="np-titulo" rows="1" maxlength="120"
+                            placeholder="O título da notícia"></textarea>
+                        <div class="np-contador" id="np-titulo-contador" aria-live="off"></div>
+
+                        <label class="np-rotulo" for="np-apoio">Linha de apoio</label>
+                        <textarea id="np-apoio" class="np-apoio" rows="1" maxlength="240"
+                            placeholder="Uma ou duas frases que resumem a notícia"></textarea>
+                        <div class="np-contador" id="np-apoio-contador" aria-live="off"></div>
+
+                        <div class="np-meta">
+                            <label class="np-autoria">Por <input type="text" id="np-autor" maxlength="80"
+                                    aria-label="Quem escreveu (aparece como &quot;Por ...&quot;)"></label>
+                            <div class="np-etiquetas" role="group" aria-label="Etiquetas">
+                                Etiqueta:
+                                <span class="np-chip np-chip--fixo" aria-pressed="true" title="Toda notícia própria é do Futuro+">Futuro+</span>
+                                <button type="button" class="np-chip" data-etiqueta="etec" aria-pressed="false">Etec</button>
+                                <button type="button" class="np-chip" data-etiqueta="fatec" aria-pressed="false">Fatec</button>
+                            </div>
+                        </div>
+
+                        <span class="np-rotulo">Imagem principal</span>
+                        <div id="np-imagem-principal" class="np-imagem-principal"></div>
+
+                        <div class="np-corpo-titulo">
+                            <span class="np-rotulo">Texto da notícia</span>
+                            <small>Parágrafos, intertítulos e imagens com legenda, na ordem que quiser</small>
+                        </div>
+                        <div id="np-blocos" class="np-blocos"></div>
+                        <div id="np-adicionar" class="np-adicionar">
+                            Adicionar:
+                            <button type="button" data-tipo="paragrafo">&para; Parágrafo</button>
+                            <button type="button" data-tipo="intertitulo">H Intertítulo</button>
+                            <button type="button" data-tipo="imagem">&#9635; Imagem com legenda</button>
+                        </div>
+                    </section>
+
+                    <aside class="np-lateral" aria-label="Situação e aprovação">
+                        <!-- só aparece para a notícia pendente; vem primeiro porque, nela,
+                             aprovar é o que mais se faz -->
+                        <section class="np-cartao np-cartao-aprovacao" id="np-cartao-aprovacao" hidden>
+                            <h3>Aprovação</h3>
+                            <p class="np-enviada" id="np-enviada"></p>
+                            <fieldset class="campo grupo-opcoes">
+                                <legend>Quando publicar</legend>
+                                <div class="opcoes-cartao">
+                                    <label class="opcao-cartao">
+                                        <input type="radio" name="np-quando" id="np-quando-agora" value="agora">
+                                        <span>Publicar agora</span>
+                                    </label>
+                                    <label class="opcao-cartao" id="np-opcao-agendar">
+                                        <input type="radio" name="np-quando" id="np-quando-agendar" value="agendar">
+                                        <span>Agendar<small>Pelo menos 1 hora à frente. Até lá, ela não aparece em lugar
+                                                nenhum do site.</small></span>
+                                    </label>
+                                </div>
+                            </fieldset>
+                            <div class="campo" id="np-quando" hidden>
+                                <label for="np-data">Data e hora da publicação</label>
+                                <input type="datetime-local" id="np-data">
+                            </div>
+                            <div class="np-acoes">
+                                <button type="button" id="np-aprovar" class="btn btn-primario np-botao-aprovar">Aprovar e publicar</button>
+                                <button type="button" id="np-devolver" class="btn btn-secundario">Devolver para rascunho</button>
+                            </div>
+                        </section>
+
+                        <section class="np-cartao">
+                            <h3>Situação <span id="np-selo-editor"></span></h3>
+                            <div class="np-aviso-situacao" id="np-aviso-situacao" hidden></div>
+                            <!-- só uma das duas pode ficar marcada -->
+                            <fieldset class="campo grupo-opcoes">
+                                <legend>Salvar como</legend>
+                                <div class="opcoes-cartao">
+                                    <label class="opcao-cartao">
+                                        <input type="radio" name="np-destino" id="np-destino-rascunho" value="rascunho">
+                                        <span>Rascunho<small>Fica na aba Rascunhos para você continuar depois.</small></span>
+                                    </label>
+                                    <label class="opcao-cartao">
+                                        <input type="radio" name="np-destino" id="np-destino-pendente" value="pendente">
+                                        <span>Pendente de aprovação<small>A matéria está completa. Ela só vai ao site
+                                                depois de aprovada.</small></span>
+                                    </label>
+                                </div>
+                            </fieldset>
+                            <div class="np-acoes">
+                                <button type="button" id="np-salvar" class="btn btn-primario">Salvar rascunho</button>
+                                <button type="button" id="np-ver" class="btn btn-secundario">Ver como fica</button>
+                                <button type="button" id="np-desagendar" class="btn btn-secundario np-botao-perigo" hidden>Cancelar agendamento</button>
+                                <button type="button" id="np-despublicar" class="btn btn-secundario np-botao-perigo" hidden>Tirar do site</button>
+                            </div>
+                            <div class="np-datas" id="np-datas"></div>
+                        </section>
+
+                        <section class="np-cartao">
+                            <h3>Como aparece na lista</h3>
+                            <div id="np-mini" class="np-mini" aria-hidden="true"></div>
+                        </section>
+
+                        <section class="np-cartao">
+                            <h3>Histórico desta notícia</h3>
+                            <div id="np-historico-noticia"></div>
+                        </section>
+                    </aside>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- escolha de imagem (o painel diz para qual lugar ela vai) -->
+    <input type="file" id="np-arquivo" accept="image/jpeg,image/png,image/webp" hidden>
+
+    <!-- ---------- "VER COMO FICA" ---------- -->
+    <div id="np-previa" class="modal-overlay">
+        <div class="modal np-previa-modal" role="dialog" aria-modal="true" aria-labelledby="np-previa-titulo">
+            <div class="modal-cabecalho">
+                <h2 id="np-previa-titulo">Como fica no site</h2>
+                <button type="button" id="np-fechar-previa" class="btn-fechar-modal" aria-label="Fechar">&times;</button>
+            </div>
+            <div class="modal-corpo np-previa-corpo" id="np-previa-conteudo"></div>
+        </div>
+    </div>
+
+</body>
+
+</html>
