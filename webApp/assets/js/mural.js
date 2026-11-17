@@ -2,7 +2,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { collection, deleteDoc, doc, getDoc, getDocs, setDoc } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { auth, db, app } from './firebase-config.js';
-import { escapeHtml, normalizar } from './card-unidade.js';
+import { escapeHtml, normalizar, paginaDaUnidade } from './card-unidade.js';
 import {
     lerCertificado, areasDeCpf, borrarAreas, canvasParaArquivo, reduzirImagem
 } from './certificado-ocr.js';
@@ -440,6 +440,9 @@ function abrirLightbox(certificado) {
         ${detalhe ? `<span>${escapeHtml(detalhe)}</span>` : ''}
         ${certificado.cursoId
             ? `<a href="curso.html?c=${encodeURIComponent(certificado.cursoId)}">Ver a página do curso &rarr;</a>`
+            : ''}
+        ${certificado.unidadeId
+            ? `<a href="${escapeHtml(paginaDaUnidade(certificado.unidadeId))}">Ver a página da escola &rarr;</a>`
             : ''}`;
     elemento('mural-lightbox').classList.add('aberto');
 }

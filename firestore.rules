@@ -13,6 +13,30 @@ service cloud.firestore {
         get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.get('admin', false) == true;
     }
 
+    // Texto de comentário, pergunta e resposta da página da instituição:
+    // tamanho dentro do limite e sem link (os mesmos números de
+    // webApp/assets/js/instituicao-util.js).
+    function textoSemLink(texto, minimo, maximo) {
+      return texto is string && texto.size() >= minimo && texto.size() <= maximo
+        && !texto.matches('(?is).*(https?://|www[.]).*');
+    }
+
+    function nomeDoPerfil(uid) {
+      return get(/databases/$(database)/documents/usuarios/$(uid)).data.get('nome', '');
+    }
+
+    // O certificado do Mural que dá direito a comentar, avaliar e responder
+    // sobre uma unidade: a leitura achou a unidade no papel e conferiu o
+    // nome da conta, e o curso e o ano gravados junto são os dele.
+    function certificadoDaUnidade(uid, certificadoId, unidadeId, curso, ano) {
+      let certificado = get(/databases/$(database)/documents/usuarios/$(uid)/certificados/$(certificadoId)).data;
+      let verificacao = certificado.get('verificacao', {});
+      return verificacao.get('unidadeLida', '') == unidadeId
+        && verificacao.get('nomeConfere', false) == true
+        && curso == certificado.get('titulo', '')
+        && ano == certificado.get('anoConclusao', null);
+    }
+
     // Cada aluno só pode ler/escrever o próprio documento de perfil.
     // O campo "admin" não pode ser alterado pelo próprio usuário via app —
     // só é promovido manualmente no Console do Firebase (Admin SDK ignora
@@ -39,10 +63,85 @@ service cloud.firestore {
 
     // Unidades (Etec, Fatec ou outra instituição) cadastradas pelo CMS:
     // leitura pública (usadas pelo app e futuramente pelo chatbot), escrita
-    // restrita a administradores.
+    // restrita a administradores. A foto da fachada (foto, paginaCps) também
+    // é gravada pelo admin, no botão "Buscar fotos no site do CPS".
     match /instituicoes/{unidadeId} {
       allow read: if true;
       allow write: if ehAdmin();
+    }
+
+    // Comentário e nota de quem estudou na unidade (instituicao.html): um
+    // por conta, com o id igual ao uid. Todo mundo lê; grava só quem tem o
+    // certificado da unidade no Mural, com o nome do perfil e o curso e o
+    // ano do certificado. Apaga quem escreveu ou o admin.
+    match /instituicoes/{unidadeId}/comentarios/{uid} {
+      function comentarioValido() {
+        let dados = request.resource.data;
+        return dados.nota is int && dados.nota >= 1 && dados.nota <= 5
+          && textoSemLink(dados.texto, 10, 600)
+          && dados.certificadoId is string
+          && dados.nome == nomeDoPerfil(uid)
+          && certificadoDaUnidade(uid, dados.certificadoId, unidadeId, dados.curso, dados.ano);
+      }
+
+      allow read: if true;
+      allow create: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['texto', 'nota', 'nome', 'curso', 'ano', 'certificadoId', 'criadoEm'])
+        && request.resource.data.criadoEm == request.time
+        && comentarioValido();
+      allow update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['texto', 'nota', 'nome', 'curso', 'ano', 'certificadoId', 'criadoEm', 'editadoEm'])
+        && request.resource.data.criadoEm == resource.data.criadoEm
+        && request.resource.data.editadoEm == request.time
+        && comentarioValido();
+      allow delete: if request.auth != null && (request.auth.uid == uid || ehAdmin());
+    }
+
+    // Dúvidas sobre a unidade: qualquer conta com e-mail confirmado pergunta,
+    // com o nome do perfil. As respostas ficam no próprio documento, uma por
+    // conta (respostas.{uid}): responde quem tem o certificado da unidade,
+    // com o curso e o ano dele, ou o admin, como "Equipe Futuro+". Cada conta
+    // só mexe na própria resposta; o admin também apaga as dos outros. A
+    // pergunta sai pelo admin, ou por quem perguntou enquanto ninguém respondeu.
+    match /instituicoes/{unidadeId}/perguntas/{perguntaId} {
+      function respostaValida(resposta) {
+        let uid = request.auth.uid;
+        return resposta.keys().hasOnly(['texto', 'nome', 'curso', 'ano', 'certificadoId', 'equipe', 'em'])
+          && textoSemLink(resposta.texto, 5, 600)
+          && resposta.em == request.time
+          && resposta.nome == nomeDoPerfil(uid)
+          && (
+            (resposta.equipe == true && ehAdmin() && !('certificadoId' in resposta))
+            || (resposta.equipe == false && resposta.certificadoId is string
+              && certificadoDaUnidade(uid, resposta.certificadoId, unidadeId, resposta.curso, resposta.ano))
+          );
+      }
+
+      function mexeuSoNaPropria() {
+        let uid = request.auth.uid;
+        let depois = request.resource.data.respostas;
+        return depois.diff(resource.data.respostas).affectedKeys().hasOnly([uid])
+          && (!(uid in depois) || respostaValida(depois[uid]));
+      }
+
+      function adminSoApagou() {
+        let mudou = request.resource.data.respostas.diff(resource.data.respostas);
+        return ehAdmin() && mudou.addedKeys().size() == 0 && mudou.changedKeys().size() == 0;
+      }
+
+      allow read: if true;
+      allow create: if request.auth != null && request.auth.token.email_verified == true
+        && request.resource.data.keys().hasOnly(['texto', 'autorUid', 'nome', 'criadaEm', 'respostas'])
+        && request.resource.data.autorUid == request.auth.uid
+        && request.resource.data.criadaEm == request.time
+        && request.resource.data.respostas == {}
+        && request.resource.data.nome == nomeDoPerfil(request.auth.uid)
+        && textoSemLink(request.resource.data.texto, 10, 300);
+      allow update: if request.auth != null
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['respostas'])
+        && (mexeuSoNaPropria() || adminSoApagou());
+      allow delete: if request.auth != null
+        && (ehAdmin() || (resource.data.autorUid == request.auth.uid && resource.data.respostas.size() == 0));
     }
 
     // Certificados do mural: cada aluno mexe só nos próprios. Documento

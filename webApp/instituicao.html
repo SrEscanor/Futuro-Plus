@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Futuro+ | Instituição</title>
+    <link rel="icon" href="/favicon.ico" sizes="48x48">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="stylesheet" href="assets/css/ondas.css">
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+    <link rel="stylesheet" href="assets/css/instituicao.css">
+</head>
+
+<body>
+
+    <aside class="menu-panel" aria-label="Menu principal">
+        <div class="menu-topo">
+            <div class="menu-marca">
+                <img src="assets/images/logo.png" alt="" class="menu-logo">
+                <span class="menu-marca-texto">Futuro+</span>
+            </div>
+            <span class="menu-subtitulo">Escolha seu caminho</span>
+        </div>
+
+        <div class="nav-auth menu-nav-auth" id="menu-nav-auth" hidden>
+            <a href="login.html" class="nav-auth-entrar">Entrar</a>
+            <a href="cadastro.html" class="nav-auth-cadastro">Cadastro</a>
+        </div>
+
+        <button type="button" id="btn-tour-menu" class="menu-tour-cta">
+            <span class="tour-texto">Tour guiado</span> 🧭
+        </button>
+
+        <nav class="menu-navegacao">
+            <span class="menu-secao">Navegar</span>
+            <a href="index.html" class="menu-item" data-icone="🏠">Início</a>
+            <a href="testes.html" class="menu-item" data-icone="🧠">Testes</a>
+            <a href="cursos.html" class="menu-item" data-icone="🎓">Cursos</a>
+            <a href="instituicoes.html" class="menu-item ativo" data-icone="🏛️" aria-current="page">Instituições</a>
+            <a href="noticias.html" class="menu-item" data-icone="📰">Notícias</a>
+            <a href="mural.html" class="menu-item" data-icone="📌">Mural</a>
+            <a href="perfil.html" class="menu-item" data-icone="👤">Perfil</a>
+
+            <span class="menu-secao menu-admin-area" id="menu-secao-admin" hidden>Administração</span>
+            <a href="admin-instituicoes.html" id="menu-admin" class="menu-item menu-admin-area" data-icone="🏫" hidden>Unidades</a>
+            <a href="admin-cursos.html" id="menu-admin-cursos" class="menu-item menu-admin-area" data-icone="📚" hidden>Catálogo de cursos</a>
+            <a href="admin-termos.html" id="menu-admin-termos" class="menu-item menu-admin-area" data-icone="📜" hidden>Termos e Privacidade</a>
+            <a href="admin-notificacoes.html" id="menu-admin-notificacoes" class="menu-item menu-admin-area" data-icone="🔔" hidden>Notificações</a>
+            <a href="admin-noticias.html" id="menu-admin-noticias" class="menu-item menu-admin-area" data-icone="🗞️" hidden>Notícias</a>
+            <a href="admin-noticias-proprias.html" id="menu-admin-noticias-proprias" class="menu-item menu-admin-area" data-icone="✍️" hidden>Notícias próprias</a>
+        </nav>
+
+        <a href="testes.html" class="menu-cartao">
+            <img class="menu-cartao-icone" src="assets/icones/3d/conquistas.webp" alt="" width="58" height="58">
+            <strong>Seu futuro começa aqui!</strong>
+            <span class="menu-cartao-texto">Aprenda, evolua e conquiste mais.</span>
+            <span class="menu-cartao-acao">Fazer um teste <span aria-hidden="true">→</span></span>
+            <svg class="menu-cartao-onda" viewBox="0 0 240 34" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M0 14 C40 2 80 2 120 14 C160 26 200 26 240 14 V34 H0 Z" fill="#f7b03f" />
+                <path d="M0 23 C50 11 92 13 132 23 C172 33 206 29 240 21 V34 H0 Z" fill="#2ecc71" />
+            </svg>
+        </a>
+
+    </aside>
+
+<nav class="topnav">
+        <div class="nav-left">
+            <button type="button" class="hamburger" aria-label="Menu principal">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="search-bar">
+                <input type="text" id="busca-topo" placeholder="Buscar cursos..." aria-label="Buscar cursos">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+            </div>
+        </div>
+        <div class="nav-center">
+            <img src="assets/images/logo.png" alt="Futuro+" class="logo-topo">
+        </div>
+        <div class="nav-right">
+            <button type="button" id="btn-repetir-tour" class="btn-repetir-tour" aria-label="Repetir tour guiado" title="Tour guiado"><span class="tour-texto">Tour guiado</span> 🧭</button>
+            <div class="notif-menu" id="notif-menu" hidden>
+                <button type="button" class="bell-icon" id="notif-botao" aria-haspopup="true" aria-expanded="false" aria-label="Notificações">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                        <path d="M13.73 21a2 2 0 01-3.46 0" />
+                    </svg>
+                    <span class="notif-ponto" id="notif-ponto" hidden></span>
+                </button>
+                <div class="notif-dropdown" id="notif-dropdown" hidden>
+                    <div class="notif-dropdown-cabecalho">
+                        <span>Notificações</span>
+                        <button type="button" id="notif-limpar" class="notif-limpar" hidden>Limpar</button>
+                    </div>
+                    <div class="notif-lista" id="notif-lista">
+                        <p class="notif-vazio">Nenhuma notificação por enquanto.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="avatar-menu" id="avatar-menu" hidden>
+                <button type="button" class="avatar-link" id="avatar-botao" aria-haspopup="true" aria-expanded="false" aria-label="Menu da conta">
+                    <div class="avatar">
+                        <span id="avatar-iniciais"></span>
+                    </div>
+                </button>
+                <div class="avatar-dropdown" id="avatar-dropdown" hidden>
+                    <a href="perfil.html" class="avatar-dropdown-item">Meu perfil</a>
+                    <button type="button" id="logout-btn" class="avatar-dropdown-item avatar-dropdown-item--sair">Sair da conta</button>
+                </div>
+            </div>
+            <div class="nav-auth" id="nav-auth" hidden>
+                <a href="login.html" class="nav-auth-entrar">Entrar</a>
+                <a href="cadastro.html" class="nav-auth-cadastro">Cadastro</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Topo, números, sobre, cursos, comentários e dúvidas: montados por
+         assets/js/instituicao-visao.js com os dados de instituicoes/{id}. -->
+    <header class="home-hero inst-capa" id="inst-capa">
+        <div class="inst-capa-miolo" id="inst-capa-miolo"></div>
+
+        <div class="hero-ondas" aria-hidden="true">
+            <svg class="onda onda-laranja" viewBox="0 0 1440 60" preserveAspectRatio="none">
+                <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
+            </svg>
+            <svg class="onda onda-tras" viewBox="0 0 1440 60" preserveAspectRatio="none">
+                <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
+            </svg>
+            <svg class="onda onda-frente" viewBox="0 0 1440 60" preserveAspectRatio="none">
+                <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
+            </svg>
+        </div>
+    </header>
+
+    <div class="main inst-pagina" id="inst-pagina">
+        <p class="inst-carregando" id="inst-carregando">Carregando instituição...</p>
+
+        <div id="inst-conteudo" hidden>
+            <section class="inst-numeros" id="inst-numeros" aria-label="Resumo da instituição"></section>
+
+            <!-- duas colunas que crescem cada uma no seu ritmo; no celular
+                 viram uma só, na ordem definida em instituicao.css -->
+            <div class="inst-grade">
+                <div class="inst-coluna">
+                    <section class="inst-cartao" id="inst-sobre"></section>
+                    <section class="inst-cartao" id="inst-cursos"></section>
+                    <section class="inst-cartao" id="duvidas"></section>
+                </div>
+                <div class="inst-coluna">
+                    <section class="inst-cartao" id="quem-estudou"></section>
+                    <!-- igual em todas as unidades: a arte não tem letreiro -->
+                    <aside class="inst-convite" id="inst-convite">
+                        <div class="inst-convite-texto">
+                            <span class="inst-convite-marca"><img src="/logo-branco.png" alt="" width="26" height="26">Futuro+</span>
+                            <h2>Prepare-se para um futuro ainda <em>maior!</em></h2>
+                            <p>Faça os testes do Futuro+ e descubra os cursos que combinam com você.</p>
+                        </div>
+                        <img class="inst-convite-arte" src="/instituicao-convite.webp"
+                            srcset="/instituicao-convite-800.webp 800w, /instituicao-convite.webp 1600w"
+                            sizes="(max-width: 980px) 100vw, 480px" alt="" width="1600" height="600" loading="lazy">
+                        <a class="inst-botao inst-botao--branco inst-convite-botao" href="testes.html">Fazer um teste
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                        </a>
+                    </aside>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botão Flutuante do Chat -->
+    <button id="chatbot-toggle" class="chat-btn-blue" aria-label="Abrir assistente inteligente">
+        <svg viewBox="0 0 100 100" fill="currentColor">
+            <g class="estrela estrela-1">
+                <circle class="forma-circulo" cx="42" cy="55" r="9" />
+                <path class="forma-estrela" d="M42,25 L50.4,46.6 L72,55 L50.4,63.4 L42,85 L33.6,63.4 L12,55 L33.6,46.6 Z" />
+            </g>
+            <g class="estrela estrela-2">
+                <circle class="forma-circulo" cx="72" cy="22" r="5" />
+                <path class="forma-estrela" d="M72,6 L76.8,17.2 L88,22 L76.8,26.8 L72,38 L67.2,26.8 L56,22 L67.2,17.2 Z" />
+            </g>
+            <g class="estrela estrela-3">
+                <circle class="forma-circulo" cx="78" cy="68" r="3.5" />
+                <path class="forma-estrela" d="M78,58 L81.2,64.8 L88,68 L81.2,71.2 L78,78 L74.8,71.2 L68,68 L74.8,64.8 Z" />
+            </g>
+        </svg>
+    </button>
+
+    <!-- Janela do Chatbot -->
+    <div id="chatbot-window" class="chat-window oculta">
+        <div class="chat-header">
+            <strong>Assistente Virtual</strong>
+            <button id="close-chat" class="close-btn">×</button>
+        </div>
+        <div id="chat-messages" class="chat-messages">
+            <div class="msg bot">Olá! Sou o assistente da ETEC/FATEC. Como posso ajudar?</div>
+        </div>
+        <div class="chat-permissao-localizacao" id="chat-permissao-localizacao" hidden>
+            📍 O assistente pode usar a localização do seu perfil
+            <button type="button" id="desativar-localizacao-chat">Desativar</button>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chat-input" placeholder="Digite sua dúvida...">
+            <button id="send-chat" class="send-btn">Enviar</button>
+        </div>
+    </div>
+
+    <script type="module" src="assets/js/dashboard.js"></script>
+    <script type="module" src="assets/js/instituicao.js"></script>
+</body>
+
+</html>

@@ -1926,6 +1926,7 @@
     font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
     font-size: 14.5px;
     font-weight: 600;
+    text-decoration: none;
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
 }

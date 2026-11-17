@@ -3,7 +3,7 @@
 // das notificações. Aqui só há montagem de HTML a partir dos dados da conta
 // (nada de Firebase), para dar para testar com dados de exemplo.
 
-import { escapeHtml, logoPadraoPorTipo } from './card-unidade.js';
+import { escapeHtml, logoPadraoPorTipo, paginaDaUnidade } from './card-unidade.js';
 import { categoriasTeste } from './categorias-teste.js';
 import { ITENS_DO_PERFIL } from './perfil-completude.js';
 import { resumoDaDemanda } from './demanda-curso.js';
@@ -337,7 +337,11 @@ function formacoes(c) {
                     <span class="perfil-rotulo">${escapeHtml(f.tipo)}</span>
                     <a class="formacao-curso" href="curso.html?c=${encodeURIComponent(f.cursoId)}">${escapeHtml(f.curso)}</a>
                     <div class="formacao-meta">
-                        ${f.instituicao ? `<span class="formacao-inst">${icone('predio')}${escapeHtml(f.instituicao)}</span>` : ''}
+                        ${f.instituicao
+                            ? (f.unidadeId
+                                ? `<a class="formacao-inst" href="${escapeHtml(paginaDaUnidade(f.unidadeId))}">${icone('predio')}${escapeHtml(f.instituicao)}</a>`
+                                : `<span class="formacao-inst">${icone('predio')}${escapeHtml(f.instituicao)}</span>`)
+                            : ''}
                         ${f.ano ? `<span>Conclusão em ${f.ano}</span>` : ''}
                         <span class="selo-conferido">${icone('check')}Certificado conferido</span>
                     </div>
@@ -521,11 +525,11 @@ function conquistas(c) {
     </section>`;
 }
 
-// A página de cada instituição (com os comentários de quem estudou lá)
-// ainda está sendo feita. Quando ela existir, é só este endereço que muda:
-// o botão deixa de ser "em breve" e passa a levar para lá.
-export function paginaDaInstituicao() {
-    return '';
+// A página de cada instituição (instituicao.html), com os comentários de
+// quem estudou lá. Sem o id da unidade (certificado antigo, escola digitada
+// à mão), não há para onde levar e o botão fica "em breve".
+export function paginaDaInstituicao(unidadeId) {
+    return paginaDaUnidade(unidadeId);
 }
 
 function instituicoes(c) {
@@ -548,12 +552,12 @@ function instituicoes(c) {
                     <span class="instituicao-sub">${sub}</span>
                 </${destino ? 'a' : 'span'}>
                 ${destino
-                    ? `<a class="btn-perfil btn-perfil--pequeno btn-perfil--icone btn-perfil--suave" href="${escapeHtml(destino)}#comentarios">${icone('balao')}${rotulo}</a>`
+                    ? `<a class="btn-perfil btn-perfil--pequeno btn-perfil--icone btn-perfil--suave" href="${escapeHtml(destino)}#quem-estudou">${icone('balao')}${rotulo}</a>`
                     : `<button type="button" class="btn-perfil btn-perfil--pequeno btn-perfil--icone btn-perfil--suave" disabled>${icone('balao')}Comentários em breve</button>`}
             </li>`;
             }).join('')}
         </ul>
-        <p class="instituicoes-nota">Só quem tem certificado conferido da unidade vai poder comentar sobre ela.</p>
+        <p class="instituicoes-nota">Só quem tem o certificado conferido da unidade comenta e avalia.</p>
     </section>`;
 }
 

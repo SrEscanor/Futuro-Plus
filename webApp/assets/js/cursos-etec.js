@@ -2,14 +2,11 @@ import { auth, db } from './firebase-config.js';
 import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
 import {
     renderizarCardInstituicao,
-    renderizarCursosPorCategoria,
-    logoDaUnidade,
     escapeHtml,
     normalizar,
     modalidadeDaCategoria,
     rotuloDaModalidade,
-    ordemDaModalidade,
-    LOGO_FALLBACK
+    ordemDaModalidade
 } from './card-unidade.js';
 import {
     carregarRegioesSP,
@@ -259,62 +256,6 @@ function renderizarUnidades() {
     });
 }
 
-// ------------------------------------------------------------------
-// Painel "Ver instituição": todos os cursos da unidade, sem sair da lista
-// ------------------------------------------------------------------
-function abrirPainel(idUnidade) {
-    const unidade = unidadesCache.find((u) => u.id === idUnidade);
-    if (!unidade) return;
-
-    const tipo = tipoDaUnidade(unidade);
-    // várias regiões levam o nome da própria cidade-sede; aí não repete
-    const regiao = normalizar(unidade.regiao) === normalizar(unidade.municipio) ? '' : unidade.regiao;
-    const local = [unidade.municipio ? `${unidade.municipio} - SP` : '', regiao].filter(Boolean).join(' · ');
-    const distancia = avaliarProximidade ? textoDistancia(avaliarProximidade(unidade)) : '';
-    const total = nomesDistintos(cursosValidos(unidade)).size;
-    const termo = filtros.curso || normalizar(elemento('busca-cursos').value);
-
-    elemento('painel-unidade-conteudo').innerHTML = `
-        <div class="painel-unidade-topo">
-            <img class="card-instituicao-logo" src="${logoDaUnidade(unidade)}" alt="" onerror="this.onerror=null;this.src='${LOGO_FALLBACK}';">
-            <div class="painel-unidade-identidade">
-                <h2 id="painel-unidade-titulo">${escapeHtml(unidade.nome)}</h2>
-                ${local ? `<p class="painel-unidade-local">${escapeHtml(local)}</p>` : ''}
-                <div class="card-instituicao-selos">
-                    ${tipo ? `<span class="selo-instituicao">${escapeHtml(tipo)}</span>` : ''}
-                    ${distancia ? `<span class="selo-instituicao selo-instituicao--perto">${escapeHtml(distancia)}</span>` : ''}
-                </div>
-            </div>
-            <button type="button" class="painel-unidade-fechar" data-fechar-painel aria-label="Fechar">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
-            </button>
-        </div>
-        <p class="painel-unidade-resumo">
-            <strong>${total}</strong> ${total === 1 ? 'curso disponível' : 'cursos disponíveis'}.
-            Clique em um curso para ver o que se aprende nele.
-        </p>
-        <div class="painel-unidade-cursos">
-            ${renderizarCursosPorCategoria(unidade, { termoCurso: termo })
-                || '<p class="sem-cursos">Nenhum curso cadastrado ainda.</p>'}
-        </div>`;
-
-    elemento('painel-unidade').showModal();
-}
-
-function ligarPainel() {
-    const painel = elemento('painel-unidade');
-
-    elemento('grid-unidades').addEventListener('click', (evento) => {
-        const botao = evento.target.closest('.btn-ver-instituicao');
-        if (botao) abrirPainel(botao.dataset.unidade);
-    });
-
-    // clique fora do conteúdo (no fundo escurecido) ou no X fecha
-    painel.addEventListener('click', (evento) => {
-        if (evento.target === painel || evento.target.closest('[data-fechar-painel]')) painel.close();
-    });
-}
-
 // Sem saber onde a pessoa mora não dá para ordenar por distância; em vez de
 // um botão que não faria nada, a página diz o que falta para isso funcionar.
 function mostrarDicaProximidade(motivo) {
@@ -376,7 +317,6 @@ document.addEventListener('DOMContentLoaded', () => {
     elemento('filtro-modalidade').addEventListener('change', (e) => aplicarFiltro({ modalidade: e.target.value }));
     elemento('filtro-regiao').addEventListener('change', (e) => aplicarFiltro({ regiao: e.target.value }));
     elemento('ordenar-unidades').addEventListener('change', (e) => aplicarFiltro({ ordem: e.target.value }));
-    ligarPainel();
 
     carregarUnidades();
 });

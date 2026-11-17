@@ -121,8 +121,14 @@ const ICONE_LOCAL = '<svg width="14" height="14" viewBox="0 0 24 24" fill="curre
 const ICONE_CURSOS = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3 1 9l11 6 9-4.910V17h2V9L12 3zm-7 9.180V16c0 1.660 3.130 3 7 3s7-1.340 7-3v-3.820l-7 3.820-7-3.820z"/></svg>';
 const ICONE_SETA = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.200" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 
+// Página de uma unidade (instituicao.html): cadastro, cursos, comentários e
+// dúvidas. ancora: '#quem-estudou' leva direto aos comentários.
+export function paginaDaUnidade(id, ancora = '') {
+    return id ? `instituicao.html?u=${encodeURIComponent(id)}${ancora}` : '';
+}
+
 // Card da lista de instituições: logo em destaque, um resumo com até três
-// cursos e o botão que abre o painel com a lista completa.
+// cursos e o link para a página da unidade.
 // destaque: texto de distância ("A 4,8 km de você"), quando dá pra medir.
 // cursosDestaque: nomes já escolhidos por quem chama (os que casam com a
 // busca vêm primeiro). totalCursos: quantos cursos diferentes a unidade tem.
@@ -152,7 +158,7 @@ export function renderizarCardInstituicao(unidade, { destaque = '', cursosDestaq
                 <ul>${cursosDestaque.map((nome) => `<li>${escapeHtml(nome)}</li>`).join('')}</ul>
             </div>` : '<p class="sem-cursos">Nenhum curso cadastrado ainda.</p>'}
         </div>
-        <button type="button" class="btn-ver-instituicao" data-unidade="${escapeHtml(unidade.id)}">Ver instituição ${ICONE_SETA}</button>
+        <a class="btn-ver-instituicao" href="${escapeHtml(paginaDaUnidade(unidade.id))}">Ver instituição ${ICONE_SETA}</a>
     </article>`;
 }
 

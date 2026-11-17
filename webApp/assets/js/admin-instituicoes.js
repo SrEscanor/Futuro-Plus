@@ -6,6 +6,7 @@ import {
     escritasDoPlano, ligarZonaDeArquivo, planejarImportacao, revisarImportacao
 } from './importacao-csv.js';
 import { logoPadraoPorTipo, LOGO_FALLBACK } from './card-unidade.js';
+import { casarFotos, listarUnidadesDoCps } from './fotos-cps.js';
 import {
     collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, writeBatch
 } from 'firebase/firestore';
@@ -936,6 +937,51 @@ async function extrairLogosPendentes() {
     status.textContent = `Extração concluída: ${pendentes.length - falhas} logos atualizadas, ${falhas} falharam.`;
 }
 
+// Foto da fachada de cada unidade, para o topo da página da instituição:
+// lê a lista pública do site do CPS (fotos-cps.js), acha cada unidade pelo
+// nome e grava só o que mudou (foto e paginaCps), em lotes. Pode rodar de
+// novo quando quiser: o que já está igual não é regravado.
+async function buscarFotosDoCps() {
+    const botao = document.getElementById('btn-buscar-fotos');
+    const status = document.getElementById('status-importacao');
+    status.style.display = 'block';
+    status.className = 'status-importacao';
+    status.textContent = 'Buscando as fotos no site do Centro Paula Souza...';
+    botao.disabled = true;
+    try {
+        const itens = await listarUnidadesDoCps();
+        const { mudancas, semPar } = casarFotos(instituicoesCache, itens);
+        status.textContent = `Gravando ${mudancas.length} unidades...`;
+        // o Firestore aceita até 500 gravações por lote
+        for (let i = 0; i < mudancas.length; i += 400) {
+            const lote = writeBatch(db);
+            mudancas.slice(i, i + 400).forEach(({ id, foto, paginaCps }) => {
+                lote.set(doc(db, INSTITUICOES_COLLECTION, id), { foto, paginaCps }, { merge: true });
+            });
+            await lote.commit();
+        }
+        mudancas.forEach(({ id, foto, paginaCps }) => {
+            const unidade = instituicoesCache.find((u) => u.id === id);
+            if (unidade) Object.assign(unidade, { foto, paginaCps });
+        });
+        const comFoto = instituicoesCache.filter((u) => u.foto?.url).length;
+        const partes = [
+            mudancas.length ? `${mudancas.length} unidades atualizadas` : 'Nada mudou desde a última busca',
+            `${comFoto} de ${instituicoesCache.length} têm foto`
+        ];
+        if (semPar.length) {
+            partes.push(`${semPar.length} não foram achadas no site do CPS pelo nome (${semPar.slice(0, 5).join('; ')}${semPar.length > 5 ? '; ...' : ''})`);
+        }
+        status.textContent = `${partes.join('. ')}.`;
+    } catch (erro) {
+        console.error('Erro ao buscar as fotos no site do CPS:', erro);
+        status.className = 'status-importacao status-importacao--erro';
+        status.textContent = `Não deu para buscar as fotos: ${erro.message}. Nada foi gravado depois do erro.`;
+    } finally {
+        botao.disabled = false;
+    }
+}
+
 // ========================================================
 // Formulário (modal)
 // ========================================================
@@ -1138,6 +1184,7 @@ document.addEventListener('DOMContentLoaded', () => {
         zona: 'zona-csv', botao: 'btn-importar-csv', input: 'input-csv', aoReceber: importarCsvDeUnidades
     });
     document.getElementById('btn-extrair-logos').addEventListener('click', extrairLogosPendentes);
+    document.getElementById('btn-buscar-fotos').addEventListener('click', buscarFotosDoCps);
     document.getElementById('btn-localizar-unidades').addEventListener('click', localizarUnidadesPendentes);
     document.getElementById('btn-definir-tipo').addEventListener('click', abrirModalTipo);
 
