@@ -1694,6 +1694,13 @@ a.btn-saiba {
     transition: color 0.2s;
 }
 
+.footer-social img {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
 .footer-social:hover,
 .footer-contact a:hover {
     color: #fff;
