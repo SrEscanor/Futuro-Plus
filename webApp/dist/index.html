@@ -10,25 +10,28 @@
     <link rel="apple-touch-icon" href="./apple-touch-icon.png">
     <link rel="icon" href="./favicon.ico" sizes="48x48">
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
-  <script type="module" crossorigin src="./assets/main-BbQ4QokG.js"></script>
+  <script type="module" crossorigin src="./assets/main-DeAuNcVY.js"></script>
   <link rel="modulepreload" crossorigin href="./assets/firebase-config-CIJUxFH5.js">
   <link rel="modulepreload" crossorigin href="./assets/preload-helper-PPVm8Dsz.js">
   <link rel="modulepreload" crossorigin href="./assets/conteudo-legal-padrao-DcxCgRAC.js">
-  <link rel="modulepreload" crossorigin href="./assets/resultado-teste-CF19jvmT.js">
+  <link rel="modulepreload" crossorigin href="./assets/resultado-teste-jMCridED.js">
   <link rel="modulepreload" crossorigin href="./assets/notificacoes-util-BMqxtxne.js">
-  <link rel="modulepreload" crossorigin href="./assets/dashboard-CC7_x2WJ.js">
+  <link rel="modulepreload" crossorigin href="./assets/dashboard-CnRYStcW.js">
   <link rel="modulepreload" crossorigin href="./assets/categorias-teste-82RqXHiT.js">
-  <link rel="modulepreload" crossorigin href="./assets/card-unidade-C3eEs3Rs.js">
-  <link rel="modulepreload" crossorigin href="./assets/geocodificacao-Dyu2Eb0t.js">
-  <link rel="modulepreload" crossorigin href="./assets/recomendacao-cursos-C9iul00M.js">
+  <link rel="modulepreload" crossorigin href="./assets/descricoes-inteligencias-D_icd3AV.js">
+  <link rel="modulepreload" crossorigin href="./assets/capas-eixos-CH3-KbLS.js">
+  <link rel="modulepreload" crossorigin href="./assets/card-unidade-BgxSvuOi.js">
+  <link rel="modulepreload" crossorigin href="./assets/demanda-curso-Bz72gXLF.js">
+  <link rel="modulepreload" crossorigin href="./assets/geocodificacao-NCpdFiTV.js">
+  <link rel="modulepreload" crossorigin href="./assets/recomendacao-cursos-CQNEpyCv.js">
   <link rel="modulepreload" crossorigin href="./assets/destaques-util-CLcdY04S.js">
   <link rel="modulepreload" crossorigin href="./assets/noticias-dados-eCcbMbNN.js">
   <link rel="modulepreload" crossorigin href="./assets/tour-motor-BeDtj6px.js">
   <link rel="modulepreload" crossorigin href="./assets/tour-boas-vindas-Bosq5K8y.js">
-  <link rel="stylesheet" crossorigin href="./assets/dashboard-CX1RACq1.css">
-  <link rel="stylesheet" crossorigin href="./assets/main-CiZQUrM9.css">
+  <link rel="stylesheet" crossorigin href="./assets/dashboard-KUG4nt-0.css">
+  <link rel="stylesheet" crossorigin href="./assets/main-D4i0KRkw.css">
   <link rel="stylesheet" crossorigin href="./assets/ondas-Cp6OP_7e.css">
-  <link rel="stylesheet" crossorigin href="./assets/cursos-etec-e3Mb4nvL.css">
+  <link rel="stylesheet" crossorigin href="./assets/cursos-etec-Cbmlb5ZE.css">
 </head>
 
 <body>
@@ -327,62 +330,92 @@
             </div>
         </div>
 
-        <div class="mid-row">
-
-            <!-- Esquerda: teste vocacional -->
-            <div class="chart-card" id="card-vocacional">
-                <div class="chart-label">Teste Vocacional</div>
-
-                <div class="voc-resumo" id="vocacional-com-dados" hidden>
-                    <p class="voc-resumo-areas" id="vocacional-areas"></p>
-                    <ul class="voc-resumo-cursos" id="vocacional-cursos"></ul>
-                    <div class="chart-link" id="vocacional-link"></div>
-                </div>
-
-                <div class="chart-vazio" id="vocacional-vazio">
-                    <div class="chart-vazio-icone">🎯</div>
-                    <div class="chart-vazio-texto">
-                        <strong>Descubra o curso certo para você</strong>
-                        <p>O teste completo termina mostrando cursos de verdade, com o que se aprende em cada um.</p>
-                    </div>
-                    <button class="btn-teste" onclick="location.href='teste-vocacional.html'">Fazer teste
-                        vocacional</button>
-                </div>
+        <!-- Resultados dos testes: um card só ("Testes"), com o teste
+             vocacional à esquerda e o de perfil à direita. Cada lado tem o
+             estado "ainda não fez" e o estado com resultado
+             (inicio-resultado.js). O tour aponta para #card-vocacional e
+             #card-perfil. -->
+        <section class="weekly-card testes-inicio" aria-labelledby="testes-inicio-titulo">
+            <div class="weekly-cabecalho">
+                <h3 id="testes-inicio-titulo"><img class="titulo-icone" src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3e%3cdefs%3e%3clinearGradient%20id='az'%20x1='0'%20y1='0'%20x2='0'%20y2='1'%3e%3cstop%20offset='0'%20stop-color='%237090ff'/%3e%3cstop%20offset='1'%20stop-color='%233150dc'/%3e%3c/linearGradient%3e%3clinearGradient%20id='az2'%20x1='0'%20y1='0'%20x2='0'%20y2='1'%3e%3cstop%20offset='0'%20stop-color='%234f6cf0'/%3e%3cstop%20offset='1'%20stop-color='%232440c4'/%3e%3c/linearGradient%3e%3clinearGradient%20id='ve'%20x1='0'%20y1='0'%20x2='0'%20y2='1'%3e%3cstop%20offset='0'%20stop-color='%233fd68f'/%3e%3cstop%20offset='1'%20stop-color='%23169a5c'/%3e%3c/linearGradient%3e%3cmask%20id='m'%20maskUnits='userSpaceOnUse'%20x='0'%20y='0'%20width='24'%20height='24'%3e%3crect%20width='24'%20height='24'%20fill='%23fff'/%3e%3crect%20x='7.5'%20y='0.7'%20width='9'%20height='6.2'%20rx='2.4'%20fill='%23000'/%3e%3cpath%20d='M7.4%2010.7%20l1.7%201.7%203-3.2%20M14%2010.5%20h2.6%20M7.4%2015.9%20l1.7%201.7%203-3.2%20M14%2015.7%20h2.6'%20fill='none'%20stroke='%23000'%20stroke-width='1.8'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M15.6%2023%20C15.6%2019.4%2018.3%2016.7%2021.9%2016.7%20C21.9%2020.3%2019.2%2023%2015.6%2023%20Z'%20fill='%23000'%20stroke='%23000'%20stroke-width='2'/%3e%3c/mask%3e%3c/defs%3e%3crect%20x='4.3'%20y='3.5'%20width='15.4'%20height='18.8'%20rx='2.6'%20fill='url(%23az)'%20mask='url(%23m)'/%3e%3crect%20x='8.4'%20y='1.6'%20width='7.2'%20height='4.4'%20rx='1.6'%20fill='url(%23az2)'/%3e%3cpath%20d='M15.6%2023%20C15.6%2019.4%2018.3%2016.7%2021.9%2016.7%20C21.9%2020.3%2019.2%2023%2015.6%2023%20Z'%20fill='url(%23ve)'/%3e%3c/svg%3e" alt=""><span>Testes</span></h3>
+                <p class="weekly-sub">Seus resultados mais recentes. Refaça quando quiser: o perfil muda com o tempo.</p>
             </div>
 
-            <!-- Direita: teste de perfil (Gardner) -->
-            <div class="chart-card" id="card-perfil">
-                <div class="chart-label">Teste rápido de perfil</div>
+            <div class="mid-row">
 
-                <div class="chart-wrap" id="resultado-com-dados" hidden>
-                    <div class="donut-chart">
-                        <svg viewBox="0 0 40 40" style="transform:rotate(-90deg); width:100%; height:100%;">
-                            <circle cx="20" cy="20" r="15.915" fill="none" stroke="#e8e8e8" stroke-width="4" />
-                            <circle id="arco-1" cx="20" cy="20" r="15.915" fill="none" stroke="#4e6ee8" stroke-width="4"
-                                stroke-dasharray="0 100" stroke-dashoffset="0" />
-                            <circle id="arco-2" cx="20" cy="20" r="15.915" fill="none" stroke="#f5a623" stroke-width="4"
-                                stroke-dasharray="0 100" stroke-dashoffset="0" />
-                            <circle id="arco-3" cx="20" cy="20" r="15.915" fill="none" stroke="#2ecc71" stroke-width="4"
-                                stroke-dasharray="0 100" stroke-dashoffset="0" />
-                        </svg>
-                    </div>
-                    <div class="chart-info">
-                        <div class="chart-title" id="resultado-titulo"></div>
-                        <div class="chart-percent" id="resultado-percentual"></div>
-                        <div class="chart-link" id="resultado-link"></div>
-                    </div>
-                </div>
+                <!-- Esquerda: teste vocacional -->
+                <article class="teste-resultado" id="card-vocacional">
+                    <header class="teste-resultado-topo">
+                        <span class="teste-resultado-selo" aria-hidden="true">🎯</span>
+                        <h4 class="teste-resultado-titulo">Teste Vocacional</h4>
+                        <span class="teste-resultado-data" id="vocacional-data" hidden></span>
+                    </header>
 
-                <div class="chart-vazio" id="resultado-vazio">
-                    <div class="chart-vazio-icone">🧭</div>
-                    <div class="chart-vazio-texto">
-                        <strong>Você ainda não fez o teste rápido</strong>
-                        <p>São 15 perguntas rápidas para descobrir sua inteligência dominante.</p>
+                    <div class="teste-resultado-corpo" id="vocacional-com-dados" hidden>
+                        <div class="areas-fortes" id="vocacional-areas"></div>
+                        <ul class="curso-resultado-lista" id="vocacional-cursos"></ul>
+                        <div class="teste-resultado-acoes">
+                            <a class="btn-refazer-teste" href="teste-vocacional.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.6-5.9M20 4v5h-5" /></svg>Refazer teste</a>
+                            <a class="btn-ver-resultado" href="instituicoes.html">Ver onde estudar <span aria-hidden="true">→</span></a>
+                        </div>
                     </div>
-                    <button class="btn-teste" onclick="location.href='quiz-gardner.html'">Fazer teste rápido</button>
-                </div>
+
+                    <div class="chart-vazio" id="vocacional-vazio">
+                        <div class="chart-vazio-icone">🎯</div>
+                        <div class="chart-vazio-texto">
+                            <strong>Descubra o curso certo para você</strong>
+                            <p>O teste completo termina mostrando cursos de verdade, com o que se aprende em cada um.</p>
+                        </div>
+                        <button class="btn-teste" onclick="location.href='teste-vocacional.html'">Fazer teste
+                            vocacional</button>
+                    </div>
+                </article>
+
+                <!-- Direita: teste de perfil (Gardner / Afinidades) -->
+                <article class="teste-resultado teste-resultado--perfil" id="card-perfil">
+                    <header class="teste-resultado-topo">
+                        <span class="teste-resultado-selo" aria-hidden="true">🧭</span>
+                        <h4 class="teste-resultado-titulo" id="perfil-nome-teste">Teste rápido de perfil</h4>
+                        <span class="teste-resultado-data" id="perfil-data" hidden></span>
+                    </header>
+
+                    <div class="teste-resultado-corpo" id="resultado-com-dados" hidden>
+                        <div class="perfil-resultado">
+                            <div class="perfil-donut">
+                                <svg viewBox="0 0 40 40" aria-hidden="true">
+                                    <circle cx="20" cy="20" r="15.915" fill="none" stroke="#eceef8" stroke-width="4.4" />
+                                    <circle id="arco-1" cx="20" cy="20" r="15.915" fill="none" stroke="#4e6ee8" stroke-width="4.4"
+                                        stroke-dasharray="0 100" stroke-dashoffset="0" />
+                                    <circle id="arco-2" cx="20" cy="20" r="15.915" fill="none" stroke="#f5a623" stroke-width="4.4"
+                                        stroke-dasharray="0 100" stroke-dashoffset="0" />
+                                    <circle id="arco-3" cx="20" cy="20" r="15.915" fill="none" stroke="#2ecc71" stroke-width="4.4"
+                                        stroke-dasharray="0 100" stroke-dashoffset="0" />
+                                </svg>
+                                <div class="perfil-donut-centro" id="resultado-percentual"></div>
+                            </div>
+                            <div class="perfil-info">
+                                <h4 id="resultado-titulo"></h4>
+                                <ul class="perfil-legenda" id="perfil-legenda"></ul>
+                            </div>
+                        </div>
+                        <p class="perfil-desc" id="perfil-desc"></p>
+                        <div class="teste-resultado-acoes">
+                            <a class="btn-refazer-teste" id="perfil-refazer" href="quiz-gardner.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.6-5.9M20 4v5h-5" /></svg>Refazer teste</a>
+                            <a class="btn-ver-resultado" id="perfil-ver" href="quiz-gardner.html?ver=1">Ver resultado completo <span aria-hidden="true">→</span></a>
+                        </div>
+                    </div>
+
+                    <div class="chart-vazio" id="resultado-vazio">
+                        <div class="chart-vazio-icone">🧭</div>
+                        <div class="chart-vazio-texto">
+                            <strong>Você ainda não fez o teste rápido</strong>
+                            <p>São 15 perguntas rápidas para descobrir sua inteligência dominante.</p>
+                        </div>
+                        <button class="btn-teste" onclick="location.href='quiz-gardner.html'">Fazer teste rápido</button>
+                    </div>
+                </article>
             </div>
-        </div>
+        </section>
 
         <!-- Quem já pendurou certificado vê um mini mural (inicio-mural.js);
              os outros, o convite de sempre. O tour aponta para este bloco. -->
@@ -408,32 +441,18 @@
             </div>
         </div>
 
-        <div class="section-title">Testes</div>
-        <div class="testes-row">
-            <div class="teste-card">
-                <p><strong>Pare de procurar, comece a se encontrar.</strong> Onde seu talento encontra a oportunidade
-                    certa? Faça o teste rápido de perfil e decifre a área que foi feita para você</p>
-                <button class="btn-teste" onclick="location.href='testes.html'">Ver os testes</button>
-            </div>
-            <div class="teste-card">
-                <p><strong>O mercado não busca apenas currículos, busca competência.</strong> Mapeie suas habilidades e
-                    descubra seu valor de mercado. Faça o teste e veja onde você se destaca!</p>
-                <button class="btn-teste">Fazer teste de habilidades</button>
-            </div>
-        </div>
-
         <div class="cursos-section">
             <div class="secao-cabecalho">
                 <div>
-                    <div class="section-title">Instituições</div>
-                    <div class="cursos-subtitle">Unidades de Etecs, Fatecs e outras instituições, com cursos
-                        técnicos, superiores e especializações.</div>
+                    <div class="section-title">Cursos com maiores demandas</div>
+                    <div class="cursos-subtitle">Os cursos mais disputados nas Etecs e Fatecs, pelo número de
+                        candidatos por vaga no último vestibular/vestibulinho.</div>
                 </div>
-                <a href="instituicoes.html" class="btn-ver-todos">Ver todas as instituições</a>
+                <a href="cursos.html" class="btn-ver-todos">Ver todos os cursos</a>
             </div>
 
-            <div class="grid-unidades" id="preview-unidades">
-                <p class="carregando-cursos">Carregando unidades...</p>
+            <div class="cursos-demanda-scroll" id="preview-cursos-demanda">
+                <p class="carregando-cursos">Carregando cursos...</p>
             </div>
         </div>
     </div>
@@ -444,15 +463,14 @@
                 <strong>Conte com o Futuro+ para andar junto com você no seu amanhã.</strong>
                 <div class="footer-donate">
                     <p>Apoie nossa equipe nos seguindo nas redes sociais</p>
-                    <div class="donate-box">@futuromais_org</div>
+                    <div class="donate-box">@futuroplus_</div>
                 </div>
             </div>
             <div>
                 <div class="footer-social-title">
-                    <a href="#" class="footer-social">💼 LinkedIn</a>
-                    <a href="#" class="footer-social">📘 Facebook</a>
-                    <a href="#" class="footer-social">📸 Instagram</a>
-                    <a href="#" class="footer-social">🐙 GitHub</a>
+                    <a href="https://www.linkedin.com/in/futuroplus" class="footer-social" target="_blank" rel="noopener noreferrer"><img src="data:image/png;base64,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" alt="" width="18" height="18" loading="lazy"> LinkedIn</a>
+                    <a href="https://www.tiktok.com/@futuroplus_" class="footer-social" target="_blank" rel="noopener noreferrer"><img src="data:image/svg+xml,%3c?xml%20version='1.0'%20encoding='UTF-8'?%3e%3csvg%20id='Layer_1'%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20809.77%20862.71'%3e%3cdefs%3e%3cstyle%3e.cls-1{fill:%23f1204a;}.cls-2{fill:%23fff;}.cls-3{fill:%232dccd3;}%3c/style%3e%3c/defs%3e%3cpath%20id='_Path_'%20class='cls-3'%20d='m353.74,368.27v-17.18c-7.95-1.32-15.89-1.75-22.48-1.75-89.56,0-164.54,71.87-164.54,161,0,58.51,28.48,108.53,71.75,138.13-30.15-29.92-48.85-71.79-48.85-119.2,0-88.97,74.75-160.8,164.12-161Zm51.61-201.55v346.7c0,45.42-32.64,74.64-72.34,74.64-13.17,0-25.67-3.08-36.54-8.76,13.79,17.61,35.57,27.74,59.44,27.74,39.69,0,72.34-29.22,72.34-74.68V185.65h62.91c-1.71-6.04-3.12-12.35-4.21-18.93h-81.61Zm144.64,102.26c20.02,20.65,44.99,33.23,70.16,38.95v-15.5c-23.65-1.68-48.38-9.12-70.16-23.45Z'/%3e%3cpath%20id='_Path_-2'%20class='cls-1'%20d='m549.99,268.97c-19.36-19.91-34.12-47.33-40.12-83.32h-18.7c10.67,38.92,32.64,66.07,58.82,83.32Zm70.16,38.95v65.64c-36.34,0-70.74-6.93-101.05-27.35,35.29,35.29,78.1,46.32,123.95,46.32v-81.18c-7.56-.51-15.27-1.64-22.91-3.43Zm-323.67,271.36c-9.74-12.31-15.54-28.24-15.54-46.94,0-52.47,41.02-80.21,95.71-74.44v-87.88c-7.95-1.32-15.89-1.75-22.52-1.75h-.39v70.66c-54.69-5.73-95.71,21.97-95.71,74.48,0,30.7,15.7,53.99,38.45,65.87Zm199.72-71.6c0,110.71-84.69,169.37-164.51,169.37-34.55,0-66.65-10.44-93.22-28.59,29.84,29.61,70.9,47.52,116.12,47.52,79.82,0,164.51-58.67,164.51-169.37v-180.4c-7.95-5.38-15.58-11.65-22.91-18.97v180.44Z'/%3e%3cpath%20id='_Path_-3'%20class='cls-2'%20d='m331.69,677.06c79.82,0,164.51-58.67,164.51-169.37v-180.44c7.32,7.32,14.96,13.6,22.91,18.97,30.31,20.41,64.7,27.35,101.05,27.35v-65.64c-25.16-5.73-50.13-18.31-70.16-38.95-26.18-17.26-48.15-44.41-58.82-83.32h-62.91v346.7c0,45.46-32.64,74.68-72.34,74.68-23.88,0-45.65-10.13-59.44-27.74-22.75-11.88-38.45-35.18-38.45-65.87,0-52.51,41.02-80.21,95.71-74.48v-70.66c-89.36.19-164.12,72.03-164.12,161,0,47.41,18.7,89.28,48.85,119.2,26.57,18.15,58.67,28.59,93.22,28.59Z'/%3e%3c/svg%3e" alt="" width="18" height="18" loading="lazy"> TikTok</a>
+                    <a href="https://www.instagram.com/futuroplus_" class="footer-social" target="_blank" rel="noopener noreferrer"><img src="./assets/instagram-BEK0Bmk4.png" alt="" width="18" height="18" loading="lazy"> Instagram</a>
                 </div>
             </div>
             <div>

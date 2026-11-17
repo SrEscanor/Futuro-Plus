@@ -1,4 +1,4 @@
-import"./firebase-config-CIJUxFH5.js";/* empty css              */import"./dashboard-CC7_x2WJ.js";import{d as c,h as s}from"./noticia-materia-BUKFWeRf.js";import{w as u,e as i}from"./destaques-util-CLcdY04S.js";import"./preload-helper-PPVm8Dsz.js";import"./conteudo-legal-padrao-DcxCgRAC.js";import"./resultado-teste-CF19jvmT.js";import"./notificacoes-util-BMqxtxne.js";const a=document.getElementById("materia"),n=new URLSearchParams(location.search).get("id");function e(t,o){a.removeAttribute("aria-busy"),a.innerHTML=`
+import"./firebase-config-CIJUxFH5.js";/* empty css              */import"./dashboard-CnRYStcW.js";import{d as c,h as s}from"./noticia-materia-BUKFWeRf.js";import{w as u,e as i}from"./destaques-util-CLcdY04S.js";import"./preload-helper-PPVm8Dsz.js";import"./conteudo-legal-padrao-DcxCgRAC.js";import"./resultado-teste-jMCridED.js";import"./notificacoes-util-BMqxtxne.js";const a=document.getElementById("materia"),n=new URLSearchParams(location.search).get("id");function e(t,o){a.removeAttribute("aria-busy"),a.innerHTML=`
         <div class="materia-aviso">
             <h1>${i(t)}</h1>
             <p>${i(o)}</p>

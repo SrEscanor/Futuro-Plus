@@ -312,62 +312,92 @@
             </div>
         </div>
 
-        <div class="mid-row">
-
-            <!-- Esquerda: teste vocacional -->
-            <div class="chart-card" id="card-vocacional">
-                <div class="chart-label">Teste Vocacional</div>
-
-                <div class="voc-resumo" id="vocacional-com-dados" hidden>
-                    <p class="voc-resumo-areas" id="vocacional-areas"></p>
-                    <ul class="voc-resumo-cursos" id="vocacional-cursos"></ul>
-                    <div class="chart-link" id="vocacional-link"></div>
-                </div>
-
-                <div class="chart-vazio" id="vocacional-vazio">
-                    <div class="chart-vazio-icone">🎯</div>
-                    <div class="chart-vazio-texto">
-                        <strong>Descubra o curso certo para você</strong>
-                        <p>O teste completo termina mostrando cursos de verdade, com o que se aprende em cada um.</p>
-                    </div>
-                    <button class="btn-teste" onclick="location.href='teste-vocacional.html'">Fazer teste
-                        vocacional</button>
-                </div>
+        <!-- Resultados dos testes: um card só ("Testes"), com o teste
+             vocacional à esquerda e o de perfil à direita. Cada lado tem o
+             estado "ainda não fez" e o estado com resultado
+             (inicio-resultado.js). O tour aponta para #card-vocacional e
+             #card-perfil. -->
+        <section class="weekly-card testes-inicio" aria-labelledby="testes-inicio-titulo">
+            <div class="weekly-cabecalho">
+                <h3 id="testes-inicio-titulo"><img class="titulo-icone" src="assets/icones/menu/testes.svg" alt=""><span>Testes</span></h3>
+                <p class="weekly-sub">Seus resultados mais recentes. Refaça quando quiser: o perfil muda com o tempo.</p>
             </div>
 
-            <!-- Direita: teste de perfil (Gardner) -->
-            <div class="chart-card" id="card-perfil">
-                <div class="chart-label">Teste rápido de perfil</div>
+            <div class="mid-row">
 
-                <div class="chart-wrap" id="resultado-com-dados" hidden>
-                    <div class="donut-chart">
-                        <svg viewBox="0 0 40 40" style="transform:rotate(-90deg); width:100%; height:100%;">
-                            <circle cx="20" cy="20" r="15.915" fill="none" stroke="#e8e8e8" stroke-width="4" />
-                            <circle id="arco-1" cx="20" cy="20" r="15.915" fill="none" stroke="#4e6ee8" stroke-width="4"
-                                stroke-dasharray="0 100" stroke-dashoffset="0" />
-                            <circle id="arco-2" cx="20" cy="20" r="15.915" fill="none" stroke="#f5a623" stroke-width="4"
-                                stroke-dasharray="0 100" stroke-dashoffset="0" />
-                            <circle id="arco-3" cx="20" cy="20" r="15.915" fill="none" stroke="#2ecc71" stroke-width="4"
-                                stroke-dasharray="0 100" stroke-dashoffset="0" />
-                        </svg>
-                    </div>
-                    <div class="chart-info">
-                        <div class="chart-title" id="resultado-titulo"></div>
-                        <div class="chart-percent" id="resultado-percentual"></div>
-                        <div class="chart-link" id="resultado-link"></div>
-                    </div>
-                </div>
+                <!-- Esquerda: teste vocacional -->
+                <article class="teste-resultado" id="card-vocacional">
+                    <header class="teste-resultado-topo">
+                        <span class="teste-resultado-selo" aria-hidden="true">🎯</span>
+                        <h4 class="teste-resultado-titulo">Teste Vocacional</h4>
+                        <span class="teste-resultado-data" id="vocacional-data" hidden></span>
+                    </header>
 
-                <div class="chart-vazio" id="resultado-vazio">
-                    <div class="chart-vazio-icone">🧭</div>
-                    <div class="chart-vazio-texto">
-                        <strong>Você ainda não fez o teste rápido</strong>
-                        <p>São 15 perguntas rápidas para descobrir sua inteligência dominante.</p>
+                    <div class="teste-resultado-corpo" id="vocacional-com-dados" hidden>
+                        <div class="areas-fortes" id="vocacional-areas"></div>
+                        <ul class="curso-resultado-lista" id="vocacional-cursos"></ul>
+                        <div class="teste-resultado-acoes">
+                            <a class="btn-refazer-teste" href="teste-vocacional.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.6-5.9M20 4v5h-5" /></svg>Refazer teste</a>
+                            <a class="btn-ver-resultado" href="instituicoes.html">Ver onde estudar <span aria-hidden="true">→</span></a>
+                        </div>
                     </div>
-                    <button class="btn-teste" onclick="location.href='quiz-gardner.html'">Fazer teste rápido</button>
-                </div>
+
+                    <div class="chart-vazio" id="vocacional-vazio">
+                        <div class="chart-vazio-icone">🎯</div>
+                        <div class="chart-vazio-texto">
+                            <strong>Descubra o curso certo para você</strong>
+                            <p>O teste completo termina mostrando cursos de verdade, com o que se aprende em cada um.</p>
+                        </div>
+                        <button class="btn-teste" onclick="location.href='teste-vocacional.html'">Fazer teste
+                            vocacional</button>
+                    </div>
+                </article>
+
+                <!-- Direita: teste de perfil (Gardner / Afinidades) -->
+                <article class="teste-resultado teste-resultado--perfil" id="card-perfil">
+                    <header class="teste-resultado-topo">
+                        <span class="teste-resultado-selo" aria-hidden="true">🧭</span>
+                        <h4 class="teste-resultado-titulo" id="perfil-nome-teste">Teste rápido de perfil</h4>
+                        <span class="teste-resultado-data" id="perfil-data" hidden></span>
+                    </header>
+
+                    <div class="teste-resultado-corpo" id="resultado-com-dados" hidden>
+                        <div class="perfil-resultado">
+                            <div class="perfil-donut">
+                                <svg viewBox="0 0 40 40" aria-hidden="true">
+                                    <circle cx="20" cy="20" r="15.915" fill="none" stroke="#eceef8" stroke-width="4.4" />
+                                    <circle id="arco-1" cx="20" cy="20" r="15.915" fill="none" stroke="#4e6ee8" stroke-width="4.4"
+                                        stroke-dasharray="0 100" stroke-dashoffset="0" />
+                                    <circle id="arco-2" cx="20" cy="20" r="15.915" fill="none" stroke="#f5a623" stroke-width="4.4"
+                                        stroke-dasharray="0 100" stroke-dashoffset="0" />
+                                    <circle id="arco-3" cx="20" cy="20" r="15.915" fill="none" stroke="#2ecc71" stroke-width="4.4"
+                                        stroke-dasharray="0 100" stroke-dashoffset="0" />
+                                </svg>
+                                <div class="perfil-donut-centro" id="resultado-percentual"></div>
+                            </div>
+                            <div class="perfil-info">
+                                <h4 id="resultado-titulo"></h4>
+                                <ul class="perfil-legenda" id="perfil-legenda"></ul>
+                            </div>
+                        </div>
+                        <p class="perfil-desc" id="perfil-desc"></p>
+                        <div class="teste-resultado-acoes">
+                            <a class="btn-refazer-teste" id="perfil-refazer" href="quiz-gardner.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.6-5.9M20 4v5h-5" /></svg>Refazer teste</a>
+                            <a class="btn-ver-resultado" id="perfil-ver" href="quiz-gardner.html?ver=1">Ver resultado completo <span aria-hidden="true">→</span></a>
+                        </div>
+                    </div>
+
+                    <div class="chart-vazio" id="resultado-vazio">
+                        <div class="chart-vazio-icone">🧭</div>
+                        <div class="chart-vazio-texto">
+                            <strong>Você ainda não fez o teste rápido</strong>
+                            <p>São 15 perguntas rápidas para descobrir sua inteligência dominante.</p>
+                        </div>
+                        <button class="btn-teste" onclick="location.href='quiz-gardner.html'">Fazer teste rápido</button>
+                    </div>
+                </article>
             </div>
-        </div>
+        </section>
 
         <!-- Quem já pendurou certificado vê um mini mural (inicio-mural.js);
              os outros, o convite de sempre. O tour aponta para este bloco. -->

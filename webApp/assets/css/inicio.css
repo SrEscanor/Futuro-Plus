@@ -1062,3 +1062,382 @@ a.noticia-mini:focus-visible {
         height: 82px;
     }
 }
+
+/* =========================================================
+   Card "Testes" (resultados do teste vocacional e do de perfil)
+   Compacto: os dois lados cabem lado a lado, e cada um mostra
+   a data em que o teste foi feito.
+   ========================================================= */
+.weekly-card.testes-inicio {
+    padding: 16px 18px;
+}
+
+.testes-inicio .weekly-cabecalho {
+    margin-bottom: 12px;
+}
+
+.testes-inicio .weekly-cabecalho h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.testes-inicio .mid-row {
+    gap: 14px;
+    margin-bottom: 0;
+}
+
+.teste-resultado {
+    flex: 1 1 340px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(180deg, var(--blue-soft) 0%, var(--surface) 34%);
+    box-shadow: var(--shadow-card);
+}
+
+.teste-resultado--perfil {
+    background: linear-gradient(180deg, var(--gold-soft) 0%, var(--surface) 34%);
+    border-color: #f6e3bd;
+}
+
+.teste-resultado-topo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.teste-resultado-selo {
+    flex: 0 0 auto;
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border-radius: 11px;
+    font-size: 17px;
+    background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+    box-shadow: 0 6px 12px -7px rgba(59, 91, 219, 0.8);
+}
+
+.teste-resultado--perfil .teste-resultado-selo {
+    background: linear-gradient(135deg, var(--gold), #e08a0a);
+    box-shadow: 0 6px 12px -7px rgba(224, 138, 10, 0.8);
+}
+
+.teste-resultado-titulo {
+    flex: 1;
+    min-width: 0;
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.teste-resultado-data {
+    flex: 0 0 auto;
+    padding: 3px 9px;
+    border: 1px solid var(--line);
+    border-radius: 99px;
+    background: var(--surface);
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--ink-soft);
+}
+
+.teste-resultado-data[hidden],
+.teste-resultado-corpo[hidden] {
+    display: none;
+}
+
+.teste-resultado-corpo {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* botões dos dois cards ficam na mesma linha, mesmo com textos de tamanhos diferentes */
+.teste-resultado .chart-vazio {
+    flex: 1;
+    justify-content: flex-start;
+    padding-top: 6px;
+}
+
+.teste-resultado .chart-vazio .btn-teste {
+    margin-top: auto;
+}
+
+/* ---- Vocacional: áreas e cursos ---- */
+.areas-fortes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.area-forte {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 11px 3px 3px;
+    border: 1px solid var(--line);
+    border-radius: 99px;
+    background: var(--surface);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.area-forte b {
+    display: grid;
+    place-items: center;
+    min-width: 24px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 99px;
+    background: var(--gold);
+    font-size: 10.5px;
+    color: var(--ink);
+}
+
+.area-forte:nth-child(2) b {
+    background: var(--green-logo-forte);
+    color: #fff;
+}
+
+.curso-resultado-lista {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.curso-resultado {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 6px 10px 6px 6px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--surface);
+}
+
+.curso-resultado-icone {
+    flex: 0 0 auto;
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border-radius: 9px;
+    color: #fff;
+}
+
+.curso-resultado-icone svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.1;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.curso-resultado-texto {
+    flex: 1;
+    min-width: 0;
+    line-height: 1.2;
+}
+
+.curso-resultado-texto a {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    text-decoration: none;
+}
+
+.curso-resultado-texto a:hover {
+    color: var(--blue-dark);
+}
+
+.curso-resultado-texto span {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-top: 1px;
+    font-size: 11px;
+    color: var(--ink-soft);
+}
+
+/* ---- Perfil: gráfico, legenda e descrição ---- */
+.perfil-resultado {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.perfil-donut {
+    position: relative;
+    flex: 0 0 auto;
+    width: 96px;
+    height: 96px;
+}
+
+.perfil-donut svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.perfil-donut-centro {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--blue-dark);
+}
+
+.perfil-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.perfil-info h4 {
+    margin-bottom: 7px;
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 15.5px;
+    line-height: 1.2;
+    color: var(--ink);
+}
+
+.perfil-legenda {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.perfil-legenda li {
+    display: grid;
+    grid-template-columns: 10px minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 8px;
+    row-gap: 3px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.perfil-legenda i {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+}
+
+.perfil-legenda b {
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 12px;
+}
+
+.perfil-legenda-barra {
+    grid-column: 2 / 4;
+    height: 4px;
+    overflow: hidden;
+    border-radius: 99px;
+    background: #eceef8;
+}
+
+.perfil-legenda-barra span {
+    display: block;
+    height: 100%;
+    border-radius: 99px;
+}
+
+.perfil-desc {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--ink-soft);
+}
+
+/* ---- Botões ---- */
+.teste-resultado-acoes {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: auto;
+}
+
+.btn-refazer-teste {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 15px 5px 5px;
+    border-radius: 99px;
+    background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+    box-shadow: 0 8px 16px -9px rgba(59, 91, 219, 0.9);
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #fff;
+    text-decoration: none;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.btn-refazer-teste:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 20px -9px rgba(59, 91, 219, 1);
+}
+
+.btn-refazer-teste svg {
+    width: 24px;
+    height: 24px;
+    padding: 5px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.22);
+    fill: none;
+    stroke: #fff;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.btn-ver-resultado {
+    padding: 6px 8px;
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--blue-dark);
+    text-decoration: none;
+}
+
+.btn-ver-resultado:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+    .perfil-resultado {
+        gap: 12px;
+    }
+
+    .perfil-donut {
+        width: 84px;
+        height: 84px;
+    }
+}
