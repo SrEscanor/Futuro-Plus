@@ -1278,17 +1278,20 @@ a.noticia-mini:focus-visible {
 }
 
 /* ---- Perfil: gráfico, legenda e descrição ---- */
+/* o card do perfil acompanha a altura do vocacional: a área do gráfico cresce
+   e fica centralizada, em vez de deixar um vão antes dos botões */
 .perfil-resultado {
+    flex: 1;
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 20px;
 }
 
 .perfil-donut {
     position: relative;
     flex: 0 0 auto;
-    width: 96px;
-    height: 96px;
+    width: 124px;
+    height: 124px;
 }
 
 .perfil-donut svg {
@@ -1303,7 +1306,7 @@ a.noticia-mini:focus-visible {
     display: grid;
     place-items: center;
     font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
-    font-size: 16px;
+    font-size: 20px;
     font-weight: 700;
     letter-spacing: -0.02em;
     color: var(--blue-dark);
@@ -1315,9 +1318,9 @@ a.noticia-mini:focus-visible {
 }
 
 .perfil-info h4 {
-    margin-bottom: 7px;
+    margin-bottom: 10px;
     font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
-    font-size: 15.5px;
+    font-size: 17px;
     line-height: 1.2;
     color: var(--ink);
 }
@@ -1326,34 +1329,34 @@ a.noticia-mini:focus-visible {
     list-style: none;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 11px;
 }
 
 .perfil-legenda li {
     display: grid;
-    grid-template-columns: 10px minmax(0, 1fr) auto;
+    grid-template-columns: 11px minmax(0, 1fr) auto;
     align-items: center;
-    column-gap: 8px;
-    row-gap: 3px;
-    font-size: 12px;
+    column-gap: 9px;
+    row-gap: 5px;
+    font-size: 13px;
     font-weight: 600;
     color: var(--ink);
 }
 
 .perfil-legenda i {
-    width: 10px;
-    height: 10px;
+    width: 11px;
+    height: 11px;
     border-radius: 3px;
 }
 
 .perfil-legenda b {
     font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
-    font-size: 12px;
+    font-size: 13px;
 }
 
 .perfil-legenda-barra {
     grid-column: 2 / 4;
-    height: 4px;
+    height: 7px;
     overflow: hidden;
     border-radius: 99px;
     background: #eceef8;
@@ -1437,7 +1440,11 @@ a.noticia-mini:focus-visible {
     }
 
     .perfil-donut {
-        width: 84px;
-        height: 84px;
+        width: 96px;
+        height: 96px;
+    }
+
+    .perfil-donut-centro {
+        font-size: 17px;
     }
 }
