@@ -4,6 +4,7 @@ import { auth, db } from "./firebase-config.js";
 import { categoriasTeste } from "./categorias-teste.js";
 import { escapeHtml, normalizar, logoPadraoPorTipo, LOGO_FALLBACK } from "./card-unidade.js";
 import { extrairResultadoMaisRecente, extrairResultadoVocacional } from "./resultado-teste.js";
+import { ativarScrollHorizontalComMouse } from "./scroll-horizontal.js";
 import {
     carregarOfertaCursos,
     carregarRegioesSP,
@@ -19,6 +20,7 @@ import {
 const titulo = document.getElementById("recomendados-titulo");
 const subtitulo = document.getElementById("recomendados-sub");
 const trilho = document.getElementById("recomendados-scroll");
+ativarScrollHorizontalComMouse(trilho);
 
 // Embaralha (Fisher-Yates) pra a vitrine mostrar uma seleção diferente a
 // cada visita, em vez de sempre as mesmas recomendações na mesma ordem.

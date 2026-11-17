@@ -5,8 +5,9 @@ import { db } from './firebase-config.js';
 import { collection, getDocs } from 'firebase/firestore';
 import { escapeHtml, logoPadraoPorTipo } from './card-unidade.js';
 import { resumoDaDemanda } from './demanda-curso.js';
+import { ativarScrollHorizontalComMouse } from './scroll-horizontal.js';
 
-const QUANTIDADE_PREVIA = 4;
+const QUANTIDADE_PREVIA = 8;
 
 function nivelDoCurso(curso) {
     return curso.nivel === 'superior' ? 'superior' : 'tecnico';
@@ -19,7 +20,7 @@ function rotuloNivel(nivel) {
 function cardCursoDemanda(curso, resumo) {
     const nivel = nivelDoCurso(curso);
     const logo = logoPadraoPorTipo(nivel === 'superior' ? 'fatec' : 'etec');
-    const eixo = (curso.eixos || [])[0];
+    const eixosExtras = (curso.eixos || []).length - 1;
 
     return `
     <a class="card-curso-catalogo" href="curso.html?c=${encodeURIComponent(curso.id)}">
@@ -29,10 +30,17 @@ function cardCursoDemanda(curso, resumo) {
         </div>
         <h3 class="card-curso-catalogo-titulo">${escapeHtml(curso.nome)}</h3>
         <div class="card-curso-catalogo-eixos">
-            ${eixo ? `<span class="tag-curso">${escapeHtml(eixo)}</span>` : ''}
+            ${(curso.eixos || []).slice(0, 1).map((e) => `<span class="tag-curso">${escapeHtml(e)}</span>`).join('')}
+            ${eixosExtras > 0 ? `<span class="tag-curso tag-curso--mais">+${eixosExtras}</span>` : ''}
         </div>
-        <div class="card-curso-catalogo-rodape">
-            <span class="selo-demanda selo-demanda--${resumo.nivel.chave}">${resumo.porVagaTexto} candidatos/vaga</span>
+        ${curso.descricao ? `
+        <div class="card-curso-catalogo-descricao">
+            <span class="card-curso-catalogo-descricao-rotulo">O que você aprende</span>
+            <p>${escapeHtml(curso.descricao)}</p>
+        </div>` : ''}
+        <div class="card-curso-catalogo-rodape card-curso-catalogo-rodape--demanda">
+            <span class="badge-demanda badge-demanda--${resumo.nivel.chave}">${resumo.porVagaTexto} cand./vaga</span>
+            <span class="card-curso-catalogo-ler-mais">Ver mais &rarr;</span>
         </div>
     </a>`;
 }
@@ -40,6 +48,8 @@ function cardCursoDemanda(curso, resumo) {
 document.addEventListener('DOMContentLoaded', async () => {
     const container = document.getElementById('preview-cursos-demanda');
     if (!container) return;
+
+    ativarScrollHorizontalComMouse(container);
 
     try {
         const snap = await getDocs(collection(db, 'cursos'));

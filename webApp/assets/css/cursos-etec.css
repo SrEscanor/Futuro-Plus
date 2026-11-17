@@ -423,16 +423,74 @@
     border-top: 1px solid var(--line);
     display: flex;
     justify-content: flex-end;
+    align-items: center;
+}
+
+.card-curso-catalogo-rodape--demanda {
+    justify-content: space-between;
+    gap: 8px;
 }
 
 .card-curso-catalogo-ler-mais {
     font-size: 12.5px;
     font-weight: 700;
     color: var(--blue-dark);
+    white-space: nowrap;
 }
 
 .card-curso-catalogo:hover .card-curso-catalogo-ler-mais {
     text-decoration: underline;
+}
+
+.badge-demanda {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.badge-demanda--alta {
+    background: var(--red-soft);
+    color: var(--red);
+}
+
+.badge-demanda--media {
+    background: var(--gold-soft);
+    color: var(--gold-dark);
+}
+
+.badge-demanda--baixa {
+    background: var(--green-soft);
+    color: var(--green-dark);
+}
+
+/* Prévia "Cursos com maiores demandas" da Início: os mesmos cards do
+   catálogo, só que em vitrine horizontal (rolagem lateral), igual aos
+   "Recomendados para você" — ver scroll-horizontal.js para a rolagem com
+   a roda do mouse. */
+.cursos-demanda-scroll {
+    display: flex;
+    gap: 18px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    scrollbar-width: thin;
+    scroll-snap-type: x mandatory;
+}
+
+.cursos-demanda-scroll .card-curso-catalogo {
+    width: 270px;
+    min-width: 250px;
+    flex-shrink: 0;
+    scroll-snap-align: start;
+}
+
+.cursos-demanda-scroll .carregando-cursos,
+.cursos-demanda-scroll .sem-resultados {
+    padding: 40px 20px;
+    color: var(--ink-soft);
 }
 
 /* ---- Paginação ---- */
