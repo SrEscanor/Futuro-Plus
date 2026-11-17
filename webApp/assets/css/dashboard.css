@@ -866,7 +866,11 @@ h3,
     scrollbar-width: thin;
     user-select: none;
     -webkit-user-select: none;
-    scroll-snap-type: x mandatory;
+    /* Sem scroll-snap aqui: com a rolagem pela roda do mouse
+       (scroll-horizontal.js) o snap brigava com os pequenos incrementos de
+       cada evento de wheel — o navegador puxava de volta pro card mais
+       próximo a cada ajuste manual de scrollLeft, e a vitrine parecia
+       alternar de card sozinha em vez de rolar. */
 }
 
 /* largura fixa: sem ela o selo de motivo (texto longo) esticava cada card
@@ -882,7 +886,6 @@ h3,
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    scroll-snap-align: start;
     transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
 }
 

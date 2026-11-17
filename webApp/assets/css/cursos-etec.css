@@ -477,14 +477,17 @@
     overflow-x: auto;
     padding-bottom: 10px;
     scrollbar-width: thin;
-    scroll-snap-type: x mandatory;
+    /* Sem scroll-snap aqui: com a rolagem pela roda do mouse
+       (scroll-horizontal.js) o snap brigava com os pequenos incrementos de
+       cada evento de wheel — o navegador puxava de volta pro card mais
+       próximo a cada ajuste manual de scrollLeft, e a vitrine parecia
+       alternar de card sozinha em vez de rolar. */
 }
 
 .cursos-demanda-scroll .card-curso-catalogo {
     width: 270px;
     min-width: 250px;
     flex-shrink: 0;
-    scroll-snap-align: start;
 }
 
 .cursos-demanda-scroll .carregando-cursos,
