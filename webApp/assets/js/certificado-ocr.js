@@ -9,9 +9,12 @@ import { createWorker } from 'tesseract.js';
 
 // Palavras que aparecem em praticamente todo certificado. É um filtro de
 // protótipo: pega imagem trocada por engano, não impede fraude.
+// "conclu" cobre conclusão/concluiu/concluído/concluída de uma vez: a forma
+// "concluído" (particípio, bem comum em diploma: "por ter concluído") não
+// batia com as palavras exatas de antes e deixava o filtro de lado.
 const TERMOS_CERTIFICADO = [
-    'certificado', 'certificamos', 'certifica', 'certificate',
-    'conclusao', 'concluiu', 'participacao', 'participou',
+    'certificado', 'certificamos', 'certifica', 'certificate', 'diploma',
+    'conclu', 'participacao', 'participou',
     'carga horaria', 'horas', 'curso', 'declaramos'
 ];
 
@@ -83,6 +86,44 @@ export function areasDeCpf(palavras = []) {
                 break;
             }
         }
+    }
+    return areas;
+}
+
+// Acha, nas palavras lidas, onde está o rótulo "RG" ou "R.G." a partir da
+// posição "inicio" (juntando até 3 palavras seguidas: o rótulo pode vir
+// quebrado em "R." e "G.", ou numa quebra de linha — como já lemos pela
+// lista de palavras do Tesseract, e não pelo texto corrido, a quebra de
+// linha nem entra na conta aqui). Devolve o índice da última palavra do
+// rótulo, ou null se não achar.
+function acharRotuloDeRg(palavras, inicio) {
+    let junto = '';
+    for (let fim = inicio; fim < Math.min(palavras.length, inicio + 3); fim += 1) {
+        junto += (palavras[fim].text || '').replace(/[^a-zA-Z]/g, '').toLowerCase();
+        if (junto === 'rg') return fim;
+        if (!'rg'.startsWith(junto)) return null;
+    }
+    return null;
+}
+
+// O RG não tem um formato fixo de dígitos como o CPF (a pontuação e a
+// quantidade de números mudam de estado para estado), então aqui a gente
+// cobre a partir do rótulo "RG"/"R.G." em vez de tentar reconhecer o número
+// sozinho: cobre o rótulo e, logo depois, as palavras que ainda parecem
+// número (dígitos, pontuação ou sigla de estado), até 3 palavras.
+export function areasDeRg(palavras = []) {
+    const areas = [];
+    for (let i = 0; i < palavras.length; i += 1) {
+        const fimRotulo = acharRotuloDeRg(palavras, i);
+        if (fimRotulo === null) continue;
+
+        palavras.slice(i, fimRotulo + 1).forEach((p) => areas.push(p.bbox));
+        for (let j = fimRotulo + 1; j < Math.min(palavras.length, fimRotulo + 4); j += 1) {
+            const texto = palavras[j].text || '';
+            if (!/\d/.test(texto) || !/^[\d.\-/a-zA-Z]+[,;.]?$/.test(texto)) break;
+            areas.push(palavras[j].bbox);
+        }
+        i = fimRotulo;
     }
     return areas;
 }

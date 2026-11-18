@@ -4,7 +4,7 @@ import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'fire
 import { auth, db, app } from './firebase-config.js';
 import { escapeHtml, normalizar, paginaDaUnidade } from './card-unidade.js';
 import {
-    lerCertificado, areasDeCpf, borrarAreas, canvasParaArquivo, reduzirImagem
+    lerCertificado, areasDeCpf, areasDeRg, borrarAreas, canvasParaArquivo, reduzirImagem
 } from './certificado-ocr.js';
 import {
     lerDadosDoCertificado, conferirNome, cursoPeloNome, unidadePeloNome, certificadoRepetido, nivelDoTexto
@@ -284,8 +284,8 @@ async function prepararCertificado(arquivoOriginal) {
             carregarCatalogo()
         ]);
 
-        // o CPF é coberto aqui, antes de qualquer envio
-        const areas = areasDeCpf(palavras);
+        // CPF e RG são cobertos aqui, antes de qualquer envio
+        const areas = [...areasDeCpf(palavras), ...areasDeRg(palavras)];
         let arquivoFinal = arquivo;
 
         if (areas.length) {
