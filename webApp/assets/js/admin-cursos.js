@@ -217,7 +217,7 @@ function renderizarTabela() {
             : (interativas ? (interativas === 1 ? 'matriz interativa' : `${interativas} matrizes interativas`) : '');
         return `
         <tr>
-            <td>
+            <td class="col-curso">
                 ${c.nivel === 'superior' ? '<span class="badge-categoria">Superior</span>' : ''}
                 <strong>${escapeHtml(c.nome)}</strong>
                 ${pendencias.length ? `<div class="pendencia">falta ${escapeHtml(pendencias.join(', '))}</div>` : ''}
@@ -227,11 +227,11 @@ function renderizarTabela() {
                 ${fatec ? `<div class="pendencia pendencia--info">${escapeHtml(fatec)}</div>` : ''}
                 ${(c.camposEditados || []).length ? `<div class="pendencia pendencia--manual" title="${escapeHtml(c.atualizadoEm ? new Date(c.atualizadoEm).toLocaleString('pt-BR') : '')}">✏️ editado à mão por ${escapeHtml(c.atualizadoPor || '—')}: ${escapeHtml(c.camposEditados.map((x) => ROTULO_CAMPO[x] || x).join(', '))}</div>` : ''}
             </td>
-            <td>${escapeHtml((c.eixos || []).join(', '))}</td>
-            <td>${escapeHtml(c.duracao || '—')}</td>
-            <td>${c.cargaHoraria ? `${c.cargaHoraria} h` : '—'}</td>
-            <td>${celulaDemanda(c)}</td>
-            <td>${unidades}</td>
+            <td class="col-eixo" data-rotulo="Eixo">${escapeHtml((c.eixos || []).join(', ') || '—')}</td>
+            <td class="col-duracao" data-rotulo="Duração">${escapeHtml(c.duracao || '—')}</td>
+            <td class="col-num" data-rotulo="Carga">${c.cargaHoraria ? `${c.cargaHoraria} h` : '—'}</td>
+            <td class="col-num" data-rotulo="Demanda">${celulaDemanda(c)}</td>
+            <td class="col-num" data-rotulo="Unidades">${unidades}</td>
             <td class="col-acoes">
                 <button type="button" class="btn-icone" data-acao="editar" data-id="${escapeHtml(c.id)}" title="Editar">✏️</button>
                 <a class="btn-icone" href="curso.html?c=${encodeURIComponent(c.id)}" target="_blank" title="Ver a página do curso">🔍</a>

@@ -44,10 +44,11 @@
     <main id="admin-app" style="display:none;">
         <div class="container-admin">
 
-            <!-- ---------- AS TRÊS FONTES DE DADOS DE UM CURSO ---------- -->
-            <div class="painel-fontes">
+            <!-- ---------- AS TRÊS FONTES DE DADOS DE UM CURSO ----------
+                 um quadro por linha, como o de importação do painel de Unidades -->
+            <div class="painel-fontes painel-fontes--empilhado">
 
-                <section class="fonte-card" aria-labelledby="fonte-csv-titulo">
+                <section class="fonte-card fonte-card--linha" aria-labelledby="fonte-csv-titulo">
                     <div class="fonte-cabecalho">
                         <span class="fonte-icone" aria-hidden="true">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -124,13 +125,15 @@
                         </div>
                     </div>
 
-                    <div class="demanda-situacao" id="matriz-situacao"></div>
-                    <p class="fonte-nota">Cada curso recebe a sua: abra o curso no lápis (✏️) da tabela e envie o
-                        PDF na seção "Matriz curricular". A grade vira a matriz interativa no fim da página do curso
-                        (na Etec, uma aba para cada forma de oferta: técnico, M-Tec…).</p>
-                    <div class="fonte-acoes">
-                        <button type="button" id="btn-filtrar-sem-matriz" class="btn btn-secundario">Mostrar cursos
-                            sem matriz</button>
+                    <div class="fonte-linha">
+                        <div class="demanda-situacao" id="matriz-situacao"></div>
+                        <p class="fonte-nota">Cada curso recebe a sua: abra o curso no lápis (✏️) da tabela e envie o
+                            PDF na seção "Matriz curricular". A grade vira a matriz interativa no fim da página do curso
+                            (na Etec, uma aba para cada forma de oferta: técnico, M-Tec…).</p>
+                        <div class="fonte-acoes">
+                            <button type="button" id="btn-filtrar-sem-matriz" class="btn btn-secundario">Mostrar cursos
+                                sem matriz</button>
+                        </div>
                     </div>
                 </section>
 
@@ -179,16 +182,16 @@
                 <button type="button" id="btn-filtrar-incompletos" class="btn btn-secundario">Mostrar só esses</button>
             </div>
 
-            <div class="tabela-container">
-                <table>
+            <div class="tabela-container tabela-container--rolavel">
+                <table class="tabela-cursos">
                     <thead>
                         <tr>
                             <th class="th-ordenavel" data-coluna="nome">Curso<span class="seta-ordenacao"></span></th>
                             <th class="th-ordenavel" data-coluna="eixo">Eixo<span class="seta-ordenacao"></span></th>
-                            <th class="th-ordenavel" data-coluna="duracao">Duração<span class="seta-ordenacao"></span></th>
-                            <th class="th-ordenavel" data-coluna="cargaHoraria">Carga horária<span class="seta-ordenacao"></span></th>
-                            <th class="th-ordenavel" data-coluna="demanda">Demanda<span class="seta-ordenacao"></span></th>
-                            <th class="th-ordenavel" data-coluna="unidades">Unidades<span class="seta-ordenacao"></span></th>
+                            <th class="th-ordenavel col-duracao" data-coluna="duracao">Duração<span class="seta-ordenacao"></span></th>
+                            <th class="th-ordenavel col-num" data-coluna="cargaHoraria">Carga horária<span class="seta-ordenacao"></span></th>
+                            <th class="th-ordenavel col-num" data-coluna="demanda">Demanda<span class="seta-ordenacao"></span></th>
+                            <th class="th-ordenavel col-num" data-coluna="unidades">Unidades<span class="seta-ordenacao"></span></th>
                             <th></th>
                         </tr>
                     </thead>

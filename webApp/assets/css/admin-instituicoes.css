@@ -1818,6 +1818,157 @@ tbody tr:hover {
     }
 }
 
+/* ---- CATÁLOGO DE CURSOS: QUADROS EM FAIXAS E TABELA EM CARTÕES ----
+   Os três quadros do topo ocupam a linha inteira, um embaixo do outro, como
+   o de importação do painel de Unidades: no computador, os passos do CSV
+   ficam lado a lado e a situação da matriz numa linha só. No celular a
+   tabela de cursos vira uma lista de cartões, com o lápis sempre à vista,
+   e as capas dos eixos correm de lado. */
+.painel-fontes--empilhado {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.fonte-linha {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+@media (min-width: 900px) {
+    .fonte-linha {
+        flex-direction: row;
+        align-items: center;
+        gap: 24px;
+    }
+
+    .fonte-linha .demanda-situacao,
+    .fonte-linha .fonte-acoes {
+        flex: 0 0 auto;
+    }
+
+    .fonte-linha .fonte-nota {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+}
+
+/* colunas de número só com a largura do conteúdo, e a duração com largura
+   para "3 semestres" numa linha (o texto longo de um curso ou outro quebra):
+   sobra espaço para o nome do curso e o eixo. Se ainda faltar largura, a
+   tabela rola de lado em vez de cortar as colunas. */
+.tabela-container--rolavel {
+    overflow-x: auto;
+}
+
+.tabela-cursos .col-duracao {
+    width: 9.5em;
+}
+
+.tabela-cursos .col-num {
+    width: 1%;
+    white-space: nowrap;
+}
+
+/* até tablet, cada curso vira um cartão: nome, eixo e os números numa
+   linha, com o lápis e a lupa no canto de cima */
+@media (max-width: 900px) {
+    .tabela-cursos thead {
+        display: none;
+    }
+
+    .tabela-cursos,
+    .tabela-cursos tbody {
+        display: block;
+    }
+
+    .tabela-cursos tbody tr {
+        position: relative;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 8px 18px;
+        padding: 12px 16px 14px;
+        border-bottom: 1px solid var(--line);
+    }
+
+    .tabela-cursos tbody tr:last-child {
+        border-bottom: none;
+    }
+
+    .tabela-cursos tbody td {
+        display: block;
+        min-width: 0;
+        padding: 0;
+        border: none;
+    }
+
+    .tabela-cursos .col-curso,
+    .tabela-cursos .col-eixo,
+    .tabela-cursos .tabela-vazia {
+        flex: 1 1 100%;
+    }
+
+    .tabela-cursos .col-curso {
+        padding-right: 84px;
+    }
+
+    .tabela-cursos .col-eixo {
+        margin-top: -4px;
+        font-size: 13px;
+        color: var(--ink-soft);
+    }
+
+    .tabela-cursos .col-duracao,
+    .tabela-cursos .col-num {
+        flex: 0 1 auto;
+        width: auto;
+        white-space: normal;
+        font-size: 13px;
+    }
+
+    .tabela-cursos .col-duracao::before,
+    .tabela-cursos .col-num::before {
+        content: attr(data-rotulo);
+        display: block;
+        margin-bottom: 1px;
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--ink-soft);
+    }
+
+    .tabela-cursos .col-acoes {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+    }
+
+    .tabela-cursos .col-acoes .btn-icone {
+        display: inline-grid;
+        place-items: center;
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        vertical-align: middle;
+    }
+}
+
+@media (max-width: 640px) {
+    /* as capas em duas linhas que correm de lado, em vez de 14 cartões em pé */
+    .lista-capas {
+        grid-template-columns: none;
+        grid-template-rows: repeat(2, auto);
+        grid-auto-flow: column;
+        /* largura fixa: a próxima capa aparece pela metade, mostrando que rola */
+        grid-auto-columns: 84%;
+        overflow-x: auto;
+        margin: 0 -20px;
+        padding: 0 20px 8px;
+        overscroll-behavior-x: contain;
+    }
+}
+
 /* ---- ABAS E HISTÓRICO DOS PAINÉIS (Notificações e Notícias) ----
    As abas têm o mesmo jeito das do painel Notícias. O histórico mostra quem
    fez o quê, com o e-mail, como o das notícias próprias (que tem o seu em
