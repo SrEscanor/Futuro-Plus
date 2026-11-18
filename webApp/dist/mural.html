@@ -8,7 +8,7 @@
     <link rel="icon" href="./favicon.ico" sizes="48x48">
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="./apple-touch-icon.png">
-  <script type="module" crossorigin src="./assets/mural-JUs2l7GY.js"></script>
+  <script type="module" crossorigin src="./assets/mural-C1RU3DeY.js"></script>
   <link rel="modulepreload" crossorigin href="./assets/firebase-config-XQh5hlny.js">
   <link rel="modulepreload" crossorigin href="./assets/preload-helper-PPVm8Dsz.js">
   <link rel="modulepreload" crossorigin href="./assets/conteudo-legal-padrao-DcxCgRAC.js">
@@ -21,7 +21,7 @@
   <link rel="modulepreload" crossorigin href="./assets/card-unidade-DxBgZOlB.js">
   <link rel="modulepreload" crossorigin href="./assets/index-BWEdrVP9.js">
   <link rel="stylesheet" crossorigin href="./assets/dashboard-KUG4nt-0.css">
-  <link rel="stylesheet" crossorigin href="./assets/mural-D25P95Va.css">
+  <link rel="stylesheet" crossorigin href="./assets/mural-BgHyxIS8.css">
   <link rel="stylesheet" crossorigin href="./assets/ondas-Cp6OP_7e.css">
 </head>
 
@@ -216,8 +216,6 @@
 
                 <p class="mural-status" id="status-certificado"></p>
 
-                <div class="mural-achados" id="achados-certificado" hidden></div>
-
                 <div class="mural-campos" id="campos-certificado" hidden>
                     <label for="cert-titulo">Nome do curso ou do evento</label>
                     <input type="text" id="cert-titulo" list="lista-cursos-mural" autocomplete="off"
@@ -230,6 +228,13 @@
                         placeholder="Ex: Etec de Carapicuíba ou Fatec Sorocaba">
                     <datalist id="lista-unidades-mural"></datalist>
                     <small class="mural-ligado" id="cert-instituicao-ligado" hidden></small>
+                    <small class="mural-aviso" id="cert-instituicao-ead" hidden></small>
+
+                    <label for="cert-ano">Ano de conclusão (opcional)</label>
+                    <input type="number" id="cert-ano" inputmode="numeric" min="1990" max="2100"
+                        placeholder="Ex: 2025">
+                    <small class="mural-dica">A leitura preenche sozinha quando encontra; se não encontrar ou vier
+                        errada, corrija aqui. Esse ano aparece junto do seu nome nos comentários da escola.</small>
                 </div>
             </div>
 

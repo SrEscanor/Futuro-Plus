@@ -69,64 +69,83 @@ export function analisarTexto(texto) {
     };
 }
 
-// Palavras que o Tesseract devolveu com posição: usamos para achar o CPF na
-// imagem e cobrir só aquele pedaço. Às vezes o CPF cai quebrado em duas
-// palavras (a leitura separa por causa de uma quebra de linha no
-// certificado, ou um espaço que o OCR enxergou onde não tinha) — nesse caso
-// nenhuma palavra sozinha bate com o padrão, então também testamos a junção
-// de até 3 palavras seguidas antes de desistir daquele trecho.
-export function areasDeCpf(palavras = []) {
+// Acha, nas palavras lidas, onde termina um rótulo ("CPF", "RG"...) a
+// partir da posição "inicio" — junta até 3 palavras seguidas, porque o
+// rótulo pode vir quebrado em pedaços ("R." e "G.") ou numa quebra de
+// linha (como já lemos pela lista de palavras do Tesseract, e não pelo
+// texto corrido, a quebra de linha nem entra na conta aqui). Devolve o
+// índice da última palavra do rótulo, ou null se não achar.
+function acharFimDoRotulo(palavras, inicio, rotulo) {
+    let junto = '';
+    for (let fim = inicio; fim < Math.min(palavras.length, inicio + 3); fim += 1) {
+        const limpo = (palavras[fim].text || '').replace(/[^a-zA-Z]/g, '').toLowerCase();
+        // a primeira palavra do rótulo tem que ter alguma letra — senão uma
+        // palavra qualquer sem letra (datas, números soltos) "começaria" o
+        // rótulo por engano, só por sobrar vazio até a próxima palavra bater
+        if (fim === inicio && !limpo) return null;
+        junto += limpo;
+        if (junto === rotulo) return fim;
+        if (!rotulo.startsWith(junto)) return null;
+    }
+    return null;
+}
+
+// Uma palavra que ainda faz parte do número depois do rótulo: um pedaço de
+// dígitos (pode vir com ponto, hífen ou barra grudado, e vírgula no fim),
+// só pontuação servindo de "cola" entre pedaços ("." sozinho), ou uma sigla
+// de estado em maiúsculas (RG costuma terminar em "/SP"). Em maiúsculo de
+// propósito: assim uma palavra comum da frase ("de", "e"...) não entra.
+function pareceContinuacaoDeNumero(texto) {
+    if (/^[.\-/,;]+$/.test(texto)) return true;
+    if (/^[A-Z]{1,2}[,;.]?$/.test(texto)) return true;
+    return /\d/.test(texto) && /^[\d.\-/A-Za-z]+[,;.]?$/.test(texto);
+}
+
+// Cobre o rótulo e, logo depois, as palavras que ainda parecem número
+// (dígitos, pontuação ou sigla de estado) — em texto justificado a leitura
+// às vezes quebra um número só em bem mais de 2 ou 3 palavras (um pedaço
+// pra cada grupo de dígitos entre pontos), então aqui vai até 8 palavras
+// depois do rótulo antes de desistir.
+function areasAposRotulo(palavras, rotulo) {
     const areas = [];
     for (let i = 0; i < palavras.length; i += 1) {
-        if (PADRAO_CPF.test((palavras[i].text || '').replace(/\s/g, ''))) {
-            areas.push(palavras[i].bbox);
-            continue;
+        const fimRotulo = acharFimDoRotulo(palavras, i, rotulo);
+        if (fimRotulo === null) continue;
+
+        palavras.slice(i, fimRotulo + 1).forEach((p) => areas.push(p.bbox));
+        for (let j = fimRotulo + 1; j < Math.min(palavras.length, fimRotulo + 9); j += 1) {
+            const texto = palavras[j].text || '';
+            if (!pareceContinuacaoDeNumero(texto)) break;
+            areas.push(palavras[j].bbox);
         }
-        for (let fim = i + 1; fim < Math.min(palavras.length, i + 3); fim += 1) {
+        i = fimRotulo;
+    }
+    return areas;
+}
+
+// O RG não tem um formato fixo de dígitos como o CPF (a pontuação e a
+// quantidade de números mudam de estado para estado), então aqui a gente
+// só cobre a partir do rótulo "RG"/"R.G.".
+export function areasDeRg(palavras = []) {
+    return areasAposRotulo(palavras, 'rg');
+}
+
+// Palavras que o Tesseract devolveu com posição: usamos para achar o CPF na
+// imagem e cobrir só aquele pedaço. Cobre a partir do rótulo "CPF" (que
+// aguenta o número quebrado em qualquer quantidade de palavras) e, por
+// garantia, também o padrão pronto do CPF sozinho ou quebrado em até 3
+// palavras seguidas — útil quando a leitura não pegou a palavra "CPF" mas
+// o número saiu inteiro.
+export function areasDeCpf(palavras = []) {
+    const areas = areasAposRotulo(palavras, 'cpf');
+    for (let i = 0; i < palavras.length; i += 1) {
+        for (let fim = i; fim < Math.min(palavras.length, i + 3); fim += 1) {
             const junto = palavras.slice(i, fim + 1).map((p) => p.text || '').join('').replace(/\s/g, '');
             if (PADRAO_CPF.test(junto)) {
                 palavras.slice(i, fim + 1).forEach((p) => areas.push(p.bbox));
                 break;
             }
         }
-    }
-    return areas;
-}
-
-// Acha, nas palavras lidas, onde está o rótulo "RG" ou "R.G." a partir da
-// posição "inicio" (juntando até 3 palavras seguidas: o rótulo pode vir
-// quebrado em "R." e "G.", ou numa quebra de linha — como já lemos pela
-// lista de palavras do Tesseract, e não pelo texto corrido, a quebra de
-// linha nem entra na conta aqui). Devolve o índice da última palavra do
-// rótulo, ou null se não achar.
-function acharRotuloDeRg(palavras, inicio) {
-    let junto = '';
-    for (let fim = inicio; fim < Math.min(palavras.length, inicio + 3); fim += 1) {
-        junto += (palavras[fim].text || '').replace(/[^a-zA-Z]/g, '').toLowerCase();
-        if (junto === 'rg') return fim;
-        if (!'rg'.startsWith(junto)) return null;
-    }
-    return null;
-}
-
-// O RG não tem um formato fixo de dígitos como o CPF (a pontuação e a
-// quantidade de números mudam de estado para estado), então aqui a gente
-// cobre a partir do rótulo "RG"/"R.G." em vez de tentar reconhecer o número
-// sozinho: cobre o rótulo e, logo depois, as palavras que ainda parecem
-// número (dígitos, pontuação ou sigla de estado), até 3 palavras.
-export function areasDeRg(palavras = []) {
-    const areas = [];
-    for (let i = 0; i < palavras.length; i += 1) {
-        const fimRotulo = acharRotuloDeRg(palavras, i);
-        if (fimRotulo === null) continue;
-
-        palavras.slice(i, fimRotulo + 1).forEach((p) => areas.push(p.bbox));
-        for (let j = fimRotulo + 1; j < Math.min(palavras.length, fimRotulo + 4); j += 1) {
-            const texto = palavras[j].text || '';
-            if (!/\d/.test(texto) || !/^[\d.\-/a-zA-Z]+[,;.]?$/.test(texto)) break;
-            areas.push(palavras[j].bbox);
-        }
-        i = fimRotulo;
     }
     return areas;
 }
