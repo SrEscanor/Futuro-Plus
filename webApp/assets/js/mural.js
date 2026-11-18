@@ -4,7 +4,7 @@ import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'fire
 import { auth, db, app } from './firebase-config.js';
 import { escapeHtml, normalizar, paginaDaUnidade } from './card-unidade.js';
 import {
-    lerCertificado, areasDeCpf, areasDeRg, borrarAreas, canvasParaArquivo, reduzirImagem
+    lerCertificado, areasDeCpf, areasDeRg, borrarAreas, canvasParaArquivo, pdfParaImagem, reduzirImagem
 } from './certificado-ocr.js';
 import {
     lerDadosDoCertificado, conferirNome, cursoPeloNome, unidadePeloNome, certificadoRepetido, nivelDoTexto,
@@ -272,7 +272,7 @@ function validarCampos() {
 
 async function prepararCertificado(arquivoOriginal) {
     if (arquivoOriginal.size > TAMANHO_MAXIMO_MB * 1024 * 1024) {
-        alert(`Esta imagem tem mais de ${TAMANHO_MAXIMO_MB} MB. Tire a foto com menos resolução ou reduza o arquivo.`);
+        alert(`Este arquivo tem mais de ${TAMANHO_MAXIMO_MB} MB. Tire a foto com menos resolução ou use um arquivo menor.`);
         return;
     }
     if (certificados.length >= MAXIMO_CERTIFICADOS) {
@@ -291,12 +291,19 @@ async function prepararCertificado(arquivoOriginal) {
     marcarLigacao('cert-instituicao-ead', '');
     emPreparo = null;
 
+    const ehPdf = arquivoOriginal.type === 'application/pdf' || /\.pdf$/i.test(arquivoOriginal.name);
     const previa = elemento('previa-certificado');
-    previa.src = URL.createObjectURL(arquivoOriginal);
-    mostrarStatus('Preparando a imagem...');
 
     try {
-        const { arquivo } = await reduzirImagem(arquivoOriginal);
+        let arquivoDeTrabalho = arquivoOriginal;
+        if (ehPdf) {
+            mostrarStatus('Abrindo o PDF... (a primeira vez baixa o leitor e demora um pouco)');
+            arquivoDeTrabalho = await pdfParaImagem(arquivoOriginal);
+        }
+        previa.src = URL.createObjectURL(arquivoDeTrabalho);
+        mostrarStatus('Preparando a imagem...');
+
+        const { arquivo } = await reduzirImagem(arquivoDeTrabalho);
         previa.src = URL.createObjectURL(arquivo);
         mostrarStatus('Lendo o certificado no seu computador... (a primeira vez baixa o leitor e demora um pouco)');
 
@@ -360,8 +367,10 @@ async function prepararCertificado(arquivoOriginal) {
     } catch (erro) {
         console.error('Erro ao ler o certificado:', erro);
         // sem leitura não dá para conferir de quem é o certificado
-        mostrarStatus('Não consegui ler esta imagem, então não deu para conferir o nome. '
-            + 'Tente uma foto mais nítida, de frente e bem iluminada.', 'erro');
+        mostrarStatus(ehPdf
+            ? 'Não consegui abrir este PDF. Tente enviar uma foto ou print do certificado em vez do PDF.'
+            : 'Não consegui ler esta imagem, então não deu para conferir o nome. '
+                + 'Tente uma foto mais nítida, de frente e bem iluminada.', 'erro');
     }
 }
 

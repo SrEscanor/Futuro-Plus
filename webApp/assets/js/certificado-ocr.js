@@ -206,6 +206,31 @@ export function canvasParaArquivo(canvas, nome) {
     });
 }
 
+// Certificado em PDF (comum quando a escola emite digitalmente): a primeira
+// página vira uma imagem, e dali em diante segue o mesmo caminho de uma
+// foto — leitura, cobertura do CPF/RG, tudo igual. O leitor de PDF é
+// grande, então só é baixado na hora em que alguém realmente envia um PDF
+// (mesma ideia de matriz-curricular.js).
+export async function pdfParaImagem(arquivo, larguraAlvo = LARGURA_MAXIMA) {
+    const [pdfjs, { default: urlDoWorker }] = await Promise.all([
+        import('pdfjs-dist'),
+        import('pdfjs-dist/build/pdf.worker.min.mjs?url')
+    ]);
+    pdfjs.GlobalWorkerOptions.workerSrc = urlDoWorker;
+
+    const documento = await pdfjs.getDocument({ data: await arquivo.arrayBuffer() }).promise;
+    const pagina = await documento.getPage(1);
+    const escala = larguraAlvo / pagina.getViewport({ scale: 1 }).width;
+    const viewport = pagina.getViewport({ scale: escala });
+
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(viewport.width);
+    canvas.height = Math.round(viewport.height);
+    await pagina.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+
+    return canvasParaArquivo(canvas, arquivo.name.replace(/\.pdf$/i, '') + '.jpg');
+}
+
 // Imagem pequena (print de tela, foto que veio pelo WhatsApp) lê mal: cada
 // letra fica com poucos pixels. Num certificado de Etec com 900 px de
 // largura, a leitura direta trouxe só a primeira linha do texto; ampliado,
