@@ -224,11 +224,13 @@ export function dataCurta(valor) {
 }
 
 // ---- Quem pode o quê ----
-// conta: { logado, uid, nome, admin, certificado } (certificado: o do Mural
-// cuja leitura achou esta unidade, ou null)
+// conta: { logado, uid, nome, admin, certificados, certificadosDisponiveis }
+// certificados: todo certificado do Mural cuja leitura achou esta unidade.
+// certificadosDisponiveis: os de certificados que ainda não têm comentário
+// desta conta (cada certificado dá direito a um comentário).
 
-export const podeComentar = (conta) => Boolean(conta?.certificado);
-export const podeResponder = (conta) => Boolean(conta?.certificado || conta?.admin);
+export const podeComentar = (conta) => Boolean(conta?.certificadosDisponiveis?.length);
+export const podeResponder = (conta) => Boolean(conta?.certificados?.length || conta?.admin);
 export const podePerguntar = (conta) => Boolean(conta?.logado);
 
 // O que aparece embaixo do nome: curso e ano do certificado, ou equipe

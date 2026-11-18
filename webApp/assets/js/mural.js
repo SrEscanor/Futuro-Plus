@@ -213,9 +213,14 @@ function recusaPeloNome(nome) {
 
 // O que está nos campos agora, já ligado ao catálogo quando o texto é o
 // nome de um curso ou de uma unidade que o site conhece.
+const ANO_MINIMO = 1990;
+const anoMaximoValido = () => new Date().getFullYear() + 1;
+
 function dadosDosCampos() {
     const titulo = elemento('cert-titulo').value.trim();
     const instituicao = elemento('cert-instituicao').value.trim();
+    const anoDigitado = elemento('cert-ano').value.trim();
+    const ano = anoDigitado ? Number(anoDigitado) : null;
 
     const unidade = unidadePeloNome(instituicao, catalogo?.unidades);
     // "Logística" existe como técnico e como superior: quem decide é a escola
@@ -227,6 +232,8 @@ function dadosDosCampos() {
     return {
         titulo,
         instituicao,
+        anoConclusao: Number.isInteger(ano) && ano >= ANO_MINIMO && ano <= anoMaximoValido() ? ano : null,
+        anoInvalido: Boolean(anoDigitado) && !(Number.isInteger(ano) && ano >= ANO_MINIMO && ano <= anoMaximoValido()),
         cursoId: curso?.id || '',
         unidadeId: unidade?.id || '',
         verificacao: { codigoValidacao: emPreparo?.analise?.codigoValidacao || '' }
@@ -254,6 +261,12 @@ function validarCampos() {
 
     if (!dados.titulo) {
         mostrarStatus('Escreva o nome do curso ou do evento para pendurar.', 'alerta');
+        botao.disabled = true;
+        return false;
+    }
+
+    if (dados.anoInvalido) {
+        mostrarStatus(`Ano de conclusão inválido. Use um ano entre ${ANO_MINIMO} e ${anoMaximoValido()}, ou deixe em branco.`, 'alerta');
         botao.disabled = true;
         return false;
     }
@@ -287,6 +300,7 @@ async function prepararCertificado(arquivoOriginal) {
     elemento('btn-salvar-certificado').disabled = true;
     elemento('cert-titulo').value = '';
     elemento('cert-instituicao').value = '';
+    elemento('cert-ano').value = '';
     marcarLigacao('cert-titulo-ligado', '');
     marcarLigacao('cert-instituicao-ligado', '');
     emPreparo = null;
@@ -331,6 +345,7 @@ async function prepararCertificado(arquivoOriginal) {
         elemento('cert-titulo').value = lido.cursoLido;
         elemento('cert-instituicao').value = lido.unidadeLida
             || (analise.instituicao ? analise.instituicao.replace(/\b\w/g, (letra) => letra.toUpperCase()) : '');
+        elemento('cert-ano').value = lido.anoConclusao || '';
         elemento('campos-certificado').hidden = false;
 
         emPreparo = {
@@ -377,7 +392,7 @@ async function salvarCertificado() {
             cursoId: dados.cursoId,
             unidadeId: dados.unidadeId,
             tipoFormacao: dados.cursoId ? (emPreparo.lido.tipoFormacao || '') : '',
-            anoConclusao: emPreparo.lido.anoConclusao || null,
+            anoConclusao: dados.anoConclusao,
             titular: emPreparo.titular || '',
             url,
             caminho,
@@ -486,7 +501,7 @@ document.addEventListener('DOMContentLoaded', () => {
     elemento('modal-certificado')?.addEventListener('click', (e) => {
         if (e.target.id === 'modal-certificado') fecharModal();
     });
-    ['cert-titulo', 'cert-instituicao'].forEach((id) => {
+    ['cert-titulo', 'cert-instituicao', 'cert-ano'].forEach((id) => {
         elemento(id)?.addEventListener('input', validarCampos);
     });
 

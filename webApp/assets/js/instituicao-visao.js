@@ -238,13 +238,31 @@ function caixaDeAcesso(conta) {
 }
 
 export function htmlFormComentario(conta, atual = null) {
-    const certificado = conta.certificado;
+    // editando: o certificado é o do comentário (fixo, não dá para trocar).
+    // novo, com mais de um certificado disponível: a pessoa escolhe a qual
+    // curso este comentário se refere.
+    const disponiveis = conta.certificadosDisponiveis || [];
+    const certificadoDoAtual = atual && (conta.certificados || []).find((c) => c.id === atual.certificadoId);
+    const certificadoFixo = atual ? certificadoDoAtual : disponiveis[0];
+
+    const rotuloCertificado = (c) => [c.titulo, c.anoConclusao].filter(Boolean).map(escapeHtml).join(' · ');
+    const campoCertificado = atual || disponiveis.length <= 1
+        ? `<input type="hidden" id="comentario-certificado" name="certificadoId" value="${escapeHtml(certificadoFixo?.id || '')}">`
+        : `
+            <label class="sr-only" for="comentario-certificado">Qual certificado</label>
+            <select id="comentario-certificado" name="certificadoId">
+                ${disponiveis.map((c) => `<option value="${escapeHtml(c.id)}">${rotuloCertificado(c)}</option>`).join('')}
+            </select>`;
+
     const nota = atual?.nota || 0;
     const texto = atual?.texto || '';
-    const quem = [primeiroNome(conta.nome), certificado.titulo, certificado.anoConclusao].filter(Boolean).map(escapeHtml);
+    const quem = [primeiroNome(conta.nome), certificadoFixo?.titulo, certificadoFixo?.anoConclusao].filter(Boolean).map(escapeHtml);
     return `
         <form class="inst-form" id="form-comentario" novalidate>
             <strong class="inst-form-titulo">${atual ? 'Editar seu comentário' : 'Como foi estudar aqui?'}</strong>
+            ${!atual && disponiveis.length > 1
+                ? '<p class="inst-form-sub">Você tem mais de um certificado desta escola. Escolha a qual curso este comentário se refere.</p>' : ''}
+            ${campoCertificado}
             <fieldset class="inst-nota-campo">
                 <legend>Sua nota</legend>
                 <div class="inst-nota-opcoes">
@@ -274,11 +292,11 @@ function htmlComentario(comentario, { meu = false, admin = false, podeEditar = t
     const editado = comentario.editadoEm ? ' (editado)' : '';
     const acoes = meu
         ? `<div class="inst-acoes">
-                ${podeEditar ? '<button type="button" class="inst-acao" data-acao="editar-comentario">Editar</button>' : ''}
-                <button type="button" class="inst-acao inst-acao--perigo" data-acao="apagar-comentario" data-uid="${escapeHtml(comentario.uid)}">Apagar</button>
+                ${podeEditar ? `<button type="button" class="inst-acao" data-acao="editar-comentario" data-id="${escapeHtml(comentario.id)}">Editar</button>` : ''}
+                <button type="button" class="inst-acao inst-acao--perigo" data-acao="apagar-comentario" data-id="${escapeHtml(comentario.id)}">Apagar</button>
            </div>`
         : admin
-            ? `<div class="inst-acoes"><button type="button" class="inst-acao inst-acao--perigo" data-acao="apagar-comentario" data-uid="${escapeHtml(comentario.uid)}">Apagar (admin)</button></div>`
+            ? `<div class="inst-acoes"><button type="button" class="inst-acao inst-acao--perigo" data-acao="apagar-comentario" data-id="${escapeHtml(comentario.id)}">Apagar (admin)</button></div>`
             : '';
     return `
         <li class="inst-comentario${meu ? ' inst-comentario--meu' : ''}">
@@ -298,24 +316,35 @@ function htmlComentario(comentario, { meu = false, admin = false, podeEditar = t
         </li>`;
 }
 
-// estado: { comentarios: [...], total, haMais, conta, meuComentario, editando }
+// estado: { comentarios: [...], total, haMais, conta, meusComentarios, editandoId }
+// meusComentarios: todos os comentários desta conta nesta unidade (um por
+// certificado); editandoId: o id do que está sendo editado agora, ou null.
 // conta.carregando: o login ainda não respondeu (o alto fica vazio, sem piscar
 // o convite de entrar para quem já está logado)
-export function htmlQuemEstudou({ comentarios = [], total = 0, haMais = false, conta = {}, meuComentario = null, editando = false } = {}) {
-    const outros = comentarios.filter((c) => !conta.uid || c.uid !== conta.uid);
+export function htmlQuemEstudou({ comentarios = [], total = 0, haMais = false, conta = {}, meusComentarios = [], editandoId = null } = {}) {
+    const meusIds = new Set(meusComentarios.map((c) => c.id));
+    const outros = comentarios.filter((c) => !meusIds.has(c.id));
+    const certificadoAindaExiste = (comentario) => (conta.certificados || []).some((c) => c.id === comentario.certificadoId);
+
     let topo = '';
-    if (conta.carregando) {
-        topo = '';
-    } else if (meuComentario && !(editando && podeComentar(conta))) {
-        topo = `<ol class="inst-comentarios">${htmlComentario(meuComentario, { meu: true, podeEditar: podeComentar(conta) })}</ol>`;
-    } else if (podeComentar(conta)) {
-        topo = htmlFormComentario(conta, editando ? meuComentario : null);
-    } else {
-        topo = caixaDeAcesso(conta);
+    if (!conta.carregando) {
+        const minhasCartas = meusComentarios
+            .filter((c) => c.id !== editandoId)
+            .map((c) => htmlComentario(c, { meu: true, podeEditar: certificadoAindaExiste(c) }))
+            .join('');
+        if (minhasCartas) topo += `<ol class="inst-comentarios">${minhasCartas}</ol>`;
+
+        if (editandoId) {
+            topo += htmlFormComentario(conta, meusComentarios.find((c) => c.id === editandoId));
+        } else if (podeComentar(conta)) {
+            topo += htmlFormComentario(conta, null);
+        } else if (!meusComentarios.length) {
+            topo += caixaDeAcesso(conta);
+        }
     }
     const lista = outros.length
         ? `<ol class="inst-comentarios">${outros.map((c) => htmlComentario(c, { admin: conta.admin })).join('')}</ol>`
-        : (!meuComentario ? '<p class="inst-vazio">Ninguém comentou ainda. Quem estudou aqui pode ser a primeira pessoa a contar como foi.</p>' : '');
+        : (!meusComentarios.length ? '<p class="inst-vazio">Ninguém comentou ainda. Quem estudou aqui pode ser a primeira pessoa a contar como foi.</p>' : '');
     return `
         <header class="inst-cartao-topo">
             <h2><span class="inst-titulo-icone">${ICONES.balao}</span>Quem estudou aqui</h2>
@@ -355,9 +384,10 @@ function htmlResposta(resposta, pergunta, conta) {
 }
 
 export function htmlFormResposta(pergunta, conta, atual = '') {
-    const quem = conta.admin && !conta.certificado
+    const certificado = (conta.certificados || [])[0];
+    const quem = conta.admin && !certificado
         ? 'Equipe Futuro+'
-        : [primeiroNome(conta.nome), conta.certificado?.titulo, conta.certificado?.anoConclusao].filter(Boolean).join(' · ');
+        : [primeiroNome(conta.nome), certificado?.titulo, certificado?.anoConclusao].filter(Boolean).join(' · ');
     return `
         <form class="inst-form inst-form--resposta" data-form="resposta" data-pergunta="${escapeHtml(pergunta.id)}" novalidate>
             <label class="sr-only" for="resposta-${escapeHtml(pergunta.id)}">Sua resposta</label>

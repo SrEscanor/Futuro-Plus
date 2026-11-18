@@ -4,7 +4,7 @@
 // instituicao-dados.js, o único arquivo que fala com o Firebase.
 import {
     apagarComentario, apagarPergunta, apagarResposta, criarPergunta, lerAvaliacao, lerComentarios,
-    lerMeuComentario, lerPerguntas, lerUnidade, observarConta, responderPergunta, salvarComentario
+    lerMeusComentarios, lerPerguntas, lerUnidade, observarConta, responderPergunta, salvarComentario
 } from './instituicao-dados.js';
 import { LIMITES, cursosDaUnidade, perguntasFixas, primeiroNome, problemaNoTexto } from './instituicao-util.js';
 import {
@@ -22,8 +22,8 @@ const estado = {
     comentarios: [],
     cursorComentarios: null,
     haMaisComentarios: false,
-    meuComentario: null,
-    editando: false,
+    meusComentarios: [],
+    editandoId: null,
     fixas: [],
     perguntas: [],
     cursorPerguntas: null,
@@ -37,9 +37,14 @@ const estado = {
 
 // ---- Desenho ----
 
-function meuComentario() {
-    if (!estado.conta.uid) return null;
-    return estado.meuComentario || estado.comentarios.find((c) => c.uid === estado.conta.uid) || null;
+// Recalcula quais certificados ainda não têm comentário desta conta, depois
+// de criar, editar ou apagar um comentário (cada certificado dá direito a um).
+function atualizarCertificadosDisponiveis() {
+    const usados = new Set(estado.meusComentarios.map((c) => c.certificadoId));
+    estado.conta = {
+        ...estado.conta,
+        certificadosDisponiveis: (estado.conta.certificados || []).filter((cert) => !usados.has(cert.id))
+    };
 }
 
 function desenharNumeros() {
@@ -56,8 +61,8 @@ function desenharComentarios() {
         total: estado.avaliacao ? estado.avaliacao.total : estado.comentarios.length,
         haMais: estado.haMaisComentarios,
         conta: estado.conta,
-        meuComentario: meuComentario(),
-        editando: estado.editando
+        meusComentarios: estado.meusComentarios,
+        editandoId: estado.editandoId
     });
 }
 
@@ -134,17 +139,21 @@ const RECUSA_DO_CERTIFICADO = 'O servidor não aceitou. Confira se o certificado
 async function enviarComentario(form) {
     const nota = Number(form.querySelector('input[name="nota"]:checked')?.value || 0);
     const texto = form.querySelector('textarea').value;
-    const problema = nota ? problemaNoTexto(texto, LIMITES.comentario) : 'Escolha uma nota de 1 a 5.';
+    const certificadoId = form.querySelector('#comentario-certificado')?.value || '';
+    const problema = !nota ? 'Escolha uma nota de 1 a 5.'
+        : !certificadoId ? 'Não encontrei o certificado para este comentário. Atualize a página e tente de novo.'
+            : problemaNoTexto(texto, LIMITES.comentario);
     if (problema) return mostrarErro(form, problema);
 
-    const anterior = estado.editando ? meuComentario() : null;
+    const anterior = estado.editandoId ? estado.meusComentarios.find((c) => c.id === estado.editandoId) : null;
     travar(form, 'Salvando...');
     try {
-        const salvo = await salvarComentario(estado.id, estado.conta, { texto, nota }, anterior);
-        estado.meuComentario = salvo;
-        estado.comentarios = estado.comentarios.filter((c) => c.uid !== salvo.uid);
-        estado.editando = false;
+        const salvo = await salvarComentario(estado.id, estado.conta, { texto, nota, certificadoId }, anterior);
+        estado.meusComentarios = [...estado.meusComentarios.filter((c) => c.id !== salvo.id), salvo];
+        estado.comentarios = estado.comentarios.filter((c) => c.id !== salvo.id);
+        estado.editandoId = null;
         mudarNota(anterior ? { tirar: anterior.nota, somar: nota } : { somar: nota });
+        atualizarCertificadosDisponiveis();
         desenharComentarios();
     } catch (erro) {
         mostrarErro(form, mensagemDeErro(erro, RECUSA_DO_CERTIFICADO));
@@ -152,20 +161,21 @@ async function enviarComentario(form) {
     }
 }
 
-async function apagarUmComentario(uid, botao) {
-    const proprio = uid === estado.conta.uid;
-    const comentario = proprio ? meuComentario() : estado.comentarios.find((c) => c.uid === uid);
+async function apagarUmComentario(id, botao) {
+    const proprio = estado.meusComentarios.some((c) => c.id === id);
+    const comentario = proprio ? estado.meusComentarios.find((c) => c.id === id) : estado.comentarios.find((c) => c.id === id);
     const pergunta = proprio
         ? 'Apagar o seu comentário e a sua nota?'
         : `Apagar o comentário de ${primeiroNome(comentario?.nome) || 'quem escreveu'}?`;
     if (!confirm(pergunta)) return;
     botao.disabled = true;
     try {
-        await apagarComentario(estado.id, uid);
-        estado.comentarios = estado.comentarios.filter((c) => c.uid !== uid);
+        await apagarComentario(estado.id, id);
+        estado.comentarios = estado.comentarios.filter((c) => c.id !== id);
         if (proprio) {
-            estado.meuComentario = null;
-            estado.editando = false;
+            estado.meusComentarios = estado.meusComentarios.filter((c) => c.id !== id);
+            if (estado.editandoId === id) estado.editandoId = null;
+            atualizarCertificadosDisponiveis();
         }
         if (comentario?.nota) mudarNota({ tirar: comentario.nota });
         desenharComentarios();
@@ -179,8 +189,8 @@ async function maisComentarios(botao) {
     botao.disabled = true;
     try {
         const { itens, cursor, haMais } = await lerComentarios(estado.id, { depois: estado.cursorComentarios });
-        const vistos = new Set(estado.comentarios.map((c) => c.uid));
-        estado.comentarios.push(...itens.filter((c) => !vistos.has(c.uid)));
+        const vistos = new Set(estado.comentarios.map((c) => c.id));
+        estado.comentarios.push(...itens.filter((c) => !vistos.has(c.id)));
         estado.cursorComentarios = cursor;
         estado.haMaisComentarios = haMais;
         desenharComentarios();
@@ -223,7 +233,7 @@ async function enviarResposta(form, perguntaId) {
         estado.abertas.add(perguntaId);
         desenharDuvidas();
     } catch (erro) {
-        mostrarErro(form, mensagemDeErro(erro, estado.conta.certificado ? RECUSA_DO_CERTIFICADO : 'O servidor não aceitou a resposta.'));
+        mostrarErro(form, mensagemDeErro(erro, estado.conta.certificados?.length ? RECUSA_DO_CERTIFICADO : 'O servidor não aceitou a resposta.'));
         destravar(form);
     }
 }
@@ -286,16 +296,16 @@ function aoClicarEmComentarios(evento) {
     if (!botao) return;
     switch (botao.dataset.acao) {
         case 'editar-comentario':
-            estado.editando = true;
+            estado.editandoId = botao.dataset.id;
             desenharComentarios();
             focar('#comentario-texto');
             break;
         case 'cancelar-comentario':
-            estado.editando = false;
+            estado.editandoId = null;
             desenharComentarios();
             break;
         case 'apagar-comentario':
-            apagarUmComentario(botao.dataset.uid, botao);
+            apagarUmComentario(botao.dataset.id, botao);
             break;
         case 'mais-comentarios':
             maisComentarios(botao);
@@ -459,20 +469,21 @@ async function iniciar() {
         .catch((erro) => console.error('Erro ao ler as dúvidas:', erro));
 
     observarConta(id, async (conta) => {
-        estado.editando = false;
+        estado.editandoId = null;
         estado.respondendo = '';
         estado.perguntando = false;
-        estado.meuComentario = null;
-        // só quem tem o certificado pode ter um comentário que não esteja
-        // entre os primeiros da lista: aí vale ler direto
-        if (conta.logado && conta.certificado) {
+        estado.meusComentarios = [];
+        // só quem tem certificado desta unidade pode ter comentário que não
+        // esteja entre os primeiros da lista: aí vale ler direto
+        if (conta.logado && conta.certificados?.length) {
             try {
-                estado.meuComentario = await lerMeuComentario(id, conta.uid);
+                estado.meusComentarios = await lerMeusComentarios(id, conta.uid);
             } catch (erro) {
-                console.error('Erro ao ler o seu comentário:', erro);
+                console.error('Erro ao ler os seus comentários:', erro);
             }
         }
         estado.conta = conta;
+        atualizarCertificadosDisponiveis();
         desenharComentarios();
         desenharDuvidas();
     });

@@ -3,10 +3,12 @@
 // pagina-instituicao.js troca o import da página por este arquivo.
 //
 //   teste.unidade       o documento instituicoes/{id} (null = não existe)
-//   teste.comentarios   Map uid -> comentário { texto, nota, nome, curso, ano, ... }
+//   teste.comentarios   Map id -> comentário { texto, nota, nome, curso, ano,
+//                       certificadoId, uid, ... }; id é "uid_certificadoId",
+//                       ou só o uid nos comentários "antigos" (sem o campo uid)
 //   teste.perguntas     Map id -> pergunta { texto, autorUid, nome, criadaEm, respostas }
 //   teste.conta         o que observarConta entrega: { logado: false } ou
-//                       { logado, uid, nome, admin, certificado }
+//                       { logado, uid, nome, admin, certificados, certificadosDisponiveis }
 //   teste.gravacoes     o que a página mandou gravar, na ordem
 //   teste.falhar        'ler' (as leituras dão erro), 'gravar' (erro de
 //                       conexão) ou 'recusar' (as regras do Firestore negam)
@@ -47,37 +49,47 @@ export async function lerAvaliacao() {
     return { media: notas.length ? notas.reduce((a, b) => a + b, 0) / notas.length : 0, total: notas.length };
 }
 
+// comentários antigos (de antes de um certificado dar direito a um
+// comentário próprio) não têm o campo "uid" gravado; para eles, o dono é o
+// próprio id.
+function comDono(id, dados) {
+    return { id, uid: dados.uid || id, ...dados };
+}
+
 export async function lerComentarios(unidadeId, { depois = null } = {}) {
     await chamada('ler');
-    const lista = [...estado().comentarios].map(([uid, comentario]) => ({ uid, ...copia(comentario) }));
-    return pagina(lista, 'criadoEm', 'uid', depois, COMENTARIOS_POR_VEZ);
+    const lista = [...estado().comentarios].map(([id, comentario]) => comDono(id, copia(comentario)));
+    return pagina(lista, 'criadoEm', 'id', depois, COMENTARIOS_POR_VEZ);
 }
 
-export async function lerMeuComentario(unidadeId, uid) {
+export async function lerMeusComentarios(unidadeId, uid) {
     await chamada('ler');
-    const comentario = estado().comentarios.get(uid);
-    return comentario ? { uid, ...copia(comentario) } : null;
+    return [...estado().comentarios]
+        .map(([id, comentario]) => comDono(id, copia(comentario)))
+        .filter((c) => c.uid === uid);
 }
 
-export async function salvarComentario(unidadeId, conta, { texto, nota }, existente = null) {
+export async function salvarComentario(unidadeId, conta, { texto, nota, certificadoId }, existente = null) {
     await chamada('gravar');
+    const certificado = (conta.certificados || []).find((c) => c.id === certificadoId);
     const campos = {
-        texto: texto.trim(), nota, nome: conta.nome, curso: conta.certificado.titulo,
-        ano: conta.certificado.anoConclusao ?? null, certificadoId: conta.certificado.id
+        texto: texto.trim(), nota, nome: conta.nome, curso: certificado.titulo,
+        ano: certificado.anoConclusao ?? null, certificadoId, uid: conta.uid
     };
     const agora = new Date().toISOString();
+    const id = existente ? existente.id : `${conta.uid}_${certificadoId}`;
     const salvo = existente
-        ? { ...estado().comentarios.get(conta.uid), ...campos, editadoEm: agora }
+        ? { ...estado().comentarios.get(existente.id), ...campos, editadoEm: agora }
         : { ...campos, criadoEm: agora };
-    estado().comentarios.set(conta.uid, salvo);
-    estado().gravacoes.push([existente ? 'editou comentário' : 'comentou', conta.uid, nota]);
-    return { uid: conta.uid, ...copia(salvo) };
+    estado().comentarios.set(id, salvo);
+    estado().gravacoes.push([existente ? 'editou comentário' : 'comentou', id, nota]);
+    return { id, ...copia(salvo) };
 }
 
-export async function apagarComentario(unidadeId, uid) {
+export async function apagarComentario(unidadeId, id) {
     await chamada('gravar');
-    estado().comentarios.delete(uid);
-    estado().gravacoes.push(['apagou comentário', uid]);
+    estado().comentarios.delete(id);
+    estado().gravacoes.push(['apagou comentário', id]);
 }
 
 export async function lerPerguntas(unidadeId, { depois = null } = {}) {
@@ -97,10 +109,11 @@ export async function criarPergunta(unidadeId, conta, texto) {
 
 export async function responderPergunta(unidadeId, perguntaId, conta, texto) {
     await chamada('gravar');
-    const resposta = conta.certificado
+    const certificado = (conta.certificados || [])[0];
+    const resposta = certificado
         ? {
-            texto: texto.trim(), nome: conta.nome, curso: conta.certificado.titulo,
-            ano: conta.certificado.anoConclusao ?? null, certificadoId: conta.certificado.id, equipe: false
+            texto: texto.trim(), nome: conta.nome, curso: certificado.titulo,
+            ano: certificado.anoConclusao ?? null, certificadoId: certificado.id, equipe: false
         }
         : { texto: texto.trim(), nome: conta.nome, equipe: true };
     resposta.em = new Date().toISOString();

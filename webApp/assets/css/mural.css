@@ -487,6 +487,15 @@
     display: none;
 }
 
+/* dica embaixo do campo de ano, sempre visível (não depende do que a leitura achou) */
+.mural-dica {
+    display: block;
+    margin-top: 5px;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--ink-soft);
+}
+
 .mural-campos label {
     display: block;
     font-family: 'Poppins', 'Sora', sans-serif;

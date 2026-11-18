@@ -894,6 +894,28 @@ a.inst-numero-valor[href^="tel:"] {
     color: var(--red);
 }
 
+.inst-form-sub {
+    margin: -4px 0 0;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+}
+
+.inst-form select {
+    width: 100%;
+    padding: 11px 13px;
+    border: 1px solid #d5dbf3;
+    border-radius: 12px;
+    background: #fff;
+    color: var(--ink);
+    font: 14px/1.5 'Inter', 'Segoe UI', Arial, sans-serif;
+}
+
+.inst-form select:focus {
+    outline: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(78, 110, 232, 0.18);
+}
+
 .inst-nota-campo {
     margin: 0;
     padding: 0;

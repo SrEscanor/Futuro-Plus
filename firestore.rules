@@ -70,31 +70,44 @@ service cloud.firestore {
       allow write: if ehAdmin();
     }
 
-    // Comentário e nota de quem estudou na unidade (instituicao.html): um
-    // por conta, com o id igual ao uid. Todo mundo lê; grava só quem tem o
-    // certificado da unidade no Mural, com o nome do perfil e o curso e o
-    // ano do certificado. Apaga quem escreveu ou o admin.
-    match /instituicoes/{unidadeId}/comentarios/{uid} {
+    // Comentário e nota de quem estudou na unidade (instituicao.html): um por
+    // certificado (quem tem dois certificados da mesma escola comenta duas
+    // vezes), com o id "uid_certificadoId". Todo mundo lê; grava só quem tem
+    // aquele certificado no Mural, com o nome do perfil e o curso e o ano
+    // dele. Apaga quem escreveu ou o admin.
+    //
+    // Comentários de antes desta regra (de quando o id era só o uid, um por
+    // conta) continuam existindo com esse id antigo e sem o campo "uid" —
+    // "donoDoComentario" cobre os dois formatos, e eles ganham o campo "uid"
+    // assim que forem editados.
+    match /instituicoes/{unidadeId}/comentarios/{comentarioId} {
+      function donoDoComentario() {
+        return resource.data.get('uid', comentarioId);
+      }
+
       function comentarioValido() {
         let dados = request.resource.data;
         return dados.nota is int && dados.nota >= 1 && dados.nota <= 5
           && textoSemLink(dados.texto, 10, 600)
           && dados.certificadoId is string
-          && dados.nome == nomeDoPerfil(uid)
-          && certificadoDaUnidade(uid, dados.certificadoId, unidadeId, dados.curso, dados.ano);
+          && dados.uid == request.auth.uid
+          && dados.nome == nomeDoPerfil(request.auth.uid)
+          && certificadoDaUnidade(request.auth.uid, dados.certificadoId, unidadeId, dados.curso, dados.ano);
       }
 
       allow read: if true;
-      allow create: if request.auth != null && request.auth.uid == uid
-        && request.resource.data.keys().hasOnly(['texto', 'nota', 'nome', 'curso', 'ano', 'certificadoId', 'criadoEm'])
+      allow create: if request.auth != null
+        && comentarioId == request.auth.uid + '_' + request.resource.data.certificadoId
+        && request.resource.data.keys().hasOnly(['texto', 'nota', 'nome', 'curso', 'ano', 'certificadoId', 'uid', 'criadoEm'])
         && request.resource.data.criadoEm == request.time
         && comentarioValido();
-      allow update: if request.auth != null && request.auth.uid == uid
-        && request.resource.data.keys().hasOnly(['texto', 'nota', 'nome', 'curso', 'ano', 'certificadoId', 'criadoEm', 'editadoEm'])
+      allow update: if request.auth != null && donoDoComentario() == request.auth.uid
+        && request.resource.data.certificadoId == resource.data.certificadoId
+        && request.resource.data.keys().hasOnly(['texto', 'nota', 'nome', 'curso', 'ano', 'certificadoId', 'uid', 'criadoEm', 'editadoEm'])
         && request.resource.data.criadoEm == resource.data.criadoEm
         && request.resource.data.editadoEm == request.time
         && comentarioValido();
-      allow delete: if request.auth != null && (request.auth.uid == uid || ehAdmin());
+      allow delete: if request.auth != null && (donoDoComentario() == request.auth.uid || ehAdmin());
     }
 
     // Dúvidas sobre a unidade: qualquer conta com e-mail confirmado pergunta,

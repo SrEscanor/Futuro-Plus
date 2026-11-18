@@ -273,9 +273,12 @@ function cursoEscrito(texto) {
 export function anoDeConclusao(texto) {
     const limpo = normalizar(texto);
     // "concluído em 2025", "concluído em 15 de dezembro de 2023", "concluído
-    // o Curso Superior de Tecnologia em Logística em 2024"
+    // o Curso Superior de Tecnologia em Logística em 2024", "ano letivo de
+    // 2025", "ano de conclusão: 2025"
     const achado = limpo.match(/conclu[a-z]*\b[a-z0-9 ]{0,90}?\bem (?:\d{1,2} de [a-z]+ de )?((?:19|20)\d{2})\b/)
-        || limpo.match(/por haver [a-z ]{0,28}((?:19|20)\d{2})\b/);
+        || limpo.match(/por haver [a-z ]{0,28}((?:19|20)\d{2})\b/)
+        || limpo.match(/ano letivo de ((?:19|20)\d{2})\b/)
+        || limpo.match(/ano de conclusao[a-z :]{0,10}((?:19|20)\d{2})\b/);
     return achado ? Number(achado[1]) : null;
 }
 

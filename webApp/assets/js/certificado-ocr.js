@@ -54,11 +54,27 @@ export function analisarTexto(texto) {
 }
 
 // Palavras que o Tesseract devolveu com posição: usamos para achar o CPF na
-// imagem e cobrir só aquele pedaço.
-export function areasDeCpf(palavras) {
-    return (palavras || [])
-        .filter((palavra) => PADRAO_CPF.test((palavra.text || '').replace(/\s/g, '')))
-        .map((palavra) => palavra.bbox);
+// imagem e cobrir só aquele pedaço. Às vezes o CPF cai quebrado em duas
+// palavras (a leitura separa por causa de uma quebra de linha no
+// certificado, ou um espaço que o OCR enxergou onde não tinha) — nesse caso
+// nenhuma palavra sozinha bate com o padrão, então também testamos a junção
+// de até 3 palavras seguidas antes de desistir daquele trecho.
+export function areasDeCpf(palavras = []) {
+    const areas = [];
+    for (let i = 0; i < palavras.length; i += 1) {
+        if (PADRAO_CPF.test((palavras[i].text || '').replace(/\s/g, ''))) {
+            areas.push(palavras[i].bbox);
+            continue;
+        }
+        for (let fim = i + 1; fim < Math.min(palavras.length, i + 3); fim += 1) {
+            const junto = palavras.slice(i, fim + 1).map((p) => p.text || '').join('').replace(/\s/g, '');
+            if (PADRAO_CPF.test(junto)) {
+                palavras.slice(i, fim + 1).forEach((p) => areas.push(p.bbox));
+                break;
+            }
+        }
+    }
+    return areas;
 }
 
 // Desenha a imagem num canvas e borra as áreas indicadas.

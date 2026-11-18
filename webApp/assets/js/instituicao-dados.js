@@ -8,20 +8,27 @@
 //   instituicoes/{id}            a unidade, do cadastro de Admin · Unidades.
 //                                foto e paginaCps vêm do botão "Buscar
 //                                fotos no site do CPS" desse painel.
-//   instituicoes/{id}/comentarios/{uid}
+//   instituicoes/{id}/comentarios/{uid}_{certificadoId}
 //                                comentário e nota de quem estudou lá, um
-//                                por conta: { texto, nota, nome, curso, ano,
-//                                certificadoId, criadoEm, editadoEm }
+//                                por certificado (então quem tem dois
+//                                certificados da mesma escola comenta duas
+//                                vezes): { texto, nota, nome, curso, ano,
+//                                certificadoId, uid, criadoEm, editadoEm }.
+//                                Comentários de antes desta conta por
+//                                certificado tinham o id igual só ao uid, e
+//                                continuam existindo e sendo editáveis assim
+//                                (ganham o campo "uid" na primeira edição).
 //   instituicoes/{id}/perguntas/{automático}
 //                                dúvida de qualquer conta, com as respostas
 //                                dentro, uma por conta: { texto, autorUid,
 //                                nome, criadaEm, respostas: { uid: { texto,
 //                                nome, curso, ano, certificadoId, equipe, em } } }
 //
-// Quem estudou lá: a conta tem, no Mural, um certificado em que a leitura
-// achou esta unidade (verificacao.unidadeLida) e conferiu o nome. O curso e
-// o ano que aparecem no comentário vêm desse certificado, e as regras do
-// Firestore conferem tudo isso de novo no servidor.
+// Quem estudou lá: a conta tem, no Mural, um ou mais certificados em que a
+// leitura achou esta unidade (verificacao.unidadeLida) e conferiu o nome.
+// Cada certificado dá direito a um comentário; o curso e o ano que aparecem
+// nele vêm desse certificado, e as regras do Firestore conferem tudo isso de
+// novo no servidor.
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged } from 'firebase/auth';
 import {
@@ -57,38 +64,59 @@ export async function lerAvaliacao(unidadeId) {
     return { media: media || 0, total: total || 0 };
 }
 
+// comentários antigos (de antes de um certificado dar direito a um
+// comentário próprio) não têm o campo "uid" gravado; para eles, o dono é o
+// próprio id do documento.
+function comDono(id, dados) {
+    return { id, uid: dados.uid || id, ...dados };
+}
+
 export async function lerComentarios(unidadeId, { depois = null } = {}) {
     const { docs, cursor, haMais } = await pagina(comentariosDa(unidadeId), 'criadoEm', depois, COMENTARIOS_POR_VEZ);
-    return { itens: docs.map((d) => ({ uid: d.id, ...d.data() })), cursor, haMais };
+    return { itens: docs.map((d) => comDono(d.id, d.data())), cursor, haMais };
 }
 
-export async function lerMeuComentario(unidadeId, uid) {
-    const snap = await getDoc(doc(db, 'instituicoes', unidadeId, 'comentarios', uid));
-    return snap.exists() ? { uid: snap.id, ...snap.data() } : null;
+// Todos os comentários desta conta nesta unidade (um por certificado). Busca
+// pelo campo "uid" e também pelo id antigo (igual ao uid, de antes de um
+// certificado dar direito a um comentário), para não perder quem comentou
+// antes dessa mudança.
+export async function lerMeusComentarios(unidadeId, uid) {
+    const [doConsulta, antigo] = await Promise.all([
+        getDocs(query(comentariosDa(unidadeId), where('uid', '==', uid))),
+        getDoc(doc(db, 'instituicoes', unidadeId, 'comentarios', uid))
+    ]);
+    const vistos = new Map(doConsulta.docs.map((d) => [d.id, comDono(d.id, d.data())]));
+    if (antigo.exists() && !vistos.has(antigo.id)) vistos.set(antigo.id, comDono(antigo.id, antigo.data()));
+    return [...vistos.values()];
 }
 
-// existente: o comentário que a pessoa já tinha (editar) ou null (novo).
-// Devolve como ele fica na tela, sem ler de novo do banco.
-export async function salvarComentario(unidadeId, conta, { texto, nota }, existente = null) {
-    const ref = doc(db, 'instituicoes', unidadeId, 'comentarios', conta.uid);
+// existente: o comentário que a pessoa já tinha para este certificado
+// (editar) ou null (novo). Devolve como ele fica na tela, sem ler de novo do
+// banco.
+export async function salvarComentario(unidadeId, conta, { texto, nota, certificadoId }, existente = null) {
+    const certificado = (conta.certificados || []).find((c) => c.id === certificadoId);
+    if (!certificado) throw new Error('Certificado não encontrado para este comentário.');
+
+    const ref = doc(db, 'instituicoes', unidadeId, 'comentarios', existente ? existente.id : `${conta.uid}_${certificadoId}`);
     const campos = {
         texto: texto.trim(),
         nota,
         nome: conta.nome,
-        curso: conta.certificado.titulo,
-        ano: conta.certificado.anoConclusao ?? null,
-        certificadoId: conta.certificado.id
+        curso: certificado.titulo,
+        ano: certificado.anoConclusao ?? null,
+        certificadoId,
+        uid: conta.uid
     };
     if (existente) {
         await updateDoc(ref, { ...campos, editadoEm: serverTimestamp() });
-        return { ...existente, ...campos, uid: conta.uid, editadoEm: new Date() };
+        return { ...existente, ...campos, editadoEm: new Date() };
     }
     await setDoc(ref, { ...campos, criadoEm: serverTimestamp() });
-    return { ...campos, uid: conta.uid, criadoEm: new Date() };
+    return { ...campos, id: ref.id, criadoEm: new Date() };
 }
 
-export async function apagarComentario(unidadeId, uid) {
-    await deleteDoc(doc(db, 'instituicoes', unidadeId, 'comentarios', uid));
+export async function apagarComentario(unidadeId, id) {
+    await deleteDoc(doc(db, 'instituicoes', unidadeId, 'comentarios', id));
 }
 
 export async function lerPerguntas(unidadeId, { depois = null } = {}) {
@@ -102,13 +130,14 @@ export async function criarPergunta(unidadeId, conta, texto) {
     return { ...dados, id: ref.id, criadaEm: new Date() };
 }
 
-// Quem tem o certificado responde com curso e ano dele; o admin sem
-// certificado da unidade responde como "Equipe Futuro+".
+// Quem tem certificado da unidade responde com curso e ano de um deles; o
+// admin sem certificado da unidade responde como "Equipe Futuro+".
 export async function responderPergunta(unidadeId, perguntaId, conta, texto) {
-    const resposta = conta.certificado
+    const certificado = (conta.certificados || [])[0];
+    const resposta = certificado
         ? {
-            texto: texto.trim(), nome: conta.nome, curso: conta.certificado.titulo,
-            ano: conta.certificado.anoConclusao ?? null, certificadoId: conta.certificado.id, equipe: false
+            texto: texto.trim(), nome: conta.nome, curso: certificado.titulo,
+            ano: certificado.anoConclusao ?? null, certificadoId: certificado.id, equipe: false
         }
         : { texto: texto.trim(), nome: conta.nome, equipe: true };
     await updateDoc(doc(db, 'instituicoes', unidadeId, 'perguntas', perguntaId), {
@@ -126,31 +155,29 @@ export async function apagarPergunta(unidadeId, perguntaId) {
 }
 
 // Avisa quem está vendo a página: aoMudar(conta), com conta = { logado: false }
-// ou { logado: true, uid, nome, admin, certificado }. O certificado é o do
-// Mural em que a leitura achou esta unidade e conferiu o nome ({ id, titulo,
-// anoConclusao }), ou null.
+// ou { logado: true, uid, nome, admin, certificados }. certificados é a lista
+// de certificados do Mural em que a leitura achou esta unidade e conferiu o
+// nome ([{ id, titulo, anoConclusao }, ...], podendo ser mais de um).
 export function observarConta(unidadeId, aoMudar) {
     return onAuthStateChanged(auth, async (usuario) => {
         if (!usuario) {
             aoMudar({ logado: false });
             return;
         }
-        const conta = { logado: true, uid: usuario.uid, nome: '', admin: false, certificado: null };
+        const conta = { logado: true, uid: usuario.uid, nome: '', admin: false, certificados: [] };
         try {
             const [perfil, certificados] = await Promise.all([
                 getDoc(doc(db, 'usuarios', usuario.uid)),
                 getDocs(query(collection(db, 'usuarios', usuario.uid, 'certificados'), where('verificacao.unidadeLida', '==', unidadeId)))
             ]);
             const dados = perfil.exists() ? perfil.data() : {};
-            const certificado = certificados.docs.find((d) => d.data().verificacao?.nomeConfere === true);
+            const confirmados = certificados.docs.filter((d) => d.data().verificacao?.nomeConfere === true);
             aoMudar({
                 ...conta,
                 // igual ao do perfil, sem mexer: as regras conferem letra por letra
                 nome: typeof dados.nome === 'string' ? dados.nome : '',
                 admin: dados.admin === true,
-                certificado: certificado
-                    ? { id: certificado.id, titulo: certificado.data().titulo || '', anoConclusao: certificado.data().anoConclusao ?? null }
-                    : null
+                certificados: confirmados.map((d) => ({ id: d.id, titulo: d.data().titulo || '', anoConclusao: d.data().anoConclusao ?? null }))
             });
         } catch (erro) {
             console.error('Erro ao ler a conta:', erro);

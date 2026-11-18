@@ -51,6 +51,8 @@ function unidadeDeExemplo({ semFoto = false } = {}) {
     };
 }
 
+// u2, u3 e u4 ficam sem o campo "uid": são os comentários "antigos", de antes
+// de um certificado dar direito a um comentário próprio (id igual ao uid).
 function comentariosDeExemplo() {
     return new Map([
         ['u2', { nome: 'Rafael', curso: 'Administração', ano: 2024, nota: 5, certificadoId: 'c2', criadoEm: dias(10),
@@ -78,10 +80,12 @@ function perguntasDeExemplo() {
 const certificado = { id: 'c1', titulo: 'Desenvolvimento de Aplicativos para Smartphones', anoConclusao: 2025 };
 const CONTAS = {
     visitante: { logado: false },
-    'sem-certificado': { logado: true, uid: 'u1', nome: 'Marina', admin: false, certificado: null },
-    'ex-aluno': { logado: true, uid: 'u1', nome: 'Marina', admin: false, certificado },
-    comentou: { logado: true, uid: 'u1', nome: 'Marina', admin: false, certificado },
-    admin: { logado: true, uid: 'u9', nome: 'Victor', admin: true, certificado: null }
+    'sem-certificado': { logado: true, uid: 'u1', nome: 'Marina', admin: false, certificados: [], certificadosDisponiveis: [] },
+    'ex-aluno': { logado: true, uid: 'u1', nome: 'Marina', admin: false, certificados: [certificado], certificadosDisponiveis: [certificado] },
+    // já usou o único certificado desta escola num comentário: sem mais
+    // nenhum disponível, só dá para editar ou apagar o que já tem
+    comentou: { logado: true, uid: 'u1', nome: 'Marina', admin: false, certificados: [certificado], certificadosDisponiveis: [] },
+    admin: { logado: true, uid: 'u9', nome: 'Victor', admin: true, certificados: [], certificadosDisponiveis: [] }
 };
 
 // Se alguém criar uma função nova em instituicao-dados.js e esquecer da
@@ -122,7 +126,7 @@ async function mostrar(opcoes = {}) {
     const conta = opcoes.conta || 'visitante';
     const comentarios = opcoes.vazio ? new Map() : comentariosDeExemplo();
     if (conta === 'comentou') {
-        comentarios.set('u1', { nome: 'Marina', curso: certificado.titulo, ano: 2025, nota: 5, certificadoId: 'c1', criadoEm: dias(1),
+        comentarios.set('u1_c1', { nome: 'Marina', curso: certificado.titulo, ano: 2025, nota: 5, certificadoId: 'c1', uid: 'u1', criadoEm: dias(1),
             texto: 'A especialização é curta e bem prática: em um semestre a turma publicou um aplicativo de verdade.' });
     }
     window.teste = {
