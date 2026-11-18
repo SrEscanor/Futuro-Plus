@@ -11,6 +11,9 @@ import { formatarDistancia } from './geocodificacao.js';
 import { resumoDaDemanda } from './demanda-curso.js';
 import { destaquesDaMatriz, duracaoDaMatriz } from './matriz-curricular.js';
 import { capaDoEixo, carregarFotosDosEixos } from './capas-eixos.js';
+import {
+    temMatrizInterativa, htmlMatrizInterativa, aplicarEstadoDaMatriz, ligarMatrizInterativa, horasDaMatriz
+} from './matriz-interativa.js';
 
 // O conteúdo vem do catálogo oficial do Centro Paula Souza. O que o Painel
 // Admin já importou e editou fica no Firestore e tem prioridade; para os
@@ -116,7 +119,9 @@ function fichaTecnica(curso) {
 
     const itens = [
         [icone('relogio', 30), 'Duração', curso.duracao],
-        [icone('calendario', 30), 'Carga horária', curso.cargaHoraria ? `${numero(curso.cargaHoraria)} horas` : ''],
+        // curso superior sem carga no catálogo: vale a da matriz da Fatec
+        [icone('calendario', 30), 'Carga horária', (curso.cargaHoraria || horasDaMatriz(curso))
+            ? `${numero(curso.cargaHoraria || horasDaMatriz(curso))} horas` : ''],
         [iconeSvg(iconeDoEixo, 30), 'Eixo tecnológico', (curso.eixos || []).join(', ')]
     ].filter(([, , valor]) => valor);
 
@@ -418,7 +423,11 @@ export function renderizar(curso, unidades, avaliar) {
         bloco('ferramenta', 'O que o profissional faz', curso.atuacao),
         bloco('maleta', 'Onde se trabalha', curso.ondeTrabalhar)
     ].join('');
-    const dados = [cartaoDemanda(curso), cartaoMatriz(curso)].filter(Boolean);
+    // Matriz interativa no fim da página: a da Fatec (plano de curso) ou as da
+    // Etec (técnico e M-Tec, em abas). O cartão de etiquetas antigo só fica
+    // para curso de Etec que ainda não tem matriz nenhuma que vire interativa.
+    const interativa = temMatrizInterativa(curso);
+    const dados = [cartaoDemanda(curso), curso.nivel === 'superior' || interativa ? '' : cartaoMatriz(curso)].filter(Boolean);
 
     container.innerHTML = `
         <header class="curso-topo">
@@ -446,8 +455,11 @@ export function renderizar(curso, unidades, avaliar) {
             ${dados.join('')}
         </div>` : ''}
 
+        ${interativa ? htmlMatrizInterativa(curso) : ''}
+
         <p class="curso-fonte">Informações do catálogo oficial do Centro Paula Souza, mantidas no Futuro+.</p>
     `;
+    if (interativa) aplicarEstadoDaMatriz(container);
 
     // foto de capa com link quebrado: volta para a capa padrão
     const comFoto = container.querySelector('[data-capa-com-foto]');
@@ -474,11 +486,14 @@ function ligarEventos() {
     dialogo.addEventListener('click', (evento) => {
         if (evento.target === dialogo || evento.target.closest('[data-fechar-painel]')) dialogo.close();
     });
+
+    ligarMatrizInterativa(document.getElementById('curso-detalhe'));
 }
 
 function mostrarPlanoDeCurso(curso) {
     const painel = document.getElementById('curso-plano-pdf');
-    if (!curso.planoCursoUrl) {
+    // com a matriz interativa, o PDF vira só o botão "Plano de curso (PDF)" dela
+    if (!curso.planoCursoUrl || temMatrizInterativa(curso)) {
         painel.hidden = true;
         return;
     }

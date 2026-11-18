@@ -8,13 +8,14 @@
     <link rel="icon" href="./favicon.ico" sizes="48x48">
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="./apple-touch-icon.png">
-  <script type="module" crossorigin src="./assets/adminCursos-q-dZ3fCn.js"></script>
-  <link rel="modulepreload" crossorigin href="./assets/firebase-config-D8jGMchh.js">
+  <script type="module" crossorigin src="./assets/adminCursos-CqJZbXlz.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/firebase-config-XQh5hlny.js">
   <link rel="modulepreload" crossorigin href="./assets/importacao-csv-C6XbO7FN.js">
   <link rel="modulepreload" crossorigin href="./assets/preload-helper-PPVm8Dsz.js">
-  <link rel="modulepreload" crossorigin href="./assets/matriz-curricular-BPfLM7Sr.js">
+  <link rel="modulepreload" crossorigin href="./assets/matriz-interativa-BJHZQ_Hx.js">
   <link rel="modulepreload" crossorigin href="./assets/demanda-curso-Bz72gXLF.js">
-  <link rel="modulepreload" crossorigin href="./assets/capas-eixos-CkEqaMZZ.js">
+  <link rel="modulepreload" crossorigin href="./assets/capas-eixos-Dbz8NseI.js">
+  <link rel="stylesheet" crossorigin href="./assets/adminCursos-CRl-eH6T.css">
   <link rel="stylesheet" crossorigin href="./assets/admin-instituicoes-BgZAo3X1.css">
 </head>
 
@@ -125,14 +126,15 @@
                         </span>
                         <div>
                             <h2 id="fonte-matriz-titulo">Matriz curricular</h2>
-                            <p>As disciplinas de cada curso, lidas do PDF da matriz gerado pelo SIGA.</p>
+                            <p>As disciplinas de cada curso, lidas do PDF: a matriz do SIGA (Etec) ou o plano de
+                                curso da Fatec.</p>
                         </div>
                     </div>
 
                     <div class="demanda-situacao" id="matriz-situacao"></div>
                     <p class="fonte-nota">Cada curso recebe a sua: abra o curso no lápis (✏️) da tabela e envie o
-                        PDF na seção "Matriz curricular". As disciplinas técnicas com mais horas viram as etiquetas
-                        da página do curso.</p>
+                        PDF na seção "Matriz curricular". A grade vira a matriz interativa no fim da página do curso
+                        (na Etec, uma aba para cada forma de oferta: técnico, M-Tec…).</p>
                     <div class="fonte-acoes">
                         <button type="button" id="btn-filtrar-sem-matriz" class="btn btn-secundario">Mostrar cursos
                             sem matriz</button>
@@ -256,18 +258,20 @@
                         </div>
                     </div>
 
-                    <div class="secao-form">
+                    <div class="secao-form" id="secao-matriz">
                         <h3>Matriz curricular</h3>
+                        <!-- matrizes interativas do curso: Fatec (plano de curso) ou Etec (SIGA e SEI) — admin-matriz.js -->
+                        <div id="matriz-fatec" class="matriz-fatec"></div>
                         <div id="lista-matrizes" class="lista-matrizes"></div>
                         <div class="zona-arquivo zona-arquivo--compacta" id="zona-matriz">
-                            <span>Arraste o PDF da matriz (SIGA) para cá ou</span>
+                            <span id="zona-matriz-texto">Arraste o PDF da matriz (SIGA) para cá ou</span>
                             <button type="button" id="btn-enviar-matriz" class="btn btn-secundario">Escolher
                                 PDF</button>
                             <input type="file" id="input-matriz-pdf" accept="application/pdf,.pdf" hidden>
                         </div>
                         <div id="status-matriz" class="status-importacao" role="status"></div>
-                        <small class="campo-dica">Um curso pode ter mais de uma matriz (M-Tec, técnico modular…).
-                            O PDF não é guardado: só as disciplinas e as cargas horárias. Vale ao salvar o
+                        <small class="campo-dica" id="dica-matriz">Um curso pode ter mais de uma matriz (M-Tec, técnico
+                            modular…). O PDF não é guardado: só as disciplinas e as cargas horárias. Vale ao salvar o
                             curso.</small>
                     </div>
 
@@ -320,6 +324,25 @@
                     <button type="submit" class="btn btn-primario">Salvar curso</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- ---------- MODAL: REVISAR A MATRIZ DA FATEC ---------- -->
+    <div id="modal-matriz" class="modal-overlay mr-revisao">
+        <div class="modal mr-modal" role="dialog" aria-modal="true" aria-labelledby="mr-titulo">
+            <div class="modal-cabecalho">
+                <div>
+                    <h2 id="mr-titulo">Revisar matriz curricular</h2>
+                    <p id="mr-subtitulo"></p>
+                </div>
+                <button type="button" class="btn-fechar-modal" data-mr-cancelar aria-label="Fechar">&times;</button>
+            </div>
+            <div class="modal-corpo" id="mr-corpo"></div>
+            <div class="modal-rodape">
+                <span class="mr-erro" id="mr-erro" role="alert"></span>
+                <button type="button" class="btn btn-secundario" data-mr-cancelar>Cancelar</button>
+                <button type="button" class="btn btn-primario" id="mr-concluir">Concluir revisão</button>
+            </div>
         </div>
     </div>
 

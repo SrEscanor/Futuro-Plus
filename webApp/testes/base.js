@@ -46,7 +46,13 @@ const signOut = async () => {};
 const collection = (db, nome) => ({ nome });
 const doc = (db, col, id) => ({ col, id });
 const __colecao = (nome) => window.teste.colecoes[nome] || (window.teste.colecoes[nome] = new Map());
-const __gravar = (ref, dados) => __colecao(ref.col).set(ref.id, { ...(__colecao(ref.col).get(ref.id) || {}), ...dados });
+// deleteField(): o campo some do documento, como no Firestore
+const deleteField = () => '__apagar__';
+const __gravar = (ref, dados) => {
+    const junto = { ...(__colecao(ref.col).get(ref.id) || {}), ...dados };
+    Object.keys(junto).forEach((campo) => { if (junto[campo] === '__apagar__') delete junto[campo]; });
+    __colecao(ref.col).set(ref.id, junto);
+};
 const __campos = (dados) => Object.keys(dados).filter((k) => k !== 'atualizadoEm').join('+');
 const getDoc = async (ref) => (ref.col === 'usuarios'
     ? { exists: () => true, data: () => ({ admin: true }) }
@@ -146,6 +152,21 @@ export async function imagemDeTeste(largura, altura, cor = '#2e86d6') {
 export async function pdfDaMatrizDeExemplo() {
     const blob = await (await fetch('/testes/dados/matriz-exemplo.pdf')).blob();
     return new File([blob], 'matriz-exemplo.pdf', { type: 'application/pdf' });
+}
+
+// A matriz homologada de uma Etec (técnico em Desenvolvimento de Sistemas,
+// por módulos) do jeito que vem no ofício do SEI: a tabela é uma imagem e o
+// painel lê por OCR. Sem o bloco de assinaturas do ofício original.
+export async function pdfDaMatrizEtecEmImagem() {
+    const blob = await (await fetch('/testes/dados/matriz-etec-imagem-exemplo.pdf')).blob();
+    return new File([blob], 'matriz-etec-imagem-exemplo.pdf', { type: 'application/pdf' });
+}
+
+// Um plano de curso de Fatec (ADS da Fatec Carapicuíba, publicado no site
+// dela), no modelo que o leitor de matrizes da Fatec entende.
+export async function pdfDaMatrizFatecDeExemplo() {
+    const blob = await (await fetch('/testes/dados/matriz-fatec-exemplo.pdf')).blob();
+    return new File([blob], 'matriz-fatec-exemplo.pdf', { type: 'application/pdf' });
 }
 
 export function iniciarTeste() {

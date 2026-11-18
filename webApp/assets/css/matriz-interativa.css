@@ -1,0 +1,719 @@
+/* =========================================================
+   Futuro+ · Matriz curricular interativa (página do curso, Fatec)
+   Fica no fim da página, na largura toda (o espaço entre os cartões
+   vem do gap de .curso-pagina). Só usa classes próprias (mi-*), então
+   a ordem do CSS no build não muda nada.
+   ========================================================= */
+
+.mi-topo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.mi-sub {
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--ink-soft);
+}
+
+.mi-botao {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 16px;
+    border: 1px solid #cdd6fb;
+    border-radius: 999px;
+    background: #fff;
+    color: var(--blue-dark);
+    font: 600 13px 'Poppins', 'Segoe UI', Arial, sans-serif;
+    text-decoration: none;
+}
+
+.mi-botao:hover {
+    border-color: var(--blue);
+    background: var(--blue-soft);
+}
+
+.mi-numeros {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.mi-numeros div {
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: #fbfbff;
+}
+
+.mi-numeros b {
+    display: block;
+    font: 800 21px/1.2 'Sora', 'Segoe UI', Arial, sans-serif;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+}
+
+.mi-numeros span {
+    font-size: 12px;
+    color: var(--ink-soft);
+}
+
+.mi-eixos {
+    margin-top: 16px;
+}
+
+.mi-eixos-topo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 4px 10px;
+    margin-bottom: 8px;
+}
+
+.mi-eixos-topo h3 {
+    font: 700 14px 'Sora', 'Segoe UI', Arial, sans-serif;
+    color: var(--ink);
+}
+
+.mi-eixos-topo span {
+    font-size: 12px;
+    color: var(--ink-soft);
+}
+
+.mi-barra {
+    display: flex;
+    gap: 2px;
+    height: 18px;
+    overflow: hidden;
+    border-radius: 999px;
+}
+
+.mi-barra i {
+    display: grid;
+    place-items: center;
+    min-width: 4px;
+}
+
+.mi-barra i span {
+    font-size: 10.5px;
+    font-style: normal;
+    font-weight: 700;
+    color: #fff;
+}
+
+.mi-ferramentas {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.mi-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.mi-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 11px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--ink);
+    font: 600 12px 'Inter', 'Segoe UI', Arial, sans-serif;
+    cursor: pointer;
+    transition: opacity 0.15s, border-color 0.15s;
+}
+
+.mi-chip:hover {
+    border-color: #b9c3e6;
+}
+
+.mi-chip--desligado {
+    opacity: 0.45;
+}
+
+.mi-ponto {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+}
+
+.mi-chip-n {
+    font-weight: 500;
+    color: var(--ink-soft);
+}
+
+.mi-busca {
+    display: flex;
+    flex: 0 1 260px;
+    align-items: center;
+    gap: 7px;
+    min-width: 200px;
+    padding: 0 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+    color: var(--ink-soft);
+}
+
+.mi-busca input {
+    width: 100%;
+    padding: 9px 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--ink);
+    font: 13.5px 'Inter', 'Segoe UI', Arial, sans-serif;
+}
+
+.mi-busca:focus-within {
+    border-color: var(--blue);
+}
+
+.mi-dica {
+    margin: 10px 0 12px;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+}
+
+.mi-marca {
+    display: inline-block;
+    margin-right: 4px;
+    padding: 0 6px;
+    border-radius: 6px;
+    font-size: 10.5px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 17px;
+}
+
+.mi-marca--online {
+    background: var(--blue-soft);
+    color: var(--blue-dark);
+}
+
+.mi-marca--extensao {
+    background: #ffece0;
+    color: #c2410c;
+}
+
+/* a grade rola para o lado quando não cabe, até a borda do cartão */
+.mi-rolagem {
+    overflow-x: auto;
+    margin: 0 -22px;
+    padding: 4px 22px 8px;
+}
+
+.mi-grade {
+    display: grid;
+    grid-template-columns: repeat(var(--semestres, 6), minmax(150px, 1fr));
+    gap: 10px;
+}
+
+.mi-coluna {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.mi-coluna-topo {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 6px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: var(--blue-soft);
+    color: var(--blue-dark);
+}
+
+.mi-coluna-topo b {
+    font-size: 13px;
+}
+
+.mi-coluna-topo span {
+    font-size: 11px;
+    opacity: 0.85;
+}
+
+.mi-disc {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 6px;
+    min-height: 76px;
+    padding: 9px 10px 10px;
+    border: 1px solid transparent;
+    border-left: 4px solid var(--c);
+    border-radius: 10px;
+    background: var(--cb);
+    color: var(--ink);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.15s, box-shadow 0.15s;
+}
+
+.mi-disc:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-card);
+}
+
+.mi-disc:focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: 2px;
+}
+
+.mi-disc-nome {
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.mi-enfase {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-soft);
+}
+
+.mi-disc-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--ink-soft);
+}
+
+.mi-apagada {
+    opacity: 0.22;
+}
+
+.mi-escolhida,
+.mi-antes {
+    opacity: 1;
+    box-shadow: 0 0 0 2px var(--c);
+}
+
+.mi-depois {
+    opacity: 1;
+    border-style: dashed;
+    box-shadow: 0 0 0 2px var(--c) inset;
+}
+
+.mi-antes::after,
+.mi-depois::after {
+    position: absolute;
+    top: -9px;
+    right: 8px;
+    padding: 1px 7px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--ink-soft);
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.mi-antes::after {
+    content: 'vem antes';
+}
+
+.mi-depois::after {
+    content: 'continua em';
+}
+
+.mi-fora {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.mi-fora div {
+    padding: 10px 12px;
+    border: 1px dashed #cfd6ee;
+    border-radius: 12px;
+}
+
+.mi-fora .mi-optativas {
+    grid-column: 1 / -1;
+}
+
+.mi-fora b {
+    display: block;
+    font-size: 13px;
+    color: var(--ink);
+}
+
+.mi-fora span {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+}
+
+/* ---- gaveta da disciplina ---- */
+.mi-fundo {
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    background: rgba(23, 27, 58, 0.35);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+.mi-fundo.mi-aberta {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.mi-gaveta {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 1101;
+    width: min(420px, 100%);
+    height: 100%;
+    overflow: auto;
+    padding: 24px 22px;
+    border-left: 1px solid var(--line);
+    background: #fff;
+    box-shadow: -20px 0 40px -24px rgba(23, 27, 58, 0.45);
+    transform: translateX(100%);
+    visibility: hidden;
+    transition: transform 0.25s ease, visibility 0s linear 0.25s;
+}
+
+.mi-gaveta.mi-aberta {
+    transform: none;
+    visibility: visible;
+    transition: transform 0.25s ease;
+}
+
+/* reaberta depois de um redesenho da página: sem deslizar de novo */
+.mi-gaveta.mi-sem-animacao {
+    transition: none;
+}
+
+.mi-fechar {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 34px;
+    height: 34px;
+    border: 0;
+    border-radius: 10px;
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.mi-tag {
+    display: inline-flex;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--cb);
+    color: var(--c);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.mi-gaveta h3 {
+    margin: 10px 40px 4px 0;
+    font: 700 19px/1.3 'Sora', 'Segoe UI', Arial, sans-serif;
+    color: var(--ink);
+}
+
+.mi-sigla {
+    font-size: 12px;
+    color: var(--ink-soft);
+}
+
+.mi-kv {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin: 16px 0;
+}
+
+.mi-kv div {
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: var(--bg);
+}
+
+.mi-kv span {
+    display: block;
+    font-size: 11.5px;
+    color: var(--ink-soft);
+}
+
+.mi-kv b {
+    font-size: 14px;
+    color: var(--ink);
+}
+
+.mi-aviso-ext {
+    margin-bottom: 8px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: #ffece0;
+    color: #9a3412;
+    font-size: 12.5px;
+    font-weight: 600;
+}
+
+.mi-gaveta h4 {
+    margin: 18px 0 6px;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+}
+
+.mi-gaveta p {
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--ink);
+}
+
+.mi-ligadas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.mi-ligadas button {
+    padding: 6px 10px;
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--c);
+    border-radius: 9px;
+    background: #fff;
+    color: var(--ink);
+    font: 600 12.5px 'Inter', 'Segoe UI', Arial, sans-serif;
+    cursor: pointer;
+}
+
+.mi-ligadas button small {
+    font-weight: 500;
+    color: var(--ink-soft);
+}
+
+.mi-gaveta .mi-nada {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+}
+
+@media (max-width: 1100px) {
+    /* 3 números na primeira linha e o resto dividindo a segunda, sem buraco */
+    .mi-numeros {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+
+    .mi-numeros div {
+        grid-column: span 2;
+    }
+
+    .mi-numeros div:nth-child(4):nth-last-child(2),
+    .mi-numeros div:nth-child(5):last-child {
+        grid-column: span 3;
+    }
+
+    .mi-numeros div:nth-child(4):last-child {
+        grid-column: span 6;
+    }
+}
+
+@media (max-width: 640px) {
+    .mi-numeros {
+        gap: 8px;
+    }
+
+    .mi-numeros div {
+        padding: 10px 11px;
+        border-radius: 12px;
+    }
+
+    .mi-numeros b {
+        font-size: 18px;
+    }
+
+    .mi-numeros span {
+        font-size: 11.5px;
+    }
+
+    .mi-busca {
+        flex: 1 1 100%;
+    }
+
+    /* o cartão tem 16px de lado no celular */
+    .mi-rolagem {
+        margin: 0 -16px;
+        padding: 4px 16px 8px;
+        scroll-snap-type: x proximity;
+    }
+
+    /* uma coluna por vez, deslizando para o lado */
+    .mi-grade {
+        grid-template-columns: repeat(var(--semestres, 6), 76vw);
+    }
+
+    .mi-coluna {
+        scroll-snap-align: start;
+    }
+
+    .mi-fora {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* no celular a gaveta sobe de baixo */
+    .mi-gaveta {
+        top: auto;
+        bottom: 0;
+        width: 100%;
+        height: 82vh;
+        border-left: 0;
+        border-radius: 22px 22px 0 0;
+        transform: translateY(100%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mi-gaveta,
+    .mi-fundo,
+    .mi-disc {
+        transition: none;
+    }
+}
+
+/* ===== Etec: abas, teoria, qualificações e base comum do ensino médio ===== */
+
+/* técnico x M-Tec: uma aba por forma de oferta */
+.mi-abas {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 14px;
+    padding: 4px;
+    border-radius: 999px;
+    background: var(--bg);
+}
+
+.mi-aba {
+    padding: 7px 16px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--ink-soft);
+    font: 600 13px 'Inter', 'Segoe UI', Arial, sans-serif;
+    cursor: pointer;
+}
+
+.mi-aba[aria-selected='true'] {
+    background: #fff;
+    color: var(--blue-dark);
+    box-shadow: 0 1px 2px rgba(27, 31, 59, 0.08), 0 4px 10px -6px rgba(27, 31, 59, 0.25);
+}
+
+.mi-marca--teoria {
+    background: #eef0f6;
+    color: #4a4f72;
+}
+
+/* a qualificação que o período dá fica no pé da coluna (todas alinhadas) */
+.mi-quali {
+    display: flex;
+    align-items: flex-start;
+    gap: 7px;
+    margin-top: auto;
+    padding: 9px 10px;
+    border: 1px solid #cdeedd;
+    border-radius: 10px;
+    background: #f0fbf5;
+    color: #166c48;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.mi-quali svg {
+    flex: 0 0 auto;
+    margin-top: 1px;
+}
+
+.mi-quali small {
+    display: block;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: #3f8a68;
+}
+
+.mi-quali--sem {
+    border-color: var(--line);
+    background: var(--bg);
+    color: var(--ink-soft);
+    font-weight: 600;
+}
+
+/* M-Tec: as matérias do ensino médio de cada série num cartão só */
+.mi-disc--grupo {
+    border: 1px dashed var(--c);
+    border-left: 4px solid var(--c);
+}
+
+.mi-aviso-quali {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    background: #f0fbf5;
+    color: #166c48;
+    font-size: 12.5px;
+    line-height: 1.45;
+}
+
+.mi-aviso-quali svg {
+    flex: 0 0 auto;
+    margin-top: 1px;
+}
+
+.mi-materias {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.mi-materias li {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 13.5px;
+    color: var(--ink);
+}
+
+.mi-materias b {
+    font-weight: 600;
+    color: var(--ink-soft);
+    white-space: nowrap;
+}

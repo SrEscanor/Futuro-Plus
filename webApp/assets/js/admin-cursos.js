@@ -1,14 +1,18 @@
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { collection, doc, getDoc, getDocs, setDoc, writeBatch } from 'firebase/firestore';
+import { collection, deleteField, doc, getDoc, getDocs, setDoc, writeBatch } from 'firebase/firestore';
 import { parseCsvLine } from './csv.js';
 import {
     escritasDoPlano, ligarZonaDeArquivo, planejarImportacao, revisarImportacao, valorVazio
 } from './importacao-csv.js';
-import { lerMatrizDoPdf, destaquesDaMatriz, duracaoDaMatriz } from './matriz-curricular.js';
+import { duracaoDaMatriz } from './matriz-curricular.js';
 import { resumoDaDemanda } from './demanda-curso.js';
 import { capaDoEixo, carregarFotosDosEixos } from './capas-eixos.js';
 import { enviarCapa, removerCapaDoEixo } from './enviar-capa.js';
+import {
+    ligarMatrizes, limparMatrizes, matrizesParaSalvar, prepararMatrizesDoCurso, problemaParaSalvar,
+    receberPdfDaMatriz as receberPdfNosCartoes
+} from './admin-matriz.js';
 
 const CURSOS_COLLECTION = 'cursos';
 const INSTITUICOES_COLLECTION = 'instituicoes';
@@ -25,7 +29,13 @@ const CAMPOS_ESPERADOS = [
 
 // Campos que o painel grava mas que não vêm do catálogo oficial: mexer neles
 // não é "corrigir o catálogo à mão", então não entram na lista de editados.
-const CAMPOS_FORA_DO_CATALOGO = ['atualizadoEm', 'matrizes', 'imagemUrl'];
+const CAMPOS_FORA_DO_CATALOGO = ['atualizadoEm', 'matrizes', 'matrizFatec', 'matrizesEtec', 'imagemUrl'];
+
+// Curso com matriz: as interativas (Etec e Fatec) ou a do SIGA salva antes
+function temMatriz(curso) {
+    return (curso.matrizes || []).length > 0 || (curso.matrizFatec?.disciplinas || []).length > 0
+        || (curso.matrizesEtec || []).length > 0;
+}
 
 function camposEsperadosPara(curso) {
     return curso.nivel === 'superior'
@@ -151,7 +161,7 @@ function renderizarAlerta() {
 }
 
 function renderizarSituacaoDasMatrizes() {
-    const comMatriz = cursosCache.filter((c) => (c.matrizes || []).length).length;
+    const comMatriz = cursosCache.filter(temMatriz).length;
     document.getElementById('matriz-situacao').innerHTML = cursosCache.length
         ? `<div><strong>${comMatriz} de ${cursosCache.length}</strong> cursos têm matriz cadastrada.</div>`
         : 'Importe o catálogo primeiro.';
@@ -176,7 +186,7 @@ function renderizarTabela() {
     const linhas = cursosCache
         .filter((c) => !filtroIncompletos || faltando(c).length)
         .filter((c) => !filtroEditados || (c.camposEditados || []).length)
-        .filter((c) => !filtroSemMatriz || !(c.matrizes || []).length)
+        .filter((c) => !filtroSemMatriz || !temMatriz(c))
         .filter((c) => !filtro || normalizar([
             c.nome, (c.eixos || []).join(' '), (c.modalidades || []).join(' ')
         ].join(' ')).includes(filtro))
@@ -200,7 +210,11 @@ function renderizarTabela() {
     corpo.innerHTML = linhas.map((c) => {
         const pendencias = faltando(c);
         const unidades = unidadesPorCurso.get(normalizar(c.nome)) || 0;
-        const matrizes = (c.matrizes || []).length;
+        const interativas = (c.matrizesEtec || []).length;
+        const matrizes = interativas ? 0 : (c.matrizes || []).length;
+        const fatec = c.matrizFatec?.disciplinas?.length
+            ? `matriz da Fatec${c.matrizFatec.mostrar === 'pdf' ? ' (página mostra só o PDF)' : ''}`
+            : (interativas ? (interativas === 1 ? 'matriz interativa' : `${interativas} matrizes interativas`) : '');
         return `
         <tr>
             <td>
@@ -210,6 +224,7 @@ function renderizarTabela() {
                 ${c.provaAptidao ? '<div class="pendencia pendencia--info">tem prova de aptidão</div>' : ''}
                 ${c.preRequisitos ? `<div class="pendencia pendencia--info" title="${escapeHtml(c.preRequisitos)}">exige formação anterior</div>` : ''}
                 ${matrizes ? `<div class="pendencia pendencia--info">${matrizes === 1 ? 'matriz cadastrada' : `${matrizes} matrizes cadastradas`}</div>` : ''}
+                ${fatec ? `<div class="pendencia pendencia--info">${escapeHtml(fatec)}</div>` : ''}
                 ${(c.camposEditados || []).length ? `<div class="pendencia pendencia--manual" title="${escapeHtml(c.atualizadoEm ? new Date(c.atualizadoEm).toLocaleString('pt-BR') : '')}">✏️ editado à mão por ${escapeHtml(c.atualizadoPor || '—')}: ${escapeHtml(c.camposEditados.map((x) => ROTULO_CAMPO[x] || x).join(', '))}</div>` : ''}
             </td>
             <td>${escapeHtml((c.eixos || []).join(', '))}</td>
@@ -391,14 +406,21 @@ async function importarCsvDoCatalogo(arquivo) {
 // Matriz curricular (dentro do formulário do curso)
 // ========================================================
 
+const cursoEmEdicao = () => cursosCache.find((c) => c.id === editandoId);
+
+// Lista antiga das matrizes do SIGA. Nas Etecs elas já aparecem convertidas
+// nos cartões de cima (e ao salvar viram "matrizesEtec"); aqui só sobra o caso
+// do curso superior com uma matriz do SIGA salva por engano.
 function renderizarMatrizesDoFormulario() {
     const lista = document.getElementById('lista-matrizes');
-    if (!matrizesEmEdicao.length) {
-        lista.innerHTML = '<p class="lista-vazia">Nenhuma matriz cadastrada para este curso.</p>';
+    const superior = cursoEmEdicao()?.nivel === 'superior';
+    if (!superior || !matrizesEmEdicao.length) {
+        lista.innerHTML = '';
         return;
     }
 
-    lista.innerHTML = matrizesEmEdicao.map((matriz, indice) => {
+    lista.innerHTML = (superior ? `<p class="lista-vazia">Matriz do SIGA salva neste curso: ela é das Etecs e não
+        aparece mais na página dos cursos superiores. Pode remover.</p>` : '') + matrizesEmEdicao.map((matriz, indice) => {
         const tecnicas = matriz.componentes.filter((c) => c.grupo === 'tecnica').length;
         return `
         <div class="matriz-item">
@@ -425,31 +447,10 @@ function lerDestaquesDigitados() {
     });
 }
 
+// O PDF da matriz vai para os cartões (admin-matriz.js): plano de curso da
+// Fatec nos cursos superiores; matriz do SIGA ou do SEI nas Etecs.
 async function receberPdfDaMatriz(arquivo) {
-    mostrarStatus('status-matriz', `Lendo ${arquivo.name}...`);
-    try {
-        const { matriz, texto } = await lerMatrizDoPdf(arquivo);
-        matriz.destaques = destaquesDaMatriz(matriz);
-
-        lerDestaquesDigitados();
-        const existente = matrizesEmEdicao.findIndex((m) => m.titulo === matriz.titulo);
-        if (existente >= 0) matrizesEmEdicao[existente] = matriz;
-        else matrizesEmEdicao.push(matriz);
-        renderizarMatrizesDoFormulario();
-
-        const curso = cursosCache.find((c) => c.id === editandoId);
-        const citaOCurso = curso && normalizar(texto).includes(normalizar(curso.nome));
-        const tecnicas = matriz.componentes.filter((c) => c.grupo === 'tecnica').length;
-        mostrarStatus('status-matriz',
-            `${existente >= 0 ? 'Matriz substituída' : 'Matriz lida'}: ${tecnicas} disciplina(s) técnica(s), `
-            + `${duracaoDaMatriz(matriz)}, ${Number(matriz.cargaHoraria).toLocaleString('pt-BR')} horas.`
-            + (citaOCurso ? '' : ` Atenção: o PDF não cita "${curso?.nome || 'este curso'}" — confira se é a matriz certa.`)
-            + ' Clique em "Salvar curso" para gravar.',
-            citaOCurso ? 'ok' : '');
-    } catch (err) {
-        console.error('Erro ao ler a matriz:', err);
-        mostrarStatus('status-matriz', 'Não consegui ler este PDF: ' + err.message, 'erro');
-    }
+    if (cursoEmEdicao()) await receberPdfNosCartoes(arquivo);
 }
 
 // ========================================================
@@ -571,6 +572,20 @@ function abrirFormulario(curso) {
     mostrarStatus('status-matriz', '');
     mostrarStatus('status-capa-curso', '');
     renderizarMatrizesDoFormulario();
+
+    // Fatec: matriz lida do plano de curso; Etec: uma por forma de oferta,
+    // lidas da matriz do SIGA ou da homologada no SEI (até em imagem)
+    const superior = curso.nivel === 'superior';
+    document.getElementById('zona-matriz-texto').textContent = superior
+        ? 'Arraste o plano de curso da Fatec (PDF) para cá ou'
+        : 'Arraste a matriz da Etec (PDF do SIGA ou do SEI) para cá ou';
+    document.getElementById('dica-matriz').textContent = superior
+        ? 'Serve o projeto pedagógico ou a matriz curricular da Fatec. O leitor tira a grade e a descrição de cada '
+            + 'disciplina; o PDF em si não é guardado. Vale ao salvar o curso.'
+        : 'Serve a matriz do SIGA (M-Tec e técnico) e a homologada no SEI, mesmo com a tabela em imagem: o painel lê a '
+            + 'imagem no próprio navegador. Cada forma de oferta vira uma aba na página do curso. Vale ao salvar o curso.';
+    prepararMatrizesDoCurso(curso, (texto, tipo) => mostrarStatus('status-matriz', texto, tipo));
+
     document.getElementById('modal-form').classList.add('aberto');
 }
 
@@ -578,6 +593,7 @@ function fecharFormulario() {
     document.getElementById('modal-form').classList.remove('aberto');
     editandoId = null;
     matrizesEmEdicao = [];
+    limparMatrizes();
 }
 
 async function salvarCurso(evento) {
@@ -585,6 +601,13 @@ async function salvarCurso(evento) {
     if (!editandoId) return;
 
     lerDestaquesDigitados();
+    const superior = cursoEmEdicao()?.nivel === 'superior';
+    const problemaDaMatriz = problemaParaSalvar();
+    if (problemaDaMatriz) {
+        mostrarStatus('status-matriz', problemaDaMatriz, 'erro');
+        document.getElementById('secao-matriz').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+    }
     const carga = document.getElementById('f-carga').value.trim();
     const dados = {
         duracao: document.getElementById('f-duracao').value.trim(),
@@ -600,6 +623,12 @@ async function salvarCurso(evento) {
         matrizes: matrizesEmEdicao,
         atualizadoEm: new Date().toISOString()
     };
+    // Matrizes interativas: "matrizFatec" ou "matrizesEtec"; sem nenhuma, o
+    // campo sai do curso. Na Etec, a matriz antiga do SIGA já foi convertida
+    // nos cartões, então a lista antiga ("matrizes") é esvaziada.
+    const { campo, valor } = matrizesParaSalvar();
+    dados[campo] = valor || deleteField();
+    if (!superior) dados.matrizes = [];
 
     // Guarda QUAIS campos você mexeu, e não só que o curso foi editado: é
     // isso que permite revisar depois, na importação, só o que conflita.
@@ -679,6 +708,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ligarZonaDeArquivo({
         zona: 'zona-matriz', botao: 'btn-enviar-matriz', input: 'input-matriz-pdf', aoReceber: receberPdfDaMatriz
     });
+    ligarMatrizes({ escolherPdf: () => document.getElementById('input-matriz-pdf').click() });
 
     // capas: um seletor de arquivo só, aberto para o eixo do botão clicado
     const inputCapaEixo = document.getElementById('input-capa-eixo');

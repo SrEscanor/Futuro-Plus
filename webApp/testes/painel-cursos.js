@@ -11,7 +11,7 @@
 //   - Desenvolvimento de Sistemas com carga horária diferente
 import {
     carregarComSimulacoes, enviarArquivo, fingirLogin, imagemDeTeste, iniciarTeste,
-    montarPagina, pdfDaMatrizDeExemplo, simularFuncoes
+    montarPagina, pdfDaMatrizDeExemplo, pdfDaMatrizEtecEmImagem, pdfDaMatrizFatecDeExemplo, simularFuncoes
 } from './base.js';
 
 const teste = iniciarTeste();
@@ -30,6 +30,12 @@ Object.assign(cursos.get('administracao'), {
 });
 cursos.get('desenvolvimento-de-sistemas').cargaHoraria = 1000;
 Object.assign(cursos.get('quimica'), { duracao: '', eixos: [] });
+// um curso superior (Fatec), para a matriz lida do plano de curso
+cursos.set('superior-analise-e-desenvolvimento-de-sistemas', {
+    nome: 'Análise e Desenvolvimento de Sistemas', nivel: 'superior', duracao: '6 semestres',
+    eixos: ['Informação e Comunicação'], modalidades: ['Curso Superior de Tecnologia Presencial'],
+    descricao: 'Texto de exemplo do curso superior.', planoCursoUrl: 'https://exemplo.cps.sp.gov.br/plano-ads.pdf'
+});
 
 teste.colecoes.cursos = cursos;
 teste.colecoes.instituicoes = new Map([
@@ -114,6 +120,22 @@ teste.enviarMatriz = async (idDoCurso = 'desenvolvimento-de-sistemas') => {
     document.querySelector(`button[data-acao="editar"][data-id="${idDoCurso}"]`).click();
     await new Promise((r) => setTimeout(r, 300));
     await enviarArquivo('input-matriz-pdf', await pdfDaMatrizDeExemplo(), 5000);
+};
+
+// Abre um curso de Etec e envia a matriz do SEI que vem como imagem (lida por
+// OCR, leva uns 10 segundos). A do SIGA, com texto: teste.enviarMatriz().
+teste.enviarMatrizEtec = async (idDoCurso = 'desenvolvimento-de-sistemas') => {
+    document.querySelector(`button[data-acao="editar"][data-id="${idDoCurso}"]`).click();
+    await new Promise((r) => setTimeout(r, 300));
+    await enviarArquivo('input-matriz-pdf', await pdfDaMatrizEtecEmImagem(), 15000);
+};
+
+// Abre o curso superior de exemplo e envia o plano de curso da Fatec (ou outro
+// PDF: teste.enviarMatrizFatec(id, arquivo)). A leitura leva alguns segundos.
+teste.enviarMatrizFatec = async (idDoCurso = 'superior-analise-e-desenvolvimento-de-sistemas', arquivo = null) => {
+    document.querySelector(`button[data-acao="editar"][data-id="${idDoCurso}"]`).click();
+    await new Promise((r) => setTimeout(r, 300));
+    await enviarArquivo('input-matriz-pdf', arquivo || await pdfDaMatrizFatecDeExemplo(), 8000);
 };
 
 // Envia uma imagem de capa para um eixo (slug, ex.: "gestao-e-negocios").

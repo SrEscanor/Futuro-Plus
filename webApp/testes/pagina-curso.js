@@ -10,7 +10,12 @@
 //     teste.mostrar({ demanda: false })          // sem demanda: o cartão some
 //     teste.mostrar({ fotoDoEixo: true })        // capa enviada para o eixo
 //     teste.mostrar({ imagemUrl: 'https://…' })  // capa só do curso
-import { imagemDeTeste, pdfDaMatrizDeExemplo } from './base.js';
+//     teste.mostrar({ fatec: true })             // curso superior com a matriz interativa
+//     teste.mostrar({ fatec: true, soPdf: true }) // matriz guardada, mas a página mostra só o PDF
+//     teste.mostrar({ etec: true })              // Etec: técnico (SEI, lido por OCR) e M-Tec (SIGA) em abas
+// Sem "etec", as matrizes do SIGA de exemplo ("matrizes") viram a matriz
+// interativa do mesmo jeito que acontece com os cursos já salvos.
+import { imagemDeTeste, pdfDaMatrizDeExemplo, pdfDaMatrizEtecEmImagem, pdfDaMatrizFatecDeExemplo } from './base.js';
 
 const teste = window.teste = { colecoes: {}, gravacoes: [], chamadas: [] };
 
@@ -56,9 +61,42 @@ const UNIDADES = ['Etec Polivalente de Americana|Americana', 'Etec Jorge Street|
     'Etec Parque da Juventude|São Paulo', 'Etec de Artes|São Paulo']
     .map((texto, i) => ({ id: `u${i}`, nome: texto.split('|')[0], municipio: texto.split('|')[1] }));
 
+// a matriz da Fatec é lida do PDF de exemplo, no navegador, uma vez só
+let matrizFatec = null;
+async function lerMatrizFatecDeExemplo() {
+    if (!matrizFatec) {
+        const { lerMatrizFatecDoPdf } = await import('/assets/js/matriz-fatec.js');
+        const lida = await lerMatrizFatecDoPdf(await pdfDaMatrizFatecDeExemplo());
+        matrizFatec = { ...lida, mostrar: 'interativa' };
+        teste.leituraFatec = lida;
+    }
+    return matrizFatec;
+}
+
+// as matrizes da Etec lidas como no painel (a do SEI por OCR: uns 10 segundos)
+let matrizesEtec = null;
+async function lerMatrizesEtecDeExemplo() {
+    if (!matrizesEtec) {
+        const { lerMatrizEtecDoPdf } = await import('/assets/js/matriz-etec.js');
+        const sei = await lerMatrizEtecDoPdf(await pdfDaMatrizEtecEmImagem());
+        const siga = await lerMatrizEtecDoPdf(await pdfDaMatrizDeExemplo());
+        teste.leiturasEtec = { sei, siga };
+        matrizesEtec = [sei.matriz, siga.matriz].filter(Boolean);
+    }
+    return matrizesEtec;
+}
+
 teste.mostrar = async (opcoes = {}) => {
     const { anos = 5, demanda = true, matrizes: quantas = 1, unidades = UNIDADES.length, fotoDoEixo = false, imagemUrl = '' } = opcoes;
     const exemplo = { ...curso, imagemUrl };
+    if (opcoes.fatec) {
+        Object.assign(exemplo, {
+            nome: 'Análise e Desenvolvimento de Sistemas', nivel: 'superior', duracao: '6 semestres',
+            modalidades: ['Curso Superior de Tecnologia Presencial'], planoCursoUrl: '/testes/dados/matriz-fatec-exemplo.pdf',
+            matrizFatec: { ...await lerMatrizFatecDeExemplo(), mostrar: opcoes.soPdf ? 'pdf' : 'interativa' }
+        });
+    }
+    if (opcoes.etec) exemplo.matrizesEtec = await lerMatrizesEtecDeExemplo();
 
     if (demanda) {
         const primeiros = HISTORICO.filter((h) => h.periodo.endsWith('-1')).slice(-anos);
