@@ -13,9 +13,10 @@
 // Os dados chegam só por noticias-proprias-dados.js (os roteiros de teste
 // trocam esse arquivo por uma cópia de mentira).
 import {
-    enviarImagemNoticia, excluirNoticiaPropria, listarHistorico, listarNoticiasProprias, novoId,
+    enviarImagemNoticia, excluirNoticiaPropria, listarHistorico, listarHistoricoPagina, listarNoticiasProprias, novoId,
     observarAdmin, sairDaConta, salvarNoticiaPropria
 } from './noticias-proprias-dados.js';
+import { campoAcao, campoQuem, historicoComFiltros } from './historico-filtros.js';
 import {
     ACOES, AUTOR_PADRAO, ETIQUETAS, LIMITES, MINIMO_AGENDAMENTO_MS, agendadaParaDepois, dataHora, deDatetimeLocal,
     haQuantoTempo, linkDaMateria, noSite, oQueFalta, paraDatetimeLocal, situacao, textoCurto
@@ -30,7 +31,6 @@ const ABAS = ['pendentes', 'rascunhos', 'nosite', 'historico'];
 const estado = {
     iniciado: false,
     noticias: [],
-    historico: [],
     aba: 'pendentes',
     editando: null,     // a notícia aberta no editor, com o que já estava guardado
     salvo: '',          // o conteúdo como estava salvo (para saber se mudou)
@@ -172,10 +172,14 @@ function linhaDoHistorico(registro) {
         </tr>`;
 }
 
-function desenharHistorico() {
-    el('np-historico-corpo').innerHTML = estado.historico.length
-        ? estado.historico.map(linhaDoHistorico).join('')
-        : '<tr><td colspan="4" class="tabela-vazia">Nada registrado ainda.</td></tr>';
+function desenharHistorico(registros, { filtrando, carregando, erro }) {
+    const vazio = (texto) => `<tr><td colspan="4" class="tabela-vazia">${texto}</td></tr>`;
+    let html;
+    if (carregando) html = vazio('Carregando histórico...');
+    else if (erro) html = vazio('Não foi possível carregar o histórico agora.');
+    else if (registros.length) html = registros.map(linhaDoHistorico).join('');
+    else html = vazio(filtrando ? 'Nenhum registro com esses filtros.' : 'Nada registrado ainda.');
+    el('np-historico-corpo').innerHTML = html;
 }
 
 async function carregarLista() {
@@ -189,15 +193,19 @@ async function carregarLista() {
     }
 }
 
-async function carregarHistorico() {
-    el('np-historico-corpo').innerHTML = '<tr><td colspan="4" class="tabela-vazia">Carregando histórico...</td></tr>';
-    try {
-        estado.historico = await listarHistorico({ quantos: 100 });
-        desenharHistorico();
-    } catch (erro) {
-        console.error('Erro ao carregar o histórico:', erro);
-        el('np-historico-corpo').innerHTML = '<tr><td colspan="4" class="tabela-vazia">Não foi possível carregar o histórico agora.</td></tr>';
-    }
+// A barra de filtros (Quando, Quem, O que fez e busca pelo título) é montada
+// na primeira vez que a aba abre; nas outras, só lê de novo.
+let historico = null;
+function carregarHistorico() {
+    historico ||= historicoComFiltros({
+        barra: el('np-historico-filtros'),
+        botaoMais: el('np-historico-mais'),
+        buscarPagina: (cursor) => listarHistoricoPagina({ depois: cursor }),
+        desenhar: desenharHistorico,
+        busca: { dica: 'Título da notícia…', texto: (r) => `${r.titulo || ''} ${r.detalhe || ''}` },
+        campos: [campoQuem(), campoAcao(ACOES)]
+    });
+    historico.recarregar();
 }
 
 function abrirAba(aba) {

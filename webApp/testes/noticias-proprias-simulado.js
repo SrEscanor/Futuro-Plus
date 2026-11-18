@@ -74,6 +74,13 @@ export async function listarHistorico({ noticiaId, quantos = 100 } = {}) {
         .map(copia);
 }
 
+export async function listarHistoricoPagina({ quantos = 100, depois = null } = {}) {
+    await chamada('listar');
+    const todos = estado().historico.map(copia).sort((a, b) => String(b.em).localeCompare(String(a.em)));
+    const inicio = depois || 0;
+    return { registros: todos.slice(inicio, inicio + quantos), cursor: inicio + quantos, haMais: todos.length > inicio + quantos };
+}
+
 function registrar(noticiaId, titulo, acao, detalhe = '') {
     estado().historico.push({
         id: `h${estado().historico.length + 1}`,

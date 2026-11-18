@@ -25,6 +25,7 @@ import {
 } from 'firebase/firestore';
 import { prepararGravacao } from './noticias-proprias-util.js';
 import { DOC_DESTAQUES, detalheComSaidaDoCarrossel, mudarListaDeDestaques } from './destaques-util.js';
+import { paginaDoHistorico } from './historico-paginas.js';
 
 const PROPRIAS = 'noticias_proprias';
 const PUBLICADAS = 'noticias';
@@ -106,6 +107,12 @@ export async function listarHistorico({ noticiaId, quantos = 100 } = {}) {
     return registros
         .sort((a, b) => String(b.em || '').localeCompare(String(a.em || '')))
         .slice(0, quantos);
+}
+
+// Uma página do histórico inteiro (aba Histórico, com filtros): { registros,
+// cursor, haMais }. depois = o cursor da página anterior.
+export function listarHistoricoPagina({ quantos = 100, depois = null } = {}) {
+    return paginaDoHistorico(HISTORICO, { quantos, depois });
 }
 
 // ========================================================

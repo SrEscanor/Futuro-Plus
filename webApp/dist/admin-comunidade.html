@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Futuro+ | Admin · Comunidade</title>
+    <link rel="icon" href="./favicon.ico" sizes="48x48">
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <script type="module" crossorigin src="./assets/adminComunidade-C81C2Bio.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/firebase-config-CO6QNrkm.js">
+  <link rel="modulepreload" crossorigin href="./assets/historico-paginas-PlBEQXaq.js">
+  <link rel="modulepreload" crossorigin href="./assets/admin-nav-contador-Yf_dCakP.js">
+  <link rel="modulepreload" crossorigin href="./assets/historico-filtros-BOgkprmx.js">
+  <link rel="modulepreload" crossorigin href="./assets/noticias-proprias-util-Cv1iCrjZ.js">
+  <link rel="stylesheet" crossorigin href="./assets/adminComunidade-DeDa4vwc.css">
+  <link rel="stylesheet" crossorigin href="./assets/admin-instituicoes-DFW_c3dY.css">
+</head>
+
+<body>
+
+    <header class="topo-admin">
+        <div class="titulo-area">
+            <h1>Painel Admin · Comunidade</h1>
+        </div>
+        <div class="usuario-area">
+            <span id="admin-email"></span>
+            <button id="logout-btn" class="btn-sair-admin">Sair</button>
+        </div>
+        <nav class="admin-nav" aria-label="Páginas do painel">
+            <div class="admin-nav-paginas">
+                <a href="admin-instituicoes.html" class="admin-nav-item">Unidades</a>
+                <a href="admin-cursos.html" class="admin-nav-item"><span class="admin-nav-longo">Catálogo de cursos</span><span class="admin-nav-curto">Catálogo</span></a>
+                <a href="admin-notificacoes.html" class="admin-nav-item">Notificações</a>
+                <a href="admin-noticias.html" class="admin-nav-item">Notícias</a>
+                <a href="admin-noticias-proprias.html" class="admin-nav-item">Notícias próprias</a>
+                <a href="admin-comunidade.html" class="admin-nav-item" aria-current="page">Comunidade<span class="admin-nav-contador" hidden></span></a>
+            </div>
+            <a href="index.html" class="admin-nav-voltar">Voltar ao site</a>
+        </nav>
+    </header>
+
+    <div id="acesso-negado" class="acesso-negado">
+        <h2>Acesso restrito</h2>
+        <p>Esta área é exclusiva para administradores do Futuro+. Se você acredita que deveria ter acesso, fale com
+            quem administra o projeto.</p>
+        <a href="index.html" class="btn btn-secundario">Voltar ao início</a>
+    </div>
+
+    <main id="admin-app" style="display:none;">
+        <div class="container-admin">
+
+            <div class="abas-admin" role="tablist" aria-label="Novidades e histórico da comunidade">
+                <button type="button" class="aba-admin aba-admin--ativa" role="tab" id="aba-novidades" data-aba="novidades"
+                    aria-selected="true" aria-controls="painel-novidades">Novidades <span id="com-aba-contador"
+                        class="com-aba-contador" hidden></span></button>
+                <button type="button" class="aba-admin" role="tab" id="aba-historico" data-aba="historico"
+                    aria-selected="false" aria-controls="painel-historico" tabindex="-1">Histórico</button>
+            </div>
+
+            <!-- ---------- NOVIDADES: avaliações e dúvidas novas (avisos_admin) ---------- -->
+            <div id="painel-novidades" role="tabpanel" aria-labelledby="aba-novidades">
+                <div class="com-barra">
+                    <p class="historico-dica com-dica">Avaliações e dúvidas novas nas páginas das instituições. No
+                        celular ou no computador, o aviso chega também para quem ativou as notificações no Perfil.</p>
+                    <button type="button" id="com-marcar-vistos" class="btn btn-secundario" disabled>Marcar tudo como
+                        visto</button>
+                </div>
+                <div class="com-chips" role="group" aria-label="Mostrar">
+                    <button type="button" class="com-chip com-chip--ativo" data-mostrar="tudo" aria-pressed="true">Tudo</button>
+                    <button type="button" class="com-chip" data-mostrar="avaliacoes" aria-pressed="false">Avaliações</button>
+                    <button type="button" class="com-chip" data-mostrar="sem-resposta" aria-pressed="false">Dúvidas sem
+                        resposta <span id="com-sem-resposta"></span></button>
+                </div>
+                <div id="com-novidades" class="com-lista"></div>
+                <button type="button" id="com-novidades-mais" class="btn btn-secundario historico-mais" hidden>Carregar
+                    mais</button>
+            </div>
+
+            <!-- ---------- HISTÓRICO: comunidade_historico, com filtros ---------- -->
+            <div id="painel-historico" role="tabpanel" aria-labelledby="aba-historico" hidden>
+                <p class="historico-dica">Tudo o que acontece nos comentários, notas e dúvidas das instituições,
+                    inclusive o que foi apagado: o texto fica guardado aqui. Ninguém consegue apagar ou mudar estes
+                    registros.</p>
+                <!-- busca, Quando, Quem, O que fez e Instituição: historico-filtros.js -->
+                <div id="historico-filtros"></div>
+                <div class="tabela-container">
+                    <table class="tabela-historico com-tabela">
+                        <thead>
+                            <tr>
+                                <th>Quando</th>
+                                <th>Quem</th>
+                                <th>O que fez</th>
+                                <th>Instituição e conteúdo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historico-corpo"></tbody>
+                    </table>
+                </div>
+                <button type="button" id="historico-mais" class="btn btn-secundario historico-mais" hidden>Carregar
+                    mais antigos</button>
+            </div>
+        </div>
+    </main>
+
+</body>
+
+</html>

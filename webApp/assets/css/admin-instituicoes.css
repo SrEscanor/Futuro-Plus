@@ -169,6 +169,30 @@ a {
 .admin-nav-item[href="admin-notificacoes.html"] { --icone-admin: url('../icones/menu/notificacoes.svg'); }
 .admin-nav-item[href="admin-noticias.html"] { --icone-admin: url('../icones/menu/noticias.svg'); }
 .admin-nav-item[href="admin-noticias-proprias.html"] { --icone-admin: url('../icones/menu/noticias-proprias.svg'); }
+.admin-nav-item[href="admin-comunidade.html"] { --icone-admin: url('../icones/menu/comunidade.svg'); }
+
+/* avaliações e dúvidas que a conta ainda não viu (admin-nav-contador.js) */
+.admin-nav-contador {
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 99px;
+    background: var(--red);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 20px;
+    text-align: center;
+}
+
+.admin-nav-contador[hidden] {
+    display: none;
+}
+
+.admin-nav-item[aria-current="page"] .admin-nav-contador {
+    background: #fff;
+    color: var(--blue-dark);
+}
 .admin-nav-voltar { --icone-admin: url('../icones/menu/inicio.svg'); }
 
 .admin-nav-item[aria-current="page"] {
@@ -2060,6 +2084,131 @@ tbody tr:hover {
 .historico-mais {
     display: block;
     margin: 14px auto 0;
+}
+
+.historico-mais[hidden] {
+    display: none;
+}
+
+/* ---- FILTROS DOS HISTÓRICOS (historico-filtros.js) ----
+   Busca, Quando (com as datas De e Até), Quem, O que fez e, na Comunidade,
+   Instituição, numa faixa só no computador; no celular, dois por linha. */
+.filtros-historico {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding: 14px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+}
+
+.filtro-historico {
+    display: grid;
+    gap: 5px;
+    flex: 1 1 150px;
+    min-width: 0;
+}
+
+.filtro-historico[hidden] {
+    display: none;
+}
+
+.filtro-historico--busca {
+    flex: 2.2 1 260px;
+}
+
+.filtro-historico > span {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+}
+
+.filtro-historico input,
+.filtro-historico select {
+    width: 100%;
+    height: 40px;
+    padding: 0 12px;
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius-sm);
+    background-color: var(--surface);
+    color: var(--ink);
+    font: inherit;
+    font-size: 13.5px;
+    outline: none;
+}
+
+.filtro-historico select {
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.filtro-historico input[type="search"] {
+    padding-left: 38px;
+    background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235b6084' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.6-3.6'/%3E%3C/svg%3E") 13px 50% / 16px no-repeat;
+}
+
+.filtro-historico input:focus,
+.filtro-historico select:focus {
+    border-color: var(--blue);
+}
+
+.filtro-historico--ativo input,
+.filtro-historico--ativo select {
+    border-color: var(--blue);
+    background-color: var(--blue-soft);
+    color: var(--blue-dark);
+}
+
+.filtros-historico-resumo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 14px;
+    margin: 0 4px 12px;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+}
+
+.filtros-historico-resumo strong {
+    color: var(--ink);
+}
+
+.filtros-historico-limpar {
+    border: none;
+    background: none;
+    padding: 0;
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--blue);
+    cursor: pointer;
+}
+
+.filtros-historico-limpar:hover {
+    text-decoration: underline;
+}
+
+.filtros-historico-limpar[hidden] {
+    display: none;
+}
+
+@media (max-width: 640px) {
+    .filtros-historico {
+        padding: 12px;
+    }
+
+    .filtro-historico {
+        flex: 1 1 calc(50% - 5px);
+    }
+
+    .filtro-historico--busca {
+        flex-basis: 100%;
+    }
 }
 
 @media (max-width: 640px) {

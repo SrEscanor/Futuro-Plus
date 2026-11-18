@@ -2,7 +2,7 @@
 // (uma vez por conta/visitante) e/ou uma entrada no sino do topo. Cada
 // notificação escolhe o público: só quem tem conta, só visitante (sem
 // login) ou todo mundo. Chamado por dashboard.js em toda página logada.
-import { collection, getDocs, doc, setDoc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { collection, getDocs, doc, setDoc, updateDoc, arrayUnion, limit, orderBy, query } from 'firebase/firestore';
 import { auth, db } from './firebase-config.js';
 import { calcularCompletudePerfil } from './perfil-completude.js';
 import { ehLinkExterno, linkSeguroDaNotificacao } from './notificacoes-util.js';
@@ -307,23 +307,87 @@ function acoesHtml(acoes) {
         <a class="notif-item-botao${a.destaque ? ' notif-item-botao--destaque' : ''}" href="${escapeHtml(a.href)}">${escapeHtml(a.rotulo)}</a>`).join('')}</div>`;
 }
 
+function estrelasHtml(nota) {
+    const cheias = Math.max(0, Math.min(5, Number(nota) || 0));
+    return cheias
+        ? `<span class="notif-item-estrelas" role="img" aria-label="nota ${cheias} de 5">${'★'.repeat(cheias)}<i>${'★'.repeat(5 - cheias)}</i></span> `
+        : '';
+}
+
 function itemHtml(n) {
-    // link do aviso: perfil.html (lembrete do perfil) ou a notícia escolhida no
-    // painel; qualquer outra coisa é ignorada (ver notificacoes-util.js)
+    // link do aviso: perfil.html (lembrete do perfil), a notícia escolhida no
+    // painel ou, nos avisos da equipe, a página da instituição; qualquer outra
+    // coisa é ignorada (ver notificacoes-util.js)
     const link = linkSeguroDaNotificacao(n.link);
     const conteudo = `
+            ${n.equipe ? '<span class="notif-item-tag">Para a equipe</span>' : ''}
             <strong class="notif-item-titulo">${escapeHtml(n.titulo || 'Aviso')}</strong>
-            <p class="notif-item-mensagem">${escapeHtml(n.mensagem || '')}</p>
+            <p class="notif-item-mensagem">${estrelasHtml(n.estrelas)}${escapeHtml(n.mensagem || '')}</p>
             ${acoesHtml(n.acoes)}
             ${link && n.noticia ? '<span class="notif-item-ler">Ler a notícia →</span>' : ''}
-            <span class="notif-item-data">${formatarData(n.criadoEm)}</span>`;
+            ${link && n.chamada ? `<span class="notif-item-ler">${escapeHtml(n.chamada)}</span>` : ''}
+            <span class="notif-item-data">${n.equipe ? quandoFoi(n.criadoEm) : formatarData(n.criadoEm)}</span>`;
     // Um item com botões próprios não pode virar link (não dá pra aninhar
     // <a> dentro de <a>, e os botões já cobrem a ação). Notícia de outro
     // site abre em outra aba.
     const outraAba = ehLinkExterno(link) ? ' target="_blank" rel="noopener noreferrer"' : '';
+    const classes = `notif-item${n.equipe ? ' notif-item--equipe' : ''}`;
     return link && !n.acoes
-        ? `<a class="notif-item notif-item--link" href="${escapeHtml(link)}"${outraAba}>${conteudo}</a>`
-        : `<div class="notif-item">${conteudo}</div>`;
+        ? `<a class="${classes} notif-item--link" href="${escapeHtml(link)}"${outraAba}>${conteudo}</a>`
+        : `<div class="${classes}">${conteudo}</div>`;
+}
+
+// "há 12 min", "há 3 h" ou a data, para os avisos da equipe
+function quandoFoi(iso) {
+    const minutos = Math.round((Date.now() - new Date(iso || '').getTime()) / 60000);
+    if (Number.isNaN(minutos)) return '';
+    if (minutos < 2) return 'agora há pouco';
+    if (minutos < 60) return `há ${minutos} min`;
+    if (minutos < 24 * 60) return `há ${Math.round(minutos / 60)} h`;
+    return formatarData(iso);
+}
+
+function trecho(texto, limite) {
+    const limpo = String(texto || '').replace(/\s+/g, ' ').trim();
+    return limpo.length <= limite ? limpo : `${limpo.slice(0, limite - 1).trimEnd()}…`;
+}
+
+// Para quem é admin: as avaliações e dúvidas novas das páginas das
+// instituições (avisos_admin, gravados pelo servidor, ver
+// functions/comunidade.py) entram no sino marcadas "Para a equipe". Contam
+// como lidas as de antes do último "visto" (avisosAdminVistosEm, o mesmo do
+// painel Admin · Comunidade).
+async function avisosDaEquipe(dados) {
+    if (dados.admin !== true) return [];
+    try {
+        const snap = await getDocs(query(collection(db, 'avisos_admin'), orderBy('em', 'desc'), limit(5)));
+        const vistosEm = dados.avisosAdminVistosEm || '';
+        return snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((a) => !a.apagada).map((aviso) => {
+            const criadoEm = aviso.em?.toDate ? aviso.em.toDate().toISOString() : '';
+            const unidade = aviso.unidadeNome || 'uma instituição';
+            const etecOuFatec = /^(etec|fatec)\b/i.test(unidade);
+            const avaliacao = aviso.tipo === 'avaliacao';
+            const nome = aviso.nome || 'Alguém';
+            return {
+                id: `equipe-${aviso.id}`,
+                equipe: true,
+                jaVista: Boolean(vistosEm) && criadoEm <= vistosEm,
+                titulo: avaliacao
+                    ? `Nova avaliação ${etecOuFatec ? 'na' : 'em'} ${unidade}`
+                    : `Nova dúvida ${etecOuFatec ? 'sobre a' : 'sobre'} ${unidade}`,
+                estrelas: avaliacao ? aviso.nota : 0,
+                mensagem: avaliacao
+                    ? `${nome}${aviso.curso ? ` · ${aviso.curso}` : ''}: “${trecho(aviso.texto, 120)}”`
+                    : `${nome}: “${trecho(aviso.texto, 140)}”`,
+                chamada: !avaliacao && !Number(aviso.respostas) ? 'Responder →' : '',
+                criadoEm,
+                link: aviso.link || ''
+            };
+        });
+    } catch (erro) {
+        console.error('Erro ao ler os avisos da equipe:', erro);
+        return [];
+    }
 }
 
 const VAZIO_HTML = '<p class="notif-vazio">Nenhuma notificação por enquanto.</p>';
@@ -347,8 +411,11 @@ async function preencherSino(notificacoes, limpasEm, vistasEmInicial, aoLimpar, 
     const visiveis = notificacoes.filter((n) => (n.criadoEm || '') > limpasEm);
     let vistasEm = vistasEmInicial;
 
+    // aviso da equipe já visto no painel Admin · Comunidade não conta de novo
+    const naoLida = (n) => !n.jaVista && (n.criadoEm || '') > vistasEm;
+
     function renderizar() {
-        const naoLidas = visiveis.filter((n) => (n.criadoEm || '') > vistasEm).length;
+        const naoLidas = visiveis.filter(naoLida).length;
         lista.innerHTML = visiveis.length ? visiveis.map(itemHtml).join('') : VAZIO_HTML;
         ponto.textContent = naoLidas > 9 ? '9+' : String(naoLidas);
         ponto.hidden = naoLidas === 0;
@@ -376,7 +443,7 @@ async function preencherSino(notificacoes, limpasEm, vistasEmInicial, aoLimpar, 
     };
 
     return async function marcarComoVisto() {
-        if (!visiveis.some((n) => (n.criadoEm || '') > vistasEm)) return;
+        if (!visiveis.some(naoLida)) return;
         const agora = new Date().toISOString();
         vistasEm = agora;
         renderizar();
@@ -389,15 +456,21 @@ async function preencherSino(notificacoes, limpasEm, vistasEmInicial, aoLimpar, 
 }
 
 export async function configurarSino(uid, dados) {
-    const notificacoes = (await carregarNotificacoes()).filter((n) => n.mostrarSino && valeParaEstado(n, true));
+    const [todasDoAdmin, equipe] = await Promise.all([carregarNotificacoes(), avisosDaEquipe(dados)]);
+    const notificacoes = [...equipe, ...todasDoAdmin.filter((n) => n.mostrarSino && valeParaEstado(n, true))]
+        .sort((a, b) => (b.criadoEm || '').localeCompare(a.criadoEm || ''));
     const lembretePerfil = notificacaoPerfilIncompleto(dados);
     const todas = lembretePerfil ? [lembretePerfil, ...notificacoes] : notificacoes;
+    // abrir o sino conta como visto também no painel Admin · Comunidade
+    const vistas = (agora) => (equipe.length || dados.admin === true
+        ? { notificacoesVistasEm: agora, avisosAdminVistosEm: agora }
+        : { notificacoesVistasEm: agora });
     return preencherSino(
         todas,
         dados.notificacoesLimpasEm || '',
         dados.notificacoesVistasEm || '',
         (agora) => setDoc(doc(db, 'usuarios', uid), { notificacoesLimpasEm: agora }, { merge: true }),
-        (agora) => setDoc(doc(db, 'usuarios', uid), { notificacoesVistasEm: agora }, { merge: true })
+        (agora) => setDoc(doc(db, 'usuarios', uid), vistas(agora), { merge: true })
     );
 }
 

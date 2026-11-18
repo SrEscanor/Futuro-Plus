@@ -19,6 +19,7 @@ import sys
 from datetime import datetime, timedelta, timezone
 from email.utils import format_datetime
 from pathlib import Path
+from types import SimpleNamespace
 from unittest import mock
 
 sys.stdout.reconfigure(encoding="utf-8")
@@ -28,6 +29,7 @@ import firebase_admin  # noqa: E402
 
 with mock.patch.object(firebase_admin, "initialize_app"):
     import main  # noqa: E402
+import comunidade  # noqa: E402
 import demanda  # noqa: E402
 import noticias  # noqa: E402
 import flask  # noqa: E402
@@ -101,6 +103,7 @@ class Consulta:
         "==": lambda a, b: a == b,
         ">=": lambda a, b: a is not None and a >= b,
         "<=": lambda a, b: a is not None and a <= b,
+        "in": lambda a, b: a is not None and a in b,
     }
 
     def __init__(self, colecao, filtros):
@@ -125,10 +128,16 @@ class Lote:
     def set(self, ref, dados, merge=False):
         self.pendentes.append((ref, dados, merge))
 
+    def delete(self, ref):
+        self.pendentes.append((ref, None, "apagar"))
+
     def commit(self):
         assert len(self.pendentes) <= 500, "o Firestore aceita no máximo 500 escritas por lote"
         for ref, dados, merge in self.pendentes:
-            ref.set(dados, merge=merge)
+            if merge == "apagar":
+                self.banco.pop(ref.caminho, None)
+            else:
+                ref.set(dados, merge=merge)
 
 
 class Banco:
@@ -565,9 +574,182 @@ def testar_noticias():
             s.stop()
 
 
+# --------------------------------------------------------------------------
+# Comunidade: histórico e avisos dos comentários e dúvidas das instituições
+# --------------------------------------------------------------------------
+
+class Retrato:
+    """O DocumentSnapshot que o evento do Firestore entrega (antes/depois)."""
+
+    def __init__(self, dados):
+        self.dados, self.exists = dados, dados is not None
+
+    def to_dict(self):
+        return copy.deepcopy(self.dados)
+
+
+def evento(id_evento, colecao, item, antes, depois, uid="", tipo="unknown"):
+    chave = "comentarioId" if colecao == "comentarios" else "perguntaId"
+    return SimpleNamespace(
+        id=id_evento,
+        params={"unidadeId": "u1", chave: item},
+        data=SimpleNamespace(before=Retrato(antes) if antes is not None else None,
+                             after=Retrato(depois) if depois is not None else None),
+        auth_type=tipo, auth_id=uid)
+
+
+def testar_comunidade():
+    print("histórico e avisos da comunidade (comentários e dúvidas)")
+    agora = datetime(2026, 11, 18, 14, 32, tzinfo=timezone.utc)
+    docs = {
+        "instituicoes/u1": {"nome": "Etec Jorge Street"},
+        "usuarios/aluno1": {"nome": "Marina Souza"},
+        "usuarios/aluno2": {"nome": "João Pedro Lima"},
+        "usuarios/aluno3": {"nome": "Duda Martins"},
+        "usuarios/admin1": {"nome": "Ana", "admin": True},
+        "usuarios/admin2": {"nome": "Rui", "admin": True},
+        "fcm_tokens/tok-admin1": {"uid": "admin1"},
+        "fcm_tokens/tok-admin2": {"uid": "admin2"},
+        "fcm_tokens/tok-aluno1": {"uid": "aluno1"},
+        "fcm_tokens/tok-visitante": {"uid": None},
+    }
+    pushes = []
+
+    def enviar(mensagem):
+        pushes.append({"tokens": sorted(mensagem.tokens), **mensagem.data})
+        return SimpleNamespace(responses=[SimpleNamespace(success=True, exception=None) for _ in mensagem.tokens])
+
+    def conta(uid):
+        if uid in ("admin1", "admin2"):
+            return SimpleNamespace(email=f"{uid}@exemplo.com")
+        raise firebase_admin.auth.UserNotFoundError("não existe")
+
+    simulacoes = [
+        mock.patch.object(main.firestore, "client", return_value=Banco(docs)),
+        mock.patch.object(main.messaging, "send_each_for_multicast", side_effect=enviar),
+        mock.patch.object(comunidade.firebase_auth, "get_user", side_effect=conta),
+    ]
+    for s in simulacoes:
+        s.start()
+    comentarios = main.historico_dos_comentarios.__wrapped__
+    duvidas = main.historico_das_duvidas.__wrapped__
+    historico = lambda id_evento: docs.get(f"comunidade_historico/{id_evento}", {})  # noqa: E731
+    try:
+        comentario = {"texto": "Professores muito atenciosos.", "nota": 5, "nome": "Marina Souza",
+                      "curso": "Desenvolvimento de Sistemas", "ano": 2024, "certificadoId": "c1",
+                      "uid": "aluno1", "criadoEm": agora}
+        comentarios(evento("e1", "comentarios", "aluno1_c1", None, comentario, uid="aluno1"))
+        novo = historico("e1-0")
+        conferir("comentário novo vira registro com quem fez, nota, curso e unidade",
+                 (novo.get("acao"), novo.get("nome"), novo.get("nota"), novo.get("curso"), novo.get("unidadeNome"))
+                 == ("comentou", "Marina Souza", 5, "Desenvolvimento de Sistemas", "Etec Jorge Street"), novo)
+        conferir("de quem não é admin o histórico não guarda e-mail", "email" not in novo and novo.get("admin") is False, novo)
+        conferir("a hora do registro é a do servidor", novo.get("em") is main.firestore.SERVER_TIMESTAMP)
+        aviso = docs.get("avisos_admin/avaliacao_u1_aluno1_c1", {})
+        conferir("a avaliação nova vira aviso com link para a parte certa da página",
+                 aviso.get("tipo") == "avaliacao" and aviso.get("link") == "instituicao.html?u=u1#quem-estudou"
+                 and aviso.get("apagada") is False, aviso)
+        conferir("o push vai só para os aparelhos dos admins", len(pushes) == 1
+                 and pushes[0]["tokens"] == ["tok-admin1", "tok-admin2"], pushes)
+        conferir("título e texto do push da avaliação",
+                 pushes[0]["titulo"] == "Nova avaliação na Etec Jorge Street"
+                 and pushes[0]["mensagem"].startswith("★★★★★ Marina Souza · Desenvolvimento de Sistemas: “Professores")
+                 and pushes[0]["link"] == "instituicao.html?u=u1#quem-estudou", pushes[0])
+
+        comentarios(evento("e1", "comentarios", "aluno1_c1", None, comentario, uid="aluno1"))
+        conferir("o mesmo evento entregue duas vezes não repete o registro",
+                 sum(c.startswith("comunidade_historico/e1") for c in docs) == 1)
+
+        editado = {**comentario, "texto": "Professores atenciosos, mas faltou laboratório.", "nota": 4, "editadoEm": agora}
+        comentarios(evento("e2", "comentarios", "aluno1_c1", comentario, editado, uid="aluno1"))
+        edicao = historico("e2-0")
+        conferir("edição guarda o texto e a nota de antes",
+                 (edicao.get("acao"), edicao.get("notaAntes"), edicao.get("nota"), edicao.get("textoAntes"))
+                 == ("editou_comentario", 5, 4, "Professores muito atenciosos."), edicao)
+        conferir("o aviso acompanha a edição", docs["avisos_admin/avaliacao_u1_aluno1_c1"].get("nota") == 4
+                 and docs["avisos_admin/avaliacao_u1_aluno1_c1"].get("editada") is True)
+        comentarios(evento("e3", "comentarios", "aluno1_c1", editado, {**editado, "editadoEm": agora}, uid="aluno1"))
+        conferir("salvar sem mudar texto nem nota não vira registro", "comunidade_historico/e3-0" not in docs)
+
+        comentarios(evento("e4", "comentarios", "aluno1_c1", editado, None, uid="admin1"))
+        apagado = historico("e4-0")
+        conferir("comentário apagado por admin guarda o conteúdo, o e-mail e que não foi o autor",
+                 (apagado.get("acao"), apagado.get("texto"), apagado.get("nota"), apagado.get("email"),
+                  apagado.get("admin"), apagado.get("propria"), apagado.get("autorNome"))
+                 == ("apagou_comentario", editado["texto"], 4, "admin1@exemplo.com", True, False, "Marina Souza"), apagado)
+        conferir("o aviso fica marcado como apagado", docs["avisos_admin/avaliacao_u1_aluno1_c1"]["apagada"] is True)
+
+        antigo = {"texto": "Comentário de antes da conta por certificado.", "nota": 3, "nome": "Duda Martins",
+                  "curso": "Administração", "ano": 2021, "criadoEm": agora}
+        comentarios(evento("e5", "comentarios", "aluno3", antigo, None, uid="aluno3"))
+        proprio = historico("e5-0")
+        conferir("comentário antigo (id = uid) apagado pelo autor conta como próprio",
+                 proprio.get("autorUid") == "aluno3" and proprio.get("propria") is True
+                 and proprio.get("nome") == "Duda Martins", proprio)
+
+        comentarios(evento("e6", "comentarios", "aluno2_c9", {**antigo, "uid": "aluno2"}, None,
+                           uid="firebase-adminsdk@projeto.iam.gserviceaccount.com", tipo="service_account"))
+        conferir("apagado pelo Console ou pelo servidor aparece como Sistema",
+                 historico("e6-0").get("nome") == "Sistema" and historico("e6-0").get("sistema") is True)
+
+        pushes.clear()
+        do_admin = {**comentario, "uid": "admin1", "nome": "Ana", "certificadoId": "c2"}
+        comentarios(evento("e7", "comentarios", "admin1_c2", None, do_admin, uid="admin1"))
+        conferir("quem é admin e comenta não recebe push do próprio comentário",
+                 len(pushes) == 1 and pushes[0]["tokens"] == ["tok-admin2"], pushes)
+
+        pushes.clear()
+        pergunta = {"texto": "Precisa fazer prova para entrar?", "autorUid": "aluno2", "nome": "João Pedro Lima",
+                    "criadaEm": agora, "respostas": {}}
+        duvidas(evento("e8", "perguntas", "p1", None, pergunta, uid="aluno2"))
+        conferir("dúvida nova vira registro", historico("e8-0").get("acao") == "perguntou"
+                 and historico("e8-0").get("autorNome") == "João Pedro Lima")
+        aviso = docs.get("avisos_admin/duvida_u1_p1", {})
+        conferir("e aviso sem resposta, com link para as dúvidas",
+                 aviso.get("respostas") == 0 and aviso.get("link") == "instituicao.html?u=u1#duvidas", aviso)
+        conferir("push da dúvida", len(pushes) == 1 and pushes[0]["titulo"] == "Nova dúvida sobre a Etec Jorge Street"
+                 and pushes[0]["mensagem"] == "João Pedro Lima: “Precisa fazer prova para entrar?”", pushes)
+
+        respondida = {**pergunta, "respostas": {
+            "admin1": {"texto": "Sim, pelo Vestibulinho.", "nome": "Ana", "equipe": True, "em": agora},
+            "aluno3": {"texto": "Acho que não precisa.", "nome": "Duda Martins", "curso": "Enfermagem",
+                       "ano": 2023, "certificadoId": "c5", "equipe": False, "em": agora - timedelta(minutes=5)},
+        }}
+        duvidas(evento("e9", "perguntas", "p1", pergunta, respondida, uid="admin1"))
+        resposta = historico("e9-0")
+        conferir("resposta da equipe vira registro com o e-mail do admin e a pergunta junto",
+                 (resposta.get("acao"), resposta.get("equipe"), resposta.get("email"), resposta.get("perguntaTexto"))
+                 == ("respondeu", True, "admin1@exemplo.com", "Precisa fazer prova para entrar?"), resposta)
+        conferir("as respostas aparecem no aviso", docs["avisos_admin/duvida_u1_p1"]["respostas"] == 2)
+
+        sem_a_duda = {**respondida, "respostas": {"admin1": respondida["respostas"]["admin1"]}}
+        duvidas(evento("e10", "perguntas", "p1", respondida, sem_a_duda, uid="aluno3"))
+        conferir("quem apaga a própria resposta", historico("e10-0").get("acao") == "apagou_resposta"
+                 and historico("e10-0").get("propria") is True and historico("e10-0").get("texto") == "Acho que não precisa.")
+
+        duvidas(evento("e11", "perguntas", "p1", respondida, None, uid="admin2"))
+        apagada = historico("e11-0")
+        conferir("dúvida apagada guarda as respostas que sumiram junto, da mais antiga para a mais nova",
+                 apagada.get("acao") == "apagou_duvida" and [r["autorNome"] for r in apagada.get("respostasApagadas", [])]
+                 == ["Duda Martins", "Ana"] and apagada.get("email") == "admin2@exemplo.com", apagada)
+        conferir("e o aviso da dúvida fica marcado como apagado", docs["avisos_admin/duvida_u1_p1"]["apagada"] is True)
+
+        conferir("outra escola: 'em' e 'sobre' sem artigo",
+                 comunidade.na_unidade("Instituto Federal de SP") == "em Instituto Federal de SP"
+                 and comunidade.sobre_a_unidade("Fatec Carapicuíba") == "sobre a Fatec Carapicuíba")
+        conferir("o link do push aceita a parte da página, mas nada além de letras e hífen",
+                 main._link_seguro_da_notificacao("instituicao.html?u=u1#duvidas") == "instituicao.html?u=u1#duvidas"
+                 and main._link_seguro_da_notificacao("instituicao.html#<script>") == ""
+                 and main._link_seguro_da_notificacao("javascript:alert(1)") == "")
+    finally:
+        for s in simulacoes:
+            s.stop()
+
+
 if __name__ == "__main__":
     testar_nomes()
     testar_demanda()
     testar_capas()
     testar_noticias()
+    testar_comunidade()
     print("TUDO CERTO")

@@ -26,6 +26,9 @@ export async function montarPagina(arquivoHtml, nomeDoScript) {
     const html = await (await fetch(arquivoHtml)).text();
     const semScript = html
         .replace(new RegExp(`<script type="module" src="[^"]*${nomeDoScript}[^"]*"></script>`), '')
+        // o contador do menu do painel lê o Firestore de verdade; o roteiro
+        // da Comunidade carrega ele com os dados simulados
+        .replace(/<script type="module" src="[^"]*admin-nav-contador\.js[^"]*"><\/script>/, '')
         .replace(/<script type="module" src="\/@vite\/client"><\/script>/, '');
     if (semScript.includes(nomeDoScript)) throw new Error(`o script ${nomeDoScript} continua na página`);
     document.open();

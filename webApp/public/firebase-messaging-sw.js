@@ -21,11 +21,12 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Página do próprio site ("noticia.html?id=...") ou endereço https (notícia
-// de outro site). Mesma regra de assets/js/notificacoes-util.js.
+// Página do próprio site ("noticia.html?id=...", ou "instituicao.html?u=...#duvidas"
+// já na parte certa) ou endereço https (notícia de outro site). Mesma regra de
+// assets/js/notificacoes-util.js.
 function linkSeguro(link) {
     const texto = String(link || '').trim();
-    if (/^[a-z0-9-]+\.html(\?[^\s#]*)?$/i.test(texto)) return texto;
+    if (/^[a-z0-9-]+\.html(\?[^\s#]*)?(#[a-z0-9-]+)?$/i.test(texto)) return texto;
     if (/^https:\/\/\S+$/i.test(texto) && texto.length <= 1000) return texto;
     return '';
 }

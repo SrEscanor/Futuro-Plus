@@ -16,7 +16,7 @@
 // Histórico mostra quem fez o quê, com o e-mail.
 import {
     LIMITE_RESUMO, LIMITE_TITULO, aprovarNoticias, buscarNoticiasAgora, contarFila, devolverParaPendentes,
-    lerDestaques, lerUltimaColeta, limparRecusadasAntigas, listarFila, listarHistoricoNoticias,
+    lerDestaques, lerUltimaColeta, limparRecusadasAntigas, listarFila, listarHistoricoNoticiasPagina,
     listarNoticiasPropriasPendentes, mudarDestaques, observarAdmin, recusarNoticias, sairDaConta, salvarEdicao,
     tirarDoSite
 } from './noticias-dados.js';
@@ -25,6 +25,7 @@ import {
 } from './noticias-util.js';
 import { ETIQUETAS, dataHora, haQuantoTempo, linkDaMateria } from './noticias-proprias-util.js';
 import { MAXIMO_DESTAQUES, destaquesDoCarrossel, estaNoSite } from './destaques-util.js';
+import { campoAcao, campoQuem, historicoComFiltros } from './historico-filtros.js';
 
 // O que cada aba diz quando está vazia e os botões de cada notícia dela:
 // [ação, texto do botão, classes].
@@ -508,19 +509,33 @@ function linhaDoHistorico(registro) {
         </tr>`;
 }
 
-async function carregarHistorico() {
-    const corpo = el('historico-corpo');
-    corpo.innerHTML = '<tr><td colspan="4" class="tabela-vazia">Carregando histórico...</td></tr>';
-    try {
-        const registros = await listarHistoricoNoticias({ quantos: 100 });
-        if (estado.aba !== 'historico') return;
-        corpo.innerHTML = registros.length
-            ? registros.map(linhaDoHistorico).join('')
-            : '<tr><td colspan="4" class="tabela-vazia">Nada registrado ainda. O histórico começa na próxima aprovação, recusa ou edição.</td></tr>';
-    } catch (erro) {
-        console.error('Erro ao carregar o histórico das notícias:', erro);
-        corpo.innerHTML = '<tr><td colspan="4" class="tabela-vazia">Não foi possível carregar o histórico agora.</td></tr>';
-    }
+function desenharHistorico(registros, { filtrando, carregando, erro }) {
+    const vazio = (texto) => `<tr><td colspan="4" class="tabela-vazia">${texto}</td></tr>`;
+    let html;
+    if (carregando) html = vazio('Carregando histórico...');
+    else if (erro) html = vazio('Não foi possível carregar o histórico agora.');
+    else if (registros.length) html = registros.map(linhaDoHistorico).join('');
+    else html = vazio(filtrando ? 'Nenhum registro com esses filtros.'
+        : 'Nada registrado ainda. O histórico começa na próxima aprovação, recusa ou edição.');
+    el('historico-corpo').innerHTML = html;
+}
+
+// A barra de filtros (Quando, Quem, O que fez e busca pelo título) é montada
+// na primeira vez que a aba abre; nas outras, só lê de novo.
+let historico = null;
+function carregarHistorico() {
+    historico ||= historicoComFiltros({
+        barra: el('historico-filtros'),
+        botaoMais: el('historico-mais'),
+        buscarPagina: (cursor) => listarHistoricoNoticiasPagina({ depois: cursor }),
+        desenhar: desenharHistorico,
+        busca: { dica: 'Título da notícia…', texto: (r) => `${r.titulo || ''} ${r.detalhe || ''}` },
+        campos: [
+            campoQuem({ rotuloDoEmail: (email) => (email === 'automático' ? 'Automático (a cada 6 horas)' : email) }),
+            campoAcao(ACOES_HISTORICO)
+        ]
+    });
+    historico.recarregar();
 }
 
 // As notícias próprias que esperam aprovação ficam no alto da aba Pendentes,

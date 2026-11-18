@@ -9,7 +9,8 @@
 // worker (public/firebase-messaging-sw.js).
 export function linkSeguroDaNotificacao(link) {
     const texto = String(link ?? '').trim();
-    if (/^[a-z0-9-]+\.html(\?[^\s#]*)?$/i.test(texto)) return texto;
+    // página do site, com ou sem a parte da página (instituicao.html?u=...#duvidas)
+    if (/^[a-z0-9-]+\.html(\?[^\s#]*)?(#[a-z0-9-]+)?$/i.test(texto)) return texto;
     if (/^https:\/\/\S+$/i.test(texto) && texto.length <= 1000) return texto;
     return '';
 }

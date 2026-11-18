@@ -575,6 +575,41 @@ h3,
     color: var(--blue);
 }
 
+/* avaliação ou dúvida nova numa instituição: só para quem é admin
+   (notificacoes.js, avisosDaEquipe) */
+.notif-item--equipe {
+    background: #f4f6ff;
+}
+
+.notif-item--equipe.notif-item--link:hover {
+    background-color: var(--blue-soft);
+}
+
+.notif-item-tag {
+    display: inline-block;
+    margin-bottom: 4px;
+    padding: 1px 8px;
+    border-radius: 99px;
+    background: var(--blue);
+    color: #fff;
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 9.5px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.notif-item-estrelas {
+    color: #f5a623;
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
+.notif-item-estrelas i {
+    font-style: normal;
+    color: #d9dcec;
+}
+
 .notif-vazio {
     padding: 10px 6px;
     font-size: 12.5px;
@@ -1874,6 +1909,7 @@ a.btn-saiba {
 .menu-item[href="admin-termos.html"] { --icone-menu: url('../icones/menu/termos.svg'); --icone-menu-texto: ''; }
 .menu-item[href="admin-notificacoes.html"] { --icone-menu: url('../icones/menu/notificacoes.svg'); --icone-menu-texto: ''; }
 .menu-item[href="admin-noticias-proprias.html"] { --icone-menu: url('../icones/menu/noticias-proprias.svg'); --icone-menu-texto: ''; }
+.menu-item[href="admin-comunidade.html"] { --icone-menu: url('../icones/menu/comunidade.svg'); --icone-menu-texto: ''; }
 
 /* No item ativo (fundo azul) o ícone fica branco. Os detalhes dos desenhos
    são furos, então continuam aparecendo. */

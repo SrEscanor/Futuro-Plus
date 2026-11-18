@@ -11,9 +11,10 @@
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import {
-    collection, doc, getDoc, getDocs, limit, orderBy, query, serverTimestamp, writeBatch
+    collection, doc, getDoc, getDocs, serverTimestamp, writeBatch
 } from 'firebase/firestore';
 import { listarNoticiasPublicadas } from './noticias-dados.js';
+import { paginaDoHistorico } from './historico-paginas.js';
 
 const COLECAO = 'notificacoes';
 const HISTORICO = 'notificacoes_historico';
@@ -98,13 +99,11 @@ export async function excluirNotificacao(notificacao) {
     await lote.commit();
 }
 
-// Os últimos registros, do mais novo para o mais antigo ("em" em ISO).
-export async function listarHistorico({ quantos = 100 } = {}) {
-    const snap = await getDocs(query(collection(db, HISTORICO), orderBy('em', 'desc'), limit(quantos)));
-    return lerDocs(snap).map((registro) => ({
-        ...registro,
-        em: registro.em?.toDate ? registro.em.toDate().toISOString() : registro.em || null
-    }));
+// Uma página do histórico (aba Histórico, com filtros): { registros, cursor,
+// haMais }, do mais novo para o mais antigo, "em" em ISO. depois = o cursor
+// da página anterior.
+export function listarHistoricoPagina({ quantos = 100, depois = null } = {}) {
+    return paginaDoHistorico(HISTORICO, { quantos, depois });
 }
 
 // ========================================================

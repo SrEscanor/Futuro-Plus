@@ -32,6 +32,7 @@ import {
     limit, orderBy, query, runTransaction, serverTimestamp, where, writeBatch
 } from 'firebase/firestore';
 import { INSTITUICOES, imagemSegura, linkSeguro, oQueFoiEditado } from './noticias-util.js';
+import { paginaDoHistorico } from './historico-paginas.js';
 import { DOC_DESTAQUES, estaNoSite, itensDosDestaques, mudarListaDeDestaques } from './destaques-util.js';
 
 const PUBLICADAS = 'noticias';
@@ -159,14 +160,11 @@ export async function contarFila() {
     return { pendente, aprovada: naColecao - agendadas, recusada };
 }
 
-// Os últimos registros do histórico, do mais novo para o mais antigo ("em"
-// em ISO).
-export async function listarHistoricoNoticias({ quantos = 100 } = {}) {
-    const snap = await getDocs(query(collection(db, HISTORICO), orderBy('em', 'desc'), limit(quantos)));
-    return lerDocs(snap).map((registro) => ({
-        ...registro,
-        em: registro.em?.toDate ? registro.em.toDate().toISOString() : registro.em || null
-    }));
+// Uma página do histórico (aba Histórico, com filtros): { registros, cursor,
+// haMais }, do mais novo para o mais antigo, "em" em ISO. depois = o cursor
+// da página anterior.
+export function listarHistoricoNoticiasPagina({ quantos = 100, depois = null } = {}) {
+    return paginaDoHistorico(HISTORICO, { quantos, depois });
 }
 
 // ========================================================

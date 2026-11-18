@@ -8,13 +8,14 @@
 // esse arquivo por uma cópia de mentira). O painel Notícias manda para cá
 // com ?noticia=<id> para criar um aviso já ligado à notícia.
 import {
-    excluirNotificacao, lerNoticiaDoSite, listarHistorico, listarNoticiasDoSite, listarNotificacoes, novoId,
+    excluirNotificacao, lerNoticiaDoSite, listarHistoricoPagina, listarNoticiasDoSite, listarNotificacoes, novoId,
     observarAdmin, sairDaConta, salvarNotificacao
 } from './notificacoes-dados.js';
 import {
     ACOES_NOTIFICACAO, linkDaNoticia, noticiaLigada, oQueMudou, textoSugerido
 } from './notificacoes-util.js';
 import { dataHora } from './noticias-proprias-util.js';
+import { campoAcao, campoQuem, historicoComFiltros } from './historico-filtros.js';
 
 let notificacoesCache = [];
 let editandoId = null;
@@ -170,18 +171,29 @@ function linhaDoHistorico(registro) {
         </tr>`;
 }
 
-async function carregarHistorico() {
-    const corpo = el('historico-corpo');
-    corpo.innerHTML = '<tr><td colspan="4" class="tabela-vazia">Carregando histórico...</td></tr>';
-    try {
-        const registros = await listarHistorico({ quantos: 100 });
-        corpo.innerHTML = registros.length
-            ? registros.map(linhaDoHistorico).join('')
-            : '<tr><td colspan="4" class="tabela-vazia">Nada registrado ainda. O histórico começa na próxima notificação salva.</td></tr>';
-    } catch (erro) {
-        console.error('Erro ao carregar o histórico das notificações:', erro);
-        corpo.innerHTML = '<tr><td colspan="4" class="tabela-vazia">Não foi possível carregar o histórico agora.</td></tr>';
-    }
+function desenharHistorico(registros, { filtrando, carregando, erro }) {
+    const vazio = (texto) => `<tr><td colspan="4" class="tabela-vazia">${texto}</td></tr>`;
+    let html;
+    if (carregando) html = vazio('Carregando histórico...');
+    else if (erro) html = vazio('Não foi possível carregar o histórico agora.');
+    else if (registros.length) html = registros.map(linhaDoHistorico).join('');
+    else html = vazio(filtrando ? 'Nenhum registro com esses filtros.' : 'Nada registrado ainda. O histórico começa na próxima notificação salva.');
+    el('historico-corpo').innerHTML = html;
+}
+
+// A barra de filtros (Quando, Quem, O que fez e busca pelo título) é montada
+// na primeira vez que a aba abre; nas outras, só lê de novo.
+let historico = null;
+function carregarHistorico() {
+    historico ||= historicoComFiltros({
+        barra: el('historico-filtros'),
+        botaoMais: el('historico-mais'),
+        buscarPagina: (cursor) => listarHistoricoPagina({ depois: cursor }),
+        desenhar: desenharHistorico,
+        busca: { dica: 'Título da notificação…', texto: (r) => `${r.titulo || ''} ${r.detalhe || ''}` },
+        campos: [campoQuem(), campoAcao(ACOES_NOTIFICACAO)]
+    });
+    historico.recarregar();
 }
 
 function abrirAba(aba) {

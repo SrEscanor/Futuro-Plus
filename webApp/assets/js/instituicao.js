@@ -465,6 +465,8 @@ async function iniciar() {
             estado.cursorPerguntas = cursor;
             estado.haMaisPerguntas = haMais;
             desenharDuvidas();
+            // o aviso de dúvida nova (painel Comunidade, sino e push) chega com #duvidas
+            if (location.hash === '#duvidas') irParaOAncora();
         })
         .catch((erro) => console.error('Erro ao ler as dúvidas:', erro));
 

@@ -68,11 +68,11 @@ export async function excluirNotificacao(notificacao) {
     estado().gravacoes.push(['excluir', notificacao.id]);
 }
 
-export async function listarHistorico({ quantos = 100 } = {}) {
+export async function listarHistoricoPagina({ quantos = 100, depois = null } = {}) {
     await chamada('listar');
-    return copia(estado().historico)
-        .sort((a, b) => String(b.em).localeCompare(String(a.em)))
-        .slice(0, quantos);
+    const todos = copia(estado().historico).sort((a, b) => String(b.em).localeCompare(String(a.em)));
+    const inicio = depois || 0;
+    return { registros: todos.slice(inicio, inicio + quantos), cursor: inicio + quantos, haMais: todos.length > inicio + quantos };
 }
 
 export async function listarNoticiasDoSite(quantas = 80) {

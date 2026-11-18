@@ -31,6 +31,7 @@
                 <a href="admin-notificacoes.html" class="admin-nav-item">Notificações</a>
                 <a href="admin-noticias.html" class="admin-nav-item">Notícias</a>
                 <a href="admin-noticias-proprias.html" class="admin-nav-item" aria-current="page">Notícias próprias</a>
+                <a href="admin-comunidade.html" class="admin-nav-item">Comunidade<span class="admin-nav-contador" hidden></span></a>
             </div>
             <a href="index.html" class="admin-nav-voltar">Voltar ao site</a>
         </nav>
@@ -76,6 +77,8 @@
                 <div id="np-painel-historico" role="tabpanel" aria-labelledby="np-aba-historico" hidden>
                     <p class="np-historico-dica">Tudo o que foi feito nas notícias próprias, com o e-mail de quem fez.
                         Ninguém consegue apagar ou mudar estes registros, nem quando a notícia é excluída.</p>
+                    <!-- busca, Quando, Quem e O que fez: historico-filtros.js -->
+                    <div id="np-historico-filtros"></div>
                     <div class="tabela-container">
                         <table class="np-tabela-historico">
                             <thead>
@@ -89,6 +92,7 @@
                             <tbody id="np-historico-corpo"></tbody>
                         </table>
                     </div>
+                    <button type="button" id="np-historico-mais" class="btn btn-secundario historico-mais" hidden>Carregar mais antigos</button>
                 </div>
             </section>
 
@@ -227,6 +231,7 @@
         </div>
     </div>
 
+    <script type="module" src="assets/js/admin-nav-contador.js"></script>
     <script type="module" src="assets/js/admin-noticias-proprias.js"></script>
 </body>
 

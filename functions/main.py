@@ -10,6 +10,8 @@ import firebase_admin
 from firebase_admin import firestore, auth as firebase_auth, storage, messaging
 from firebase_functions import https_fn, options, scheduler_fn, firestore_fn
 
+import comunidade
+
 # Inicializa o Firebase apenas uma vez e de forma leve
 if not firebase_admin._apps:
     firebase_admin.initialize_app()
@@ -287,11 +289,12 @@ def excluir_contas_agendadas(event: scheduler_fn.ScheduledEvent) -> None:
             print(f"Erro ao excluir a conta {doc_usuario.id}: {erro}")
 
 def _link_seguro_da_notificacao(link):
-    """O link que vai no push: uma página do próprio site ("noticia.html?id=...")
-    ou um endereço https (notícia de outro site). Qualquer outra coisa vira
-    vazio, e o clique só abre o Futuro+. Mesma regra de notificacoes-util.js."""
+    """O link que vai no push: uma página do próprio site ("noticia.html?id=...",
+    ou "instituicao.html?u=...#duvidas" já na parte certa) ou um endereço
+    https (notícia de outro site). Qualquer outra coisa vira vazio, e o clique
+    só abre o Futuro+. Mesma regra de notificacoes-util.js."""
     texto = str(link or "").strip()
-    if re.fullmatch(r"[a-z0-9-]+\.html(\?[^\s#]*)?", texto, flags=re.IGNORECASE):
+    if re.fullmatch(r"[a-z0-9-]+\.html(\?[^\s#]*)?(#[a-z0-9-]+)?", texto, flags=re.IGNORECASE):
         return texto
     if re.fullmatch(r"https://[^\s]+", texto, flags=re.IGNORECASE) and len(texto) <= 1000:
         return texto
@@ -333,9 +336,16 @@ def enviar_push_da_notificacao(event: firestore_fn.Event) -> None:
     if not tokens:
         return
 
-    titulo = str(dados.get("titulo") or "Futuro+")[:200]
-    corpo = str(dados.get("mensagem") or "")[:400]
-    link = _link_seguro_da_notificacao(dados.get("link"))
+    enviados, invalidos = _enviar_push(db, tokens, dados.get("titulo") or "Futuro+", dados.get("mensagem"), dados.get("link"))
+    print(f"Push da notificação enviado pra {enviados} token(s); {invalidos} inválido(s) removido(s).")
+
+
+def _enviar_push(db, tokens, titulo, corpo, link):
+    """Manda o push para os aparelhos (tokens do FCM) e apaga os tokens que
+    não valem mais. Devolve (quantos tokens, quantos inválidos)."""
+    titulo = str(titulo or "Futuro+")[:200]
+    corpo = str(corpo or "")[:400]
+    link = _link_seguro_da_notificacao(link)
     invalidos = []
 
     for inicio in range(0, len(tokens), 500):
@@ -363,7 +373,35 @@ def enviar_push_da_notificacao(event: firestore_fn.Event) -> None:
             lote_apagar.delete(db.collection("fcm_tokens").document(token))
         lote_apagar.commit()
 
-    print(f"Push da notificação enviado pra {len(tokens)} token(s); {len(invalidos)} inválido(s) removido(s).")
+    return len(tokens), len(invalidos)
+
+
+def _push_para_os_admins(db, tokens, titulo, corpo, link):
+    enviados, invalidos = _enviar_push(db, tokens, titulo, corpo, link)
+    print(f"Aviso da comunidade enviado pra {enviados} aparelho(s) de admin; {invalidos} inválido(s) removido(s).")
+
+
+# Comentários (com nota) e dúvidas das páginas das instituições: cada um que
+# nasce, muda ou é apagado vira um registro no histórico do painel Admin ·
+# Comunidade, com uma cópia do conteúdo e de quem fez (o "auth context" do
+# evento diz qual conta gravou). Avaliação e dúvida novas também viram aviso
+# para os admins (aba Novidades, sino do site e push). Ver comunidade.py.
+@firestore_fn.on_document_written_with_auth_context(
+    document="instituicoes/{unidadeId}/comentarios/{comentarioId}",
+    region=options.SupportedRegion.SOUTHAMERICA_EAST1,
+    memory=options.MemoryOption.MB_256,
+)
+def historico_dos_comentarios(event) -> None:
+    comunidade.processar_comentario(firestore.client(), event, _push_para_os_admins)
+
+
+@firestore_fn.on_document_written_with_auth_context(
+    document="instituicoes/{unidadeId}/perguntas/{perguntaId}",
+    region=options.SupportedRegion.SOUTHAMERICA_EAST1,
+    memory=options.MemoryOption.MB_256,
+)
+def historico_das_duvidas(event) -> None:
+    comunidade.processar_duvida(firestore.client(), event, _push_para_os_admins)
 
 
 def _exigir_admin(req, db):

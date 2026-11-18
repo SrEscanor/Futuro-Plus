@@ -271,5 +271,22 @@ service cloud.firestore {
         && request.resource.data.em == request.time;
       allow update, delete: if false;
     }
+
+    // Histórico do painel Admin · Comunidade: tudo o que acontece nos
+    // comentários, notas e dúvidas das páginas das instituições, com uma
+    // cópia do que foi apagado. Só as funções historico_dos_comentarios e
+    // historico_das_duvidas gravam (Admin SDK); pelo site ninguém grava,
+    // edita nem apaga, e só admin lê.
+    match /comunidade_historico/{registroId} {
+      allow read: if ehAdmin();
+      allow write: if false;
+    }
+
+    // Avaliação ou dúvida nova, para a aba Novidades do mesmo painel e para o
+    // sino do site de quem é admin. Também gravado só pelas funções.
+    match /avisos_admin/{avisoId} {
+      allow read: if ehAdmin();
+      allow write: if false;
+    }
   }
 }

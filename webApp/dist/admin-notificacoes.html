@@ -8,13 +8,17 @@
     <link rel="icon" href="./favicon.ico" sizes="48x48">
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="./apple-touch-icon.png">
-  <script type="module" crossorigin src="./assets/adminNotificacoes-lowamcx2.js"></script>
-  <link rel="modulepreload" crossorigin href="./assets/firebase-config-XQh5hlny.js">
-  <link rel="modulepreload" crossorigin href="./assets/destaques-util-CLcdY04S.js">
-  <link rel="modulepreload" crossorigin href="./assets/noticias-dados-Cjfx2sye.js">
-  <link rel="modulepreload" crossorigin href="./assets/notificacoes-util-BMqxtxne.js">
+  <script type="module" crossorigin src="./assets/adminNotificacoes-D2EDj7jE.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/firebase-config-CO6QNrkm.js">
+  <link rel="modulepreload" crossorigin href="./assets/historico-paginas-PlBEQXaq.js">
+  <link rel="modulepreload" crossorigin href="./assets/admin-nav-contador-Yf_dCakP.js">
+  <link rel="modulepreload" crossorigin href="./assets/noticias-proprias-util-Cv1iCrjZ.js">
+  <link rel="modulepreload" crossorigin href="./assets/destaques-util-Bxit5onw.js">
+  <link rel="modulepreload" crossorigin href="./assets/noticias-dados-DAE2biAI.js">
+  <link rel="modulepreload" crossorigin href="./assets/notificacoes-util-BE-pPj56.js">
+  <link rel="modulepreload" crossorigin href="./assets/historico-filtros-BOgkprmx.js">
   <link rel="stylesheet" crossorigin href="./assets/adminNotificacoes-DgBgysCw.css">
-  <link rel="stylesheet" crossorigin href="./assets/admin-instituicoes-CAmm1bT_.css">
+  <link rel="stylesheet" crossorigin href="./assets/admin-instituicoes-DFW_c3dY.css">
 </head>
 
 <body>
@@ -34,6 +38,7 @@
                 <a href="admin-notificacoes.html" class="admin-nav-item" aria-current="page">Notificações</a>
                 <a href="admin-noticias.html" class="admin-nav-item">Notícias</a>
                 <a href="admin-noticias-proprias.html" class="admin-nav-item">Notícias próprias</a>
+                <a href="admin-comunidade.html" class="admin-nav-item">Comunidade<span class="admin-nav-contador" hidden></span></a>
             </div>
             <a href="index.html" class="admin-nav-voltar">Voltar ao site</a>
         </nav>
@@ -96,6 +101,8 @@
             <div id="painel-historico" role="tabpanel" aria-labelledby="aba-historico" hidden>
                 <p class="historico-dica">Tudo o que foi feito nas notificações, com o e-mail de quem fez. Ninguém
                     consegue apagar ou mudar estes registros, nem quando a notificação é excluída.</p>
+                <!-- busca, Quando, Quem e O que fez: historico-filtros.js -->
+                <div id="historico-filtros"></div>
                 <div class="tabela-container">
                     <table class="tabela-historico">
                         <thead>
@@ -109,6 +116,7 @@
                         <tbody id="historico-corpo"></tbody>
                     </table>
                 </div>
+                <button type="button" id="historico-mais" class="btn btn-secundario historico-mais" hidden>Carregar mais antigos</button>
             </div>
         </div>
     </main>
