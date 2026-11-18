@@ -205,6 +205,15 @@ export function acharUnidade(texto, unidades = []) {
     };
 }
 
+// Diploma de curso a distância do Centro Paula Souza (GEEaD/CETEC e afins):
+// não cita uma Etec ou Fatec específica, porque o curso não é de uma
+// unidade só. Quando a leitura não acha a unidade mas o texto é desses,
+// quem pendura o certificado escolhe a unidade no Mural (ver
+// unidadeTemCurso, que confere se a escolhida faz sentido).
+export function pareceDiplomaEad(texto) {
+    return /\bgeead\b|\bead\b|educac[a-z]*\s+a\s+distanc/i.test(normalizar(texto));
+}
+
 // ------------------------------------------------------------------
 // Qual é o curso
 // ------------------------------------------------------------------
@@ -312,6 +321,15 @@ export function unidadePeloNome(nome, unidades = []) {
     const procurado = normalizar(nome);
     if (!procurado) return null;
     return unidades.find((unidade) => normalizar(unidade.nome) === procurado) || null;
+}
+
+// A unidade escolhida à mão (quando a leitura não achou nenhuma, como no
+// diploma de EaD) realmente tem esse curso no cadastro? unidade vem do
+// catálogo de instituições, com o campo "cursos" dela.
+export function unidadeTemCurso(unidade, nomeDoCurso) {
+    const procurado = normalizar(nomeDoCurso);
+    if (!procurado) return false;
+    return (unidade?.cursos || []).some((curso) => normalizar(curso?.nome) === procurado);
 }
 
 // Dois certificados são o mesmo quando são do mesmo curso na mesma escola

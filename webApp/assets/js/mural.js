@@ -7,7 +7,8 @@ import {
     lerCertificado, areasDeCpf, areasDeRg, borrarAreas, canvasParaArquivo, reduzirImagem
 } from './certificado-ocr.js';
 import {
-    lerDadosDoCertificado, conferirNome, cursoPeloNome, unidadePeloNome, certificadoRepetido, nivelDoTexto
+    lerDadosDoCertificado, conferirNome, cursoPeloNome, unidadePeloNome, certificadoRepetido, nivelDoTexto,
+    pareceDiplomaEad, unidadeTemCurso
 } from './certificado-dados.js';
 
 const storage = getStorage(app);
@@ -122,7 +123,10 @@ async function carregarCatalogo() {
 
     let [cursos, unidades] = await Promise.all([
         ler('cursos', (dados) => ({ nome: dados.nome || '', nivel: dados.nivel || '' })),
-        ler('instituicoes', (dados) => ({ nome: dados.nome || '', tipo: dados.tipo || '' }))
+        // "cursos" da unidade vem junto: é o que confere se a unidade que a
+        // pessoa escolher (quando a leitura não acha nenhuma) faz sentido
+        // com o curso do diploma (ver unidadeTemCurso)
+        ler('instituicoes', (dados) => ({ nome: dados.nome || '', tipo: dados.tipo || '', cursos: dados.cursos || [] }))
     ]);
 
     // enquanto o catálogo não foi importado no painel, vale o arquivo oficial
@@ -202,6 +206,7 @@ function dadosDosCampos() {
         anoInvalido: Boolean(anoDigitado) && !(Number.isInteger(ano) && ano >= ANO_MINIMO && ano <= anoMaximoValido()),
         cursoId: curso?.id || '',
         unidadeId: unidade?.id || '',
+        unidade,
         verificacao: { codigoValidacao: emPreparo?.analise?.codigoValidacao || '' }
     };
 }
@@ -237,6 +242,21 @@ function validarCampos() {
         return false;
     }
 
+    // Diploma de EaD (GEEaD/CETEC e afins) não cita uma unidade: a pessoa
+    // escolhe, mas só vale se a unidade escolhida realmente tiver o curso.
+    if (emPreparo.precisaEscolherUnidade) {
+        if (!dados.unidade) {
+            mostrarStatus('Este diploma não diz qual unidade é. Escolha, no campo acima, a Etec ou Fatec onde você fez o curso.', 'alerta');
+            botao.disabled = true;
+            return false;
+        }
+        if (!unidadeTemCurso(dados.unidade, dados.titulo)) {
+            mostrarStatus(`${dados.unidade.nome} não tem "${dados.titulo}" no cadastro. Confira se é essa mesmo a unidade.`, 'erro');
+            botao.disabled = true;
+            return false;
+        }
+    }
+
     const repetido = certificadoRepetido(dados, certificados);
     if (repetido) {
         const qual = [repetido.titulo, repetido.instituicao].filter(Boolean).join(', ');
@@ -268,6 +288,7 @@ async function prepararCertificado(arquivoOriginal) {
     elemento('cert-ano').value = '';
     marcarLigacao('cert-titulo-ligado', '');
     marcarLigacao('cert-instituicao-ligado', '');
+    marcarLigacao('cert-instituicao-ead', '');
     emPreparo = null;
 
     const previa = elemento('previa-certificado');
@@ -306,16 +327,28 @@ async function prepararCertificado(arquivoOriginal) {
             return;
         }
 
+        // Diploma de EaD do Centro Paula Souza (GEEaD/CETEC): não cita uma
+        // unidade, porque o curso não é de uma Etec/Fatec só. Só vale pedir
+        // para a pessoa escolher quando o próprio diploma já confirmou o
+        // curso (sem isso, não tem como conferir se a unidade escolhida faz
+        // sentido, e aceitar qualquer uma abriria brecha para forjar onde
+        // estudou).
+        const precisaEscolherUnidade = Boolean(lido.curso) && !lido.unidade && pareceDiplomaEad(texto);
+
         elemento('cert-titulo').value = lido.cursoLido;
         elemento('cert-instituicao').value = lido.unidadeLida
             || (analise.instituicao ? analise.instituicao.replace(/\b\w/g, (letra) => letra.toUpperCase()) : '');
         elemento('cert-ano').value = lido.anoConclusao || '';
         elemento('campos-certificado').hidden = false;
+        marcarLigacao('cert-instituicao-ead', precisaEscolherUnidade
+            ? `Este diploma é de educação a distância e não cita uma unidade. Escolha, da lista, a Etec ou Fatec onde você fez "${lido.cursoLido}".`
+            : '');
 
         emPreparo = {
             arquivo: arquivoFinal,
             analise,
             lido,
+            precisaEscolherUnidade,
             nivel: nivelDoTexto(texto),
             titular: nome.titular,
             mensagem: analise.pareceCertificado
@@ -366,9 +399,12 @@ async function salvarCertificado() {
                 nomeConfere: true,
                 // o que foi lido no papel, separado do que a pessoa pode ter
                 // corrigido nos campos: é o que vale para liberar o que
-                // depender de ter estudado naquela escola (comentários)
+                // depender de ter estudado naquela escola (comentários).
+                // Exceção: diploma de EaD sem unidade (precisaEscolherUnidade)
+                // — aí vale a unidade escolhida, já conferida em validarCampos
+                // (curso veio do diploma, e a unidade escolhida tem esse curso).
                 cursoLido: emPreparo.lido.curso?.id || '',
-                unidadeLida: emPreparo.lido.unidade?.id || '',
+                unidadeLida: emPreparo.precisaEscolherUnidade ? dados.unidadeId : (emPreparo.lido.unidade?.id || ''),
                 codigoValidacao: emPreparo.analise.codigoValidacao || '',
                 conferidoEm: new Date().toISOString()
             },

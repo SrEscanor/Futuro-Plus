@@ -52,6 +52,9 @@ export function analisarTexto(texto) {
     const limpo = normalizarTexto(texto);
 
     const termos = TERMOS_CERTIFICADO.filter((termo) => limpo.includes(termo));
+    // "etec" também bate dentro de "CETEC" (Centro Estadual de Educação
+    // Tecnológica, sigla usada em diploma de EaD do Centro Paula Souza) —
+    // de propósito: lá também é um indício válido de Etec/CPS.
     const instituicoes = TERMOS_INSTITUICAO.filter((termo) => limpo.includes(termo));
     const horas = limpo.match(/(\d{1,4})\s*horas?/);
     const codigo = limpo.match(/(?:codigo|validacao|autenticacao)[^a-z0-9]{0,10}([a-z0-9-]{6,})/);

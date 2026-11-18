@@ -455,6 +455,20 @@
     display: none;
 }
 
+/* pede para escolher a unidade, quando o diploma (de EaD) não cita nenhuma */
+.mural-aviso {
+    display: block;
+    margin-top: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.45;
+    color: var(--gold-dark);
+}
+
+.mural-aviso[hidden] {
+    display: none;
+}
+
 /* dica embaixo do campo de ano, sempre visível (não depende do que a leitura achou) */
 .mural-dica {
     display: block;

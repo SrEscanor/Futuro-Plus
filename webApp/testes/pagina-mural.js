@@ -89,6 +89,9 @@ teste.sair = async () => {
 // Desenha um certificado no formato dos da Etec (texto corrido, nome em
 // maiúsculas, CPF na frase). largura pequena de propósito: é o caso em que a
 // página precisa ampliar a imagem antes de ler.
+// ead: true desenha um diploma de educação a distância do Centro Paula
+// Souza (GEEaD/CETEC), que não cita nenhuma Etec/Fatec específica — é o
+// caso em que o Mural pede para a pessoa escolher a unidade.
 teste.certificado = async ({
     nome = 'MARINA COSTA OLIVEIRA',
     escola = 'Escola Técnica Estadual SEBRAE',
@@ -96,7 +99,8 @@ teste.certificado = async ({
     titulo = 'ESPECIALISTA TÉCNICO DE NÍVEL MÉDIO EM DESENVOLVIMENTO DE APLICATIVOS PARA SMARTPHONES',
     ano = 2025,
     cpf = '123.456.789-00',
-    largura = 900
+    largura = 900,
+    ead = false
 } = {}) => {
     const tela = document.createElement('canvas');
     tela.width = largura;
@@ -113,12 +117,17 @@ teste.certificado = async ({
     pincel.fillText('Etec', 50 * u, 40 * u);
     pincel.font = `bold ${18 * u}px Arial`;
     pincel.textAlign = 'center';
-    pincel.fillText('CERTIFICADO', tela.width / 2, 130 * u);
+    pincel.fillText(ead ? 'DIPLOMA' : 'CERTIFICADO', tela.width / 2, 130 * u);
     pincel.textAlign = 'left';
 
-    const frase = `O Superintendente da ${escola} confere a ${nome}, CPF ${cpf}, de nacionalidade brasileira, `
-        + `natural de Santos, estado de São Paulo, nascido em 10 de março de 2001, o presente CERTIFICADO por haver `
-        + `concluído em ${ano}, ${formacao}.`;
+    const frase = ead
+        ? `O Diretor do Grupo de Estudo de Educação a Distância, do Centro Estadual de Educação Tecnológica `
+            + `Paula Souza, confere a ${nome}, CPF ${cpf}, de nacionalidade brasileira, natural de Santos, `
+            + `estado de São Paulo, nascido em 10 de março de 2001, o presente DIPLOMA por ter concluído em `
+            + `${ano}, ${formacao}. Diretor do GEEaD/CETEC.`
+        : `O Superintendente da ${escola} confere a ${nome}, CPF ${cpf}, de nacionalidade brasileira, `
+            + `natural de Santos, estado de São Paulo, nascido em 10 de março de 2001, o presente CERTIFICADO por haver `
+            + `concluído em ${ano}, ${formacao}.`;
     pincel.font = `${13 * u}px Arial`;
     let linha = '';
     let y = 180 * u;
@@ -154,6 +163,7 @@ teste.resumo = () => ({
     status: elemento('status-certificado').textContent,
     statusTipo: elemento('status-certificado').className.replace('mural-status', '').trim(),
     camposVisiveis: !elemento('campos-certificado').hidden,
+    avisoEad: elemento('cert-instituicao-ead').hidden ? '' : elemento('cert-instituicao-ead').textContent,
     titulo: elemento('cert-titulo').value,
     instituicao: elemento('cert-instituicao').value,
     ano: elemento('cert-ano').value,
