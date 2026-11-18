@@ -442,38 +442,6 @@
     font-weight: 600;
 }
 
-.mural-achados ul {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin-bottom: 14px;
-}
-
-.mural-achados li {
-    font-size: 12.5px;
-    line-height: 1.45;
-    padding: 8px 12px;
-    border-radius: 10px;
-    background: var(--bg);
-    color: var(--ink-soft);
-}
-
-.mural-achados li.ok {
-    background: var(--green-soft);
-    color: var(--green-logo-forte);
-}
-
-.mural-achados li.alerta {
-    background: var(--gold-soft);
-    color: #7a5200;
-}
-
-.mural-achados li.erro {
-    background: var(--red-soft);
-    color: #b42318;
-}
-
 /* aviso embaixo do campo quando o texto é de um curso ou unidade do site */
 .mural-ligado {
     display: block;

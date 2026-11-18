@@ -153,10 +153,10 @@ teste.resumo = () => ({
     modalAberto: elemento('modal-certificado').classList.contains('aberto'),
     status: elemento('status-certificado').textContent,
     statusTipo: elemento('status-certificado').className.replace('mural-status', '').trim(),
-    achados: [...document.querySelectorAll('#achados-certificado li')].map((li) => `[${li.className}] ${li.textContent}`),
     camposVisiveis: !elemento('campos-certificado').hidden,
     titulo: elemento('cert-titulo').value,
     instituicao: elemento('cert-instituicao').value,
+    ano: elemento('cert-ano').value,
     ligados: ['cert-titulo-ligado', 'cert-instituicao-ligado'].map((id) => (elemento(id).hidden ? '' : elemento(id).textContent)),
     botaoPendurar: !elemento('btn-salvar-certificado').disabled
 });

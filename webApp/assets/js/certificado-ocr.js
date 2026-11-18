@@ -24,6 +24,16 @@ const TERMOS_INSTITUICAO = [
 // CPF impresso: 000.000.000-00 ou 11 dígitos seguidos.
 const PADRAO_CPF = /(\d{3}\.?\d{3}\.?\d{3}-?\d{2})/;
 
+// Certificado impresso costuma ter texto justificado, e isso corta palavra
+// com hífen no fim da linha ("desenvolvi-\nmento"). O OCR devolve as duas
+// metades como palavras separadas, e nada que compara palavra por palavra
+// (nome, curso, escola) reconhece a palavra inteira assim. Aqui a emenda:
+// hífen no fim de uma linha, seguido de letra no começo da próxima, vira a
+// palavra emendada — antes de qualquer outra leitura do texto.
+export function emendarQuebraDeLinha(texto) {
+    return (texto || '').replace(/([a-zà-ÿ])-\s*\n\s*([a-zà-ÿ])/gi, '$1$2');
+}
+
 export function normalizarTexto(texto) {
     return (texto || '')
         .toLowerCase()
@@ -185,7 +195,8 @@ export async function lerCertificado(arquivo, aoProgresso = () => {}) {
                 }
             }));
 
-        return { texto: data.text || '', palavras, analise: analisarTexto(data.text || '') };
+        const texto = emendarQuebraDeLinha(data.text || '');
+        return { texto, palavras, analise: analisarTexto(texto) };
     } finally {
         await worker.terminate();
     }

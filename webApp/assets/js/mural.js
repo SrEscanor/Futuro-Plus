@@ -155,40 +155,6 @@ function mostrarStatus(texto, tipo = '', link = null) {
         + (link ? ` <a href="${escapeHtml(link.href)}">${escapeHtml(link.rotulo)}</a>` : '');
 }
 
-function mostrarAchados(analise, nome, lido, cpfBorrado) {
-    const achados = elemento('achados-certificado');
-    const itens = [];
-
-    itens.push(analise.pareceCertificado
-        ? `<li class="ok">Encontrei palavras de certificado: ${escapeHtml(analise.termosEncontrados.slice(0, 3).join(', '))}</li>`
-        : '<li class="alerta">Não achei palavras típicas de certificado nesta imagem</li>');
-
-    if (nome.confere) {
-        itens.push(`<li class="ok">${nome.titular
-            ? `Está em nome de ${escapeHtml(nome.titular)}, que bate com o da sua conta`
-            : 'O nome da sua conta aparece no certificado'}</li>`);
-    } else {
-        itens.push(`<li class="erro">${nome.titular
-            ? `Está em nome de ${escapeHtml(nome.titular)}, diferente do nome da sua conta`
-            : 'Não encontrei o nome da sua conta no certificado'}</li>`);
-    }
-
-    if (lido.cursoLido) {
-        itens.push(`<li class="ok">Curso: ${escapeHtml(lido.cursoLido)}${lido.curso ? ' (está no catálogo do Futuro+)' : ''}</li>`);
-    }
-    if (lido.unidadeLida) {
-        itens.push(`<li class="ok">Escola: ${escapeHtml(lido.unidadeLida)}${lido.unidade ? ' (unidade cadastrada no Futuro+)' : ''}</li>`);
-    } else if (analise.instituicao) {
-        itens.push(`<li class="ok">Instituição citada: ${escapeHtml(analise.instituicao)}</li>`);
-    }
-    if (lido.anoConclusao) itens.push(`<li class="ok">Concluído em ${lido.anoConclusao}</li>`);
-    if (analise.codigoValidacao) itens.push(`<li class="ok">Código de validação: ${escapeHtml(analise.codigoValidacao)}</li>`);
-    if (cpfBorrado) itens.push('<li class="ok">CPF encontrado e coberto antes do envio</li>');
-
-    achados.innerHTML = `<ul>${itens.join('')}</ul>`;
-    achados.hidden = false;
-}
-
 // O certificado só entra no mural se estiver no nome de quem é a conta.
 function recusaPeloNome(nome) {
     if (nome.motivo === 'conta-sem-sobrenome') {
@@ -295,7 +261,6 @@ async function prepararCertificado(arquivoOriginal) {
     }
 
     elemento('modal-certificado').classList.add('aberto');
-    elemento('achados-certificado').hidden = true;
     elemento('campos-certificado').hidden = true;
     elemento('btn-salvar-certificado').disabled = true;
     elemento('cert-titulo').value = '';
@@ -334,7 +299,6 @@ async function prepararCertificado(arquivoOriginal) {
 
         const nome = conferirNome(texto, nomeDaConta);
         const lido = lerDadosDoCertificado(texto, { cursos, unidades });
-        mostrarAchados(analise, nome, lido, areas.length > 0);
 
         if (!nome.confere) {
             const recusa = recusaPeloNome(nome);
