@@ -556,11 +556,13 @@ function instituicoes(c) {
                 const rotulo = unidade.comentario ? 'Editar comentário' : `Comentar sobre a ${unidade.tipo || 'instituição'}`;
                 return `
             <li class="instituicao">
-                <img class="instituicao-logo" src="${logoPadraoPorTipo(unidade.tipo)}" alt="" width="46" height="46">
-                <${destino ? `a href="${escapeHtml(destino)}"` : 'span'} class="instituicao-link">
-                    <span class="instituicao-nome">${escapeHtml(unidade.nome)}</span>
-                    <span class="instituicao-sub">${sub}</span>
-                </${destino ? 'a' : 'span'}>
+                <div class="instituicao-topo">
+                    <img class="instituicao-logo" src="${logoPadraoPorTipo(unidade.tipo)}" alt="" width="46" height="46">
+                    <${destino ? `a href="${escapeHtml(destino)}"` : 'span'} class="instituicao-link">
+                        <span class="instituicao-nome">${escapeHtml(unidade.nome)}</span>
+                        <span class="instituicao-sub">${sub}</span>
+                    </${destino ? 'a' : 'span'}>
+                </div>
                 ${unidade.comentario ? `
                 <blockquote class="instituicao-meu-comentario">
                     ${unidade.comentario.nota ? `<span class="instituicao-comentario-nota" aria-hidden="true">${estrelinhas(unidade.comentario.nota)}</span>` : ''}

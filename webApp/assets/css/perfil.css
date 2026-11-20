@@ -1567,18 +1567,26 @@ button.perfil-numero {
     margin-top: 12px;
 }
 
+/* topo (logo + nome), comentário opcional e botão no rodapé: o botão fica
+   sempre embaixo, alinhado entre os cartões da mesma linha */
 .instituicao {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: center;
-    gap: 10px 12px;
-    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px;
     border: 1px solid var(--line);
     border-radius: var(--radius-md);
     background: var(--surface);
 }
 
+.instituicao-topo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
 .instituicao-logo {
+    flex: none;
     width: 46px;
     height: 46px;
     padding: 6px;
@@ -1618,11 +1626,11 @@ button.perfil-numero {
 }
 
 .instituicao .btn-perfil {
-    grid-column: 1 / -1;
+    margin-top: auto;
+    align-self: flex-start;
 }
 
 .instituicao-meu-comentario {
-    grid-column: 1 / -1;
     margin: 0;
     padding: 8px 10px;
     border-left: 3px solid var(--blue-soft);
@@ -1800,14 +1808,6 @@ button.perfil-numero {
 
     .conquistas-lista {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .instituicao {
-        grid-template-columns: auto minmax(0, 1fr) auto;
-    }
-
-    .instituicao .btn-perfil {
-        grid-column: auto;
     }
 
     /* a parede só mostra as duas pessoas quando sobra largura para elas

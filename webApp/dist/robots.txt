@@ -3,3 +3,4 @@ Allow: /
 Disallow: /admin-
 
 Sitemap: https://futuroplus.com.br/sitemap.xml
+Sitemap: https://futuroplus.com.br/sitemap-conteudo.xml

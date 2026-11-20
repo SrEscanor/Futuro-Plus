@@ -32,12 +32,31 @@
         "areaServed": "BR"
     }
     </script>
+    <!-- Caixa de busca do Google embaixo do resultado (só aparece se o
+         Google decidir, geralmente pra sites com bastante busca pelo nome —
+         mas não custa nada já deixar marcado). "instituicoes.html?curso=" já
+         existe e filtra por instituição, cidade ou curso (cursos-etec.js). -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "url": "https://futuroplus.com.br/",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://futuroplus.com.br/instituicoes.html?curso={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+        }
+    }
+    </script>
     <link rel="manifest" href="./assets/manifest-BKaLOTH1.json">
     <meta name="theme-color" content="#4e6ee8">
     <link rel="apple-touch-icon" href="./apple-touch-icon.png">
     <link rel="icon" href="./favicon.ico" sizes="48x48">
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
-  <script type="module" crossorigin src="./assets/main-OFNQpv6P.js"></script>
+  <script type="module" crossorigin src="./assets/main-CtRP18Bl.js"></script>
   <link rel="modulepreload" crossorigin href="./assets/firebase-config-h-KQCxoQ.js">
   <link rel="modulepreload" crossorigin href="./assets/preload-helper-PPVm8Dsz.js">
   <link rel="modulepreload" crossorigin href="./assets/conteudo-legal-padrao-DcxCgRAC.js">
@@ -47,10 +66,10 @@
   <link rel="modulepreload" crossorigin href="./assets/categorias-teste-82RqXHiT.js">
   <link rel="modulepreload" crossorigin href="./assets/descricoes-inteligencias-D_icd3AV.js">
   <link rel="modulepreload" crossorigin href="./assets/capas-eixos-GInZ-sis.js">
-  <link rel="modulepreload" crossorigin href="./assets/card-unidade-HXCo-LZz.js">
+  <link rel="modulepreload" crossorigin href="./assets/card-unidade-DBz7HAVa.js">
   <link rel="modulepreload" crossorigin href="./assets/demanda-curso-Bz72gXLF.js">
-  <link rel="modulepreload" crossorigin href="./assets/geocodificacao-BRsqdGk3.js">
-  <link rel="modulepreload" crossorigin href="./assets/recomendacao-cursos-C-DR0fsf.js">
+  <link rel="modulepreload" crossorigin href="./assets/geocodificacao-CwAHwU2m.js">
+  <link rel="modulepreload" crossorigin href="./assets/recomendacao-cursos-CxOq38zZ.js">
   <link rel="modulepreload" crossorigin href="./assets/noticias-proprias-util-Cv1iCrjZ.js">
   <link rel="modulepreload" crossorigin href="./assets/destaques-util-Bxit5onw.js">
   <link rel="modulepreload" crossorigin href="./assets/historico-paginas-CB2wGtFd.js">
