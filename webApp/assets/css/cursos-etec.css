@@ -1828,6 +1828,50 @@
     color: var(--green-dark);
 }
 
+/* Na página do curso o convite fica dentro do cartão "Onde estudar", que é
+   estreito: a frase corre inteira (o flex de cima separava o link do resto
+   do texto em linhas soltas), o ícone vai num quadradinho branco à esquerda,
+   da mesma cor da distância que aparece depois, e sobra um respiro antes da
+   lista de unidades. */
+.curso-onde-estudar .inst-dica-proximidade {
+    display: block;
+    position: relative;
+    margin-bottom: 12px;
+    padding: 12px 14px 12px 60px;
+    border-radius: 14px;
+    border: 1px solid rgba(33, 168, 92, 0.22);
+    background: linear-gradient(120deg, var(--green-soft), #f6fdf9);
+    line-height: 1.5;
+    color: var(--ink-soft);
+}
+
+.curso-onde-estudar .inst-dica-proximidade .icone {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    box-sizing: content-box;
+    width: 18px;
+    height: 18px;
+    padding: 8px;
+    border-radius: 11px;
+    background: var(--surface);
+    color: var(--green-dark);
+    box-shadow: 0 6px 14px -8px rgba(33, 168, 92, 0.6);
+    transform: translateY(-50%);
+}
+
+.curso-onde-estudar .inst-dica-proximidade a {
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-color: var(--green);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+}
+
+.curso-onde-estudar .inst-dica-proximidade a:hover {
+    color: var(--green-dark);
+}
+
 .card-instituicao-info {
     display: flex;
     flex-direction: column;
