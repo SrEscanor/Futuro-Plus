@@ -460,7 +460,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (error.code === 'auth/email-already-in-use') {
         irParaEtapa(1);
-        mostrarErro("Este e-mail já está cadastrado.", document.getElementById('email'));
+        // Mensagem de propósito ambígua (não confirma se a conta existe):
+        // a proteção contra enumeração de e-mail do Firebase cobre login,
+        // recuperação de senha etc., mas não esse erro do cadastro, que o
+        // SDK sempre lança quando o e-mail já tem conta.
+        mostrarErro("Não foi possível concluir o cadastro. Se você já tem conta, tente entrar ou recuperar a senha.", document.getElementById('email'));
       } else if (error.code === 'auth/weak-password') {
         irParaEtapa(1);
         mostrarErro("A senha deve ter pelo menos 6 caracteres.", document.getElementById('senha'));
@@ -476,6 +480,14 @@ document.addEventListener('DOMContentLoaded', () => {
   atualizarAlturaViewport();
   window.addEventListener('resize', atualizarAlturaViewport);
   window.addEventListener('load', atualizarAlturaViewport);
+
+  // O conteúdo de uma etapa cresce depois de aberta (endereço do CEP, termos
+  // lidos, mensagens de erro); sem observar, o container mantém a altura
+  // antiga e corta os botões no rodapé.
+  if ('ResizeObserver' in window) {
+    const observador = new ResizeObserver(atualizarAlturaViewport);
+    formCadastro.querySelectorAll('.wizard-etapa').forEach((etapa) => observador.observe(etapa));
+  }
 
   // O deslocamento entre etapas é feito só por translateX; qualquer rolagem
   // horizontal do container (o navegador provoca uma ao focar um campo fora
