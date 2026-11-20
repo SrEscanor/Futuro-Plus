@@ -13,9 +13,12 @@
 }
 
 /* usado nos cartões que são formulário/estado único (login, edição),
-   que não devem esticar junto com o resto do layout */
+   que não devem esticar junto com o resto do layout; ficam centralizados
+   na tela (só as margens laterais, pra manter a de baixo do cartão) */
 .perfil-cartao--estreito {
     max-width: 680px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 /* ---- Layout geral: coluna de identidade + coluna de conteúdo ---- */
