@@ -236,6 +236,10 @@ document.addEventListener('DOMContentLoaded', () => {
     return idade >= 14;
   }
 
+  function senhaForte(valor) {
+    return valor.length >= 10 && /[a-zA-Z]/.test(valor) && /[0-9]/.test(valor) && /[^a-zA-Z0-9]/.test(valor);
+  }
+
   function validarEtapa(numero) {
     limparErro();
 
@@ -249,8 +253,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.value.trim())) {
         return falhar('Informe um e-mail válido.', email);
       }
-      if (senha.value.length < 6) {
-        return falhar('A senha deve ter pelo menos 6 caracteres.', senha);
+      if (!senhaForte(senha.value)) {
+        return falhar('A senha deve ter pelo menos 10 caracteres, com letra, número e caractere especial.', senha);
       }
       if (senha.value !== confirmaSenha.value) {
         return falhar('As senhas não coincidem. Por favor, verifique.', confirmaSenha);
@@ -465,9 +469,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // recuperação de senha etc., mas não esse erro do cadastro, que o
         // SDK sempre lança quando o e-mail já tem conta.
         mostrarErro("Não foi possível concluir o cadastro. Se você já tem conta, tente entrar ou recuperar a senha.", document.getElementById('email'));
-      } else if (error.code === 'auth/weak-password') {
+      } else if (error.code === 'auth/weak-password' || error.code === 'auth/password-does-not-meet-requirements') {
         irParaEtapa(1);
-        mostrarErro("A senha deve ter pelo menos 6 caracteres.", document.getElementById('senha'));
+        mostrarErro("A senha deve ter pelo menos 10 caracteres, com letra, número e caractere especial.", document.getElementById('senha'));
       } else {
         mostrarErro("Erro ao cadastrar: " + error.message);
       }

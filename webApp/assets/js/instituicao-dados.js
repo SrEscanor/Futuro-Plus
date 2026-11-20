@@ -8,16 +8,24 @@
 //   instituicoes/{id}            a unidade, do cadastro de Admin · Unidades.
 //                                foto e paginaCps vêm do botão "Buscar
 //                                fotos no site do CPS" desse painel.
-//   instituicoes/{id}/comentarios/{uid}_{certificadoId}
+//   instituicoes/{id}/comentarios/{uid}_{cursoId}
 //                                comentário e nota de quem estudou lá, um
-//                                por certificado (então quem tem dois
-//                                certificados da mesma escola comenta duas
-//                                vezes): { texto, nota, nome, curso, ano,
-//                                certificadoId, uid, criadoEm, editadoEm }.
-//                                Comentários de antes desta conta por
-//                                certificado tinham o id igual só ao uid, e
-//                                continuam existindo e sendo editáveis assim
-//                                (ganham o campo "uid" na primeira edição).
+//                                por curso do catálogo (então quem se formou
+//                                em dois cursos diferentes na mesma escola
+//                                comenta duas vezes): { texto, nota, nome,
+//                                curso, ano, certificadoId, uid, criadoEm,
+//                                editadoEm }. Sem curso do catálogo (texto
+//                                livre), o id usa o certificadoId mesmo —
+//                                ver salvarComentario. A chave é por curso,
+//                                não pelo certificado em si, porque apagar e
+//                                reenviar o mesmo diploma gera um
+//                                certificadoId novo, e sem isso daria para
+//                                comentar de novo só reenviando.
+//                                Comentários de antes desta troca tinham o
+//                                id igual só ao certificadoId, ou (mais
+//                                antigos ainda) só ao uid, e continuam
+//                                existindo e sendo editáveis assim (ganham o
+//                                campo "uid" na primeira edição).
 //   instituicoes/{id}/perguntas/{automático}
 //                                dúvida de qualquer conta, com as respostas
 //                                dentro, uma por conta: { texto, autorUid,
@@ -97,7 +105,13 @@ export async function salvarComentario(unidadeId, conta, { texto, nota, certific
     const certificado = (conta.certificados || []).find((c) => c.id === certificadoId);
     if (!certificado) throw new Error('Certificado não encontrado para este comentário.');
 
-    const ref = doc(db, 'instituicoes', unidadeId, 'comentarios', existente ? existente.id : `${conta.uid}_${certificadoId}`);
+    // A vaga de comentário é por curso do catálogo (certificado.cursoId), não
+    // pelo id do certificado em si: esse id muda toda vez que a pessoa apaga
+    // e reenvia o mesmo diploma, e sem isso daria para comentar de novo só
+    // reenviando. Sem curso do catálogo (texto livre), não tem uma chave
+    // estável para isso, então cai de volta no id do certificado mesmo.
+    const chave = certificado.cursoId || certificadoId;
+    const ref = doc(db, 'instituicoes', unidadeId, 'comentarios', existente ? existente.id : `${conta.uid}_${chave}`);
     const campos = {
         texto: texto.trim(),
         nota,

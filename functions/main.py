@@ -16,6 +16,34 @@ import comunidade
 if not firebase_admin._apps:
     firebase_admin.initialize_app()
 
+# Quantas mensagens cada conta pode mandar ao chatbot por dia. Sem isso, uma
+# única conta autenticada chamando a função em loop gastaria crédito de
+# OpenAI/Tavily sem limite nenhum (max_instances só limita quantas cópias da
+# função rodam ao mesmo tempo, não o total por conta ao longo do dia).
+LIMITE_MENSAGENS_CHAT_POR_DIA = 60
+
+
+def _dentro_do_limite_diario(db, uid):
+    """True se a conta ainda não passou do limite de mensagens do chatbot
+    hoje; já incrementa o contador antes de devolver. Usa uma transação para
+    não perder contagem se a mesma conta mandar duas mensagens ao mesmo
+    tempo."""
+    hoje = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    referencia = db.collection("chat_limites").document(uid)
+
+    @firestore.transactional
+    def atualizar(transacao):
+        documento = referencia.get(transaction=transacao)
+        dados = documento.to_dict() or {}
+        contagem = dados.get("contagem", 0) if dados.get("data") == hoje else 0
+        if contagem >= LIMITE_MENSAGENS_CHAT_POR_DIA:
+            return False
+        transacao.set(referencia, {"data": hoje, "contagem": contagem + 1})
+        return True
+
+    return atualizar(db.transaction())
+
+
 @https_fn.on_request(
     cors=options.CorsOptions(cors_origins="*", cors_methods=["get", "post"]),
     # São Paulo em vez do padrão (Iowa, EUA) — reduz a latência de rede pra
@@ -49,11 +77,15 @@ def chat_bot(req: https_fn.Request) -> https_fn.Response:
     except Exception:
         return https_fn.Response(json.dumps({"erro": "Sessão inválida ou expirada. Faça login novamente."}), status=401)
 
-    try:
-        # 1. Deixamos a conexão do banco para acontecer só quando a função for chamada
-        db = firestore.client()
+    db = firestore.client()
+    if not _dentro_do_limite_diario(db, id_usuario):
+        return https_fn.Response(
+            json.dumps({"erro": "Você atingiu o limite de mensagens do assistente por hoje. Tente de novo mais tarde."}),
+            status=429,
+        )
 
-        # 2. Importamos o seu chatbot AQUI DENTRO para não travar a inicialização do Firebase!
+    try:
+        # 1. Importamos o seu chatbot AQUI DENTRO para não travar a inicialização do Firebase!
         from agents import Runner, RunConfig, ModelSettings, InputGuardrailTripwireTriggered, OutputGuardrailTripwireTriggered
         from agentes import agente_orquestrador
         from firestore_session import FirestoreSession
@@ -142,7 +174,7 @@ def chat_bot(req: https_fn.Request) -> https_fn.Response:
 
     except Exception as e:
         print(f"Erro no servidor: {e}")
-        return https_fn.Response(json.dumps({"erro": f"Erro interno: {str(e)}"}), status=500)
+        return https_fn.Response(json.dumps({"erro": "Erro interno. Tente novamente em alguns minutos."}), status=500)
 
 
 # Domínio oficial do CPS onde os pacotes .zip de logotipo das Etecs ficam
@@ -233,12 +265,13 @@ def extrair_logo_etec(req: https_fn.Request) -> https_fn.Response:
         )
 
     except requests.RequestException as e:
-        return https_fn.Response(json.dumps({"erro": f"Erro ao baixar o arquivo de origem: {str(e)}"}), status=502)
+        print(f"Erro ao baixar o arquivo de origem: {e}")
+        return https_fn.Response(json.dumps({"erro": "Não foi possível baixar o arquivo de origem."}), status=502)
     except zipfile.BadZipFile:
         return https_fn.Response(json.dumps({"erro": "O arquivo baixado não é um .zip válido."}), status=422)
     except Exception as e:
         print(f"Erro ao extrair logo: {e}")
-        return https_fn.Response(json.dumps({"erro": f"Erro interno: {str(e)}"}), status=500)
+        return https_fn.Response(json.dumps({"erro": "Erro interno. Tente novamente em alguns minutos."}), status=500)
 
 
 def _excluir_conta_por_completo(db, uid):
@@ -528,13 +561,14 @@ def coletar_demanda(req: https_fn.Request) -> https_fn.Response:
         return https_fn.Response(json.dumps(resumo), status=200, headers=cabecalho_json)
 
     except requests.RequestException as e:
+        print(f"O site do vestibular não respondeu: {e}")
         return https_fn.Response(
-            json.dumps({"erro": f"O site do vestibular não respondeu: {str(e)}"}),
+            json.dumps({"erro": "O site do vestibular não respondeu. Tente novamente mais tarde."}),
             status=502, headers=cabecalho_json,
         )
     except Exception as e:
         print(f"Erro ao coletar demanda: {e}")
-        return https_fn.Response(json.dumps({"erro": f"Erro interno: {str(e)}"}), status=500, headers=cabecalho_json)
+        return https_fn.Response(json.dumps({"erro": "Erro interno. Tente novamente em alguns minutos."}), status=500, headers=cabecalho_json)
 
 
 # Capas da página do curso: uma por eixo tecnológico e, se quiser, uma só de
@@ -629,7 +663,7 @@ def enviar_capa(req: https_fn.Request) -> https_fn.Response:
 
     except Exception as e:
         print(f"Erro ao enviar capa: {e}")
-        return responder({"erro": f"Erro interno: {str(e)}"}, 500)
+        return responder({"erro": "Erro interno. Tente novamente em alguns minutos."}, 500)
 
 
 TIPOS_DE_IMAGEM_NOTICIA = {"image/webp": "webp", "image/jpeg": "jpg", "image/png": "png"}
@@ -705,7 +739,7 @@ def enviar_imagem_noticia(req: https_fn.Request) -> https_fn.Response:
 
     except Exception as e:
         print(f"Erro ao enviar imagem de notícia: {e}")
-        return responder({"erro": f"Erro interno: {str(e)}"}, 500)
+        return responder({"erro": "Erro interno. Tente novamente em alguns minutos."}, 500)
 
 
 @https_fn.on_request(
@@ -742,7 +776,7 @@ def coletar_noticias(req: https_fn.Request) -> https_fn.Response:
 
     except Exception as e:
         print(f"Erro ao coletar notícias: {e}")
-        return https_fn.Response(json.dumps({"erro": f"Erro interno: {str(e)}"}), status=500, headers=cabecalho_json)
+        return https_fn.Response(json.dumps({"erro": "Erro interno. Tente novamente em alguns minutos."}), status=500, headers=cabecalho_json)
 
 
 @https_fn.on_request(

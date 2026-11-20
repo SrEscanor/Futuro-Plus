@@ -25,6 +25,17 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/usuarios/$(uid)).data.get('nome', '');
     }
 
+    // A vaga de comentário é por curso do catálogo, não pelo id do
+    // certificado: esse id muda toda vez que a pessoa apaga e reenvia o
+    // mesmo diploma, e sem isso daria para comentar de novo só reenviando.
+    // Sem curso do catálogo (texto livre), cai de volta no id do
+    // certificado mesmo — mesma regra de webApp/assets/js/instituicao-dados.js.
+    function chaveDoCertificado(uid, certificadoId) {
+      let certificado = get(/databases/$(database)/documents/usuarios/$(uid)/certificados/$(certificadoId)).data;
+      let cursoId = certificado.get('cursoId', '');
+      return cursoId != '' ? cursoId : certificadoId;
+    }
+
     // O certificado do Mural que dá direito a comentar, avaliar e responder
     // sobre uma unidade: a leitura achou a unidade no papel e conferiu o
     // nome da conta, e o curso e o ano gravados junto são os dele.
@@ -71,15 +82,17 @@ service cloud.firestore {
     }
 
     // Comentário e nota de quem estudou na unidade (instituicao.html): um por
-    // certificado (quem tem dois certificados da mesma escola comenta duas
-    // vezes), com o id "uid_certificadoId". Todo mundo lê; grava só quem tem
-    // aquele certificado no Mural, com o nome do perfil e o curso e o ano
-    // dele. Apaga quem escreveu ou o admin.
+    // curso do catálogo (quem se formou em dois cursos diferentes na mesma
+    // escola comenta duas vezes), com o id "uid_cursoId" (ou "uid_certificadoId"
+    // quando o curso é texto livre, sem curso do catálogo — ver
+    // chaveDoCertificado). Todo mundo lê; grava só quem tem aquele certificado
+    // no Mural, com o nome do perfil e o curso e o ano dele. Apaga quem
+    // escreveu ou o admin.
     //
     // Comentários de antes desta regra (de quando o id era só o uid, um por
-    // conta) continuam existindo com esse id antigo e sem o campo "uid" —
-    // "donoDoComentario" cobre os dois formatos, e eles ganham o campo "uid"
-    // assim que forem editados.
+    // conta, ou "uid_certificadoId", um por certificado) continuam existindo
+    // com o id antigo — "donoDoComentario" cobre os formatos sem o campo
+    // "uid", e eles ganham o campo "uid" assim que forem editados.
     match /instituicoes/{unidadeId}/comentarios/{comentarioId} {
       function donoDoComentario() {
         return resource.data.get('uid', comentarioId);
@@ -97,7 +110,7 @@ service cloud.firestore {
 
       allow read: if true;
       allow create: if request.auth != null
-        && comentarioId == request.auth.uid + '_' + request.resource.data.certificadoId
+        && comentarioId == request.auth.uid + '_' + chaveDoCertificado(request.auth.uid, request.resource.data.certificadoId)
         && request.resource.data.keys().hasOnly(['texto', 'nota', 'nome', 'curso', 'ano', 'certificadoId', 'uid', 'criadoEm'])
         && request.resource.data.criadoEm == request.time
         && comentarioValido();
@@ -159,8 +172,21 @@ service cloud.firestore {
 
     // Certificados do mural: cada aluno mexe só nos próprios. Documento
     // pessoal, então nem outros alunos nem o app leem sem ser o dono.
+    //
+    // "verificacao.nomeConfere" e "verificacao.unidadeLida" são o que dá o
+    // direito de comentar/avaliar como ex-aluno de uma unidade
+    // (certificadoDaUnidade, acima) — por isso o cliente nunca escreve esses
+    // dois campos, só a função validarCertificado (Admin SDK, ignora esta
+    // regra), depois de rodar o OCR de verdade no servidor sobre a imagem
+    // já enviada. Sem essa trava, bastava escrever os dois campos direto no
+    // Firestore para se marcar como "ex-aluno verificado" de qualquer
+    // unidade sem nunca ter mandado uma imagem real.
     match /usuarios/{uid}/certificados/{certificadoId} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null && request.auth.uid == uid
+        && !('nomeConfere' in request.resource.data.get('verificacao', {}))
+        && !('unidadeLida' in request.resource.data.get('verificacao', {}));
+      allow delete: if request.auth != null && request.auth.uid == uid;
     }
 
     // Catálogo de cursos (descrição, duração, pré-requisitos): mesma regra das

@@ -1,0 +1,13 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "certificados",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "verificacao.unidadeLida", "order": "ASCENDING" },
+        { "fieldPath": "verificacao.nomeConfere", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

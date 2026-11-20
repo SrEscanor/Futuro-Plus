@@ -26,9 +26,16 @@ function limparErroLogin() {
 
 // ---------------------------------------------------------------
 // Trava depois de muitas tentativas erradas seguidas (por e-mail, guardado
-// no navegador): dificulta um ataque de força bruta sem precisar de nada no
-// backend. Zera sozinha quando o login dá certo ou quando o tempo de
+// no navegador). Zera sozinha quando o login dá certo ou quando o tempo de
 // bloqueio passa.
+//
+// IMPORTANTE: isso é só uma fricção de UX, não uma proteção de segurança de
+// verdade — fica inteiramente no navegador, então chamar o Firebase Auth
+// direto (DevTools, outro navegador, aba anônima) ignora essa trava sem
+// esforço. A proteção real contra força bruta é a que o próprio Firebase
+// Auth já aplica no servidor, fora do nosso controle. Pra travar isso de
+// verdade por aqui precisaria de Firebase App Check e/ou mover o login para
+// passar por uma Cloud Function que conte as tentativas no Firestore.
 // ---------------------------------------------------------------
 const CHAVE_TENTATIVAS = "futuroplus_login_tentativas";
 const MAX_TENTATIVAS = 5;

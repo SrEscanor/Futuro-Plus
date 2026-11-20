@@ -1765,6 +1765,8 @@
     gap: 0;
     padding: 26px 24px 22px;
     border: 1px solid var(--line);
+    text-decoration: none;
+    color: inherit;
 }
 
 .card-instituicao-topo {

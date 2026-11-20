@@ -17,6 +17,11 @@ site):
       avaliação ou dúvida nova, para a aba Novidades do mesmo painel, para o
       sino do site (só de admin) e para o push dos admins. Acompanha o que
       acontece depois: comentário editado, dúvida respondida, algo apagado.
+
+Dúvida nova também avisa, por push, quem tem certificado conferido daquela
+unidade (ex-aluno verificado) e ativou as notificações no Perfil — são quem
+mais provavelmente sabe responder (ver tokens_dos_formados). Avaliação nova
+avisa só os admins.
 """
 import re
 from urllib.parse import quote
@@ -307,16 +312,36 @@ def push_do_aviso(aviso):
     return (f"Nova dúvida {sobre_a_unidade(unidade)}", f"{nome}: “{_trecho(aviso.get('texto'), 160)}”")
 
 
+def _tokens_das_contas(db, uids):
+    tokens = []
+    uids = list(uids)
+    for inicio in range(0, len(uids), 30):  # o "in" do Firestore aceita até 30 valores
+        consulta = db.collection("fcm_tokens").where("uid", "in", uids[inicio:inicio + 30])
+        tokens.extend(registro.id for registro in consulta.stream())
+    return tokens
+
+
 def tokens_dos_admins(db, menos_uid=""):
     """Aparelhos dos admins que ativaram as notificações no Perfil (menos
     os de quem escreveu, se for admin)."""
     admins = [conta.id for conta in db.collection("usuarios").where("admin", "==", True).stream()
               if conta.id != menos_uid]
-    tokens = []
-    for inicio in range(0, len(admins), 30):  # o "in" do Firestore aceita até 30 valores
-        consulta = db.collection("fcm_tokens").where("uid", "in", admins[inicio:inicio + 30])
-        tokens.extend(registro.id for registro in consulta.stream())
-    return tokens
+    return _tokens_das_contas(db, admins)
+
+
+def tokens_dos_formados(db, unidade_id, menos_uid=""):
+    """Aparelhos de quem tem certificado conferido desta unidade (ex-aluno
+    verificado), que ativaram as notificações no Perfil — avisados quando
+    nasce uma dúvida nova, porque são quem mais provavelmente sabe responder.
+    Usa "collection group" (certificados é subcoleção de cada conta em
+    usuarios/{uid}/certificados), por isso o índice em
+    firestore.indexes.json."""
+    certificados = db.collection_group("certificados") \
+        .where("verificacao.unidadeLida", "==", unidade_id) \
+        .where("verificacao.nomeConfere", "==", True) \
+        .stream()
+    uids = {doc.reference.parent.parent.id for doc in certificados} - {menos_uid}
+    return _tokens_das_contas(db, uids)
 
 
 # ------------------------------------------------------------- quem chama
@@ -343,12 +368,17 @@ def _atualizar_aviso_se_existir(db, id_aviso, campos):
         ref.set(campos, merge=True)
 
 
-def _avisar(db, aviso, id_aviso, enviar_push):
+def _avisar(db, aviso, id_aviso, enviar_push, avisar_formados=False):
     db.collection(AVISOS).document(id_aviso).set(aviso)
     titulo, mensagem = push_do_aviso(aviso)
-    tokens = tokens_dos_admins(db, menos_uid=aviso.get("autorUid", ""))
+    tokens = set(tokens_dos_admins(db, menos_uid=aviso.get("autorUid", "")))
+    if avisar_formados:
+        try:
+            tokens.update(tokens_dos_formados(db, aviso["unidadeId"], menos_uid=aviso.get("autorUid", "")))
+        except Exception as erro:
+            print(f"Erro ao buscar ex-alunos para avisar da dúvida: {erro}")
     if tokens:
-        enviar_push(db, tokens, titulo, mensagem, aviso["link"])
+        enviar_push(db, list(tokens), titulo, mensagem, aviso["link"])
 
 
 def _passo(descricao, acao):
@@ -392,8 +422,8 @@ def processar_duvida(db, evento, enviar_push):
 
     id_aviso = id_do_aviso("duvida", unidade_id, item)
     if antes is None and depois is not None:
-        _passo("avisar os admins da dúvida",
-               lambda: _avisar(db, aviso_da_duvida(contexto, depois), id_aviso, enviar_push))
+        _passo("avisar os admins e ex-alunos da dúvida",
+               lambda: _avisar(db, aviso_da_duvida(contexto, depois), id_aviso, enviar_push, avisar_formados=True))
     elif antes is not None and depois is None:
         _passo("marcar o aviso como apagado", lambda: _atualizar_aviso_se_existir(db, id_aviso, {"apagada": True}))
     elif registros:

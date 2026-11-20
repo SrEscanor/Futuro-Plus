@@ -1,0 +1,14 @@
+{
+  "name": "futuroplus-functions-ocr",
+  "private": true,
+  "description": "Validação server-side dos certificados do Mural (OCR), em Node porque o tesseract.js roda via WebAssembly, sem precisar instalar o binário do Tesseract no ambiente da função.",
+  "main": "index.js",
+  "engines": {
+    "node": "22"
+  },
+  "dependencies": {
+    "firebase-admin": "^14.5.1",
+    "firebase-functions": "^7.4.0",
+    "tesseract.js": "^7.0.0"
+  }
+}

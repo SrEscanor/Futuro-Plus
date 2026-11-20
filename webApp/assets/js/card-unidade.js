@@ -137,7 +137,7 @@ export function renderizarCardInstituicao(unidade, { destaque = '', cursosDestaq
     const local = unidade.municipio ? `${unidade.municipio} - SP` : '';
 
     return `
-    <article class="card-unidade card-instituicao">
+    <a class="card-unidade card-instituicao" href="${escapeHtml(paginaDaUnidade(unidade.id))}">
         <div class="card-instituicao-topo">
             <img class="card-instituicao-logo" src="${logoDaUnidade(unidade)}" alt="" onerror="this.onerror=null;this.src='${LOGO_FALLBACK}';">
             <span class="card-instituicao-divisor" aria-hidden="true"></span>
@@ -158,8 +158,8 @@ export function renderizarCardInstituicao(unidade, { destaque = '', cursosDestaq
                 <ul>${cursosDestaque.map((nome) => `<li>${escapeHtml(nome)}</li>`).join('')}</ul>
             </div>` : '<p class="sem-cursos">Nenhum curso cadastrado ainda.</p>'}
         </div>
-        <a class="btn-ver-instituicao" href="${escapeHtml(paginaDaUnidade(unidade.id))}">Ver instituição ${ICONE_SETA}</a>
-    </article>`;
+        <span class="btn-ver-instituicao" aria-hidden="true">Ver instituição ${ICONE_SETA}</span>
+    </a>`;
 }
 
 export function renderizarCardUnidade(unidade, { destaque = '', termoCurso = '', modalidades = null } = {}) {

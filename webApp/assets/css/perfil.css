@@ -1621,6 +1621,32 @@ button.perfil-numero {
     grid-column: 1 / -1;
 }
 
+.instituicao-meu-comentario {
+    grid-column: 1 / -1;
+    margin: 0;
+    padding: 8px 10px;
+    border-left: 3px solid var(--blue-soft);
+    background: var(--bg);
+    border-radius: 0 8px 8px 0;
+}
+
+.instituicao-comentario-nota {
+    display: block;
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: var(--gold-dark, #b8860b);
+    margin-bottom: 2px;
+}
+
+.instituicao-meu-comentario p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--ink-soft);
+    font-style: italic;
+    overflow-wrap: anywhere;
+}
+
 .instituicoes-nota {
     margin-top: 10px;
     font-size: 12px;

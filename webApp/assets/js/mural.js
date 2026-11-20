@@ -402,18 +402,18 @@ async function salvarCertificado() {
             titular: emPreparo.titular || '',
             url,
             caminho,
-            // o que a leitura encontrou fica registrado: é o histórico da conferência
+            // o que a leitura encontrou aqui no navegador fica registrado,
+            // só como histórico/informativo. "nomeConfere" e "unidadeLida"
+            // (o que dá direito a comentar como ex-aluno) NÃO entram aqui —
+            // o cliente não tem mais permissão de escrever esses dois
+            // campos (ver firestore.rules): só a função validarCertificado
+            // grava, depois de rodar o mesmo OCR de verdade no servidor.
+            // Por isso, por alguns segundos depois de pendurar, o
+            // certificado já aparece no mural, mas o comentário/avaliação
+            // como ex-aluno só libera quando a função terminar.
             verificacao: {
                 pareceCertificado: emPreparo.analise.pareceCertificado === true,
-                nomeConfere: true,
-                // o que foi lido no papel, separado do que a pessoa pode ter
-                // corrigido nos campos: é o que vale para liberar o que
-                // depender de ter estudado naquela escola (comentários).
-                // Exceção: diploma de EaD sem unidade (precisaEscolherUnidade)
-                // — aí vale a unidade escolhida, já conferida em validarCampos
-                // (curso veio do diploma, e a unidade escolhida tem esse curso).
                 cursoLido: emPreparo.lido.curso?.id || '',
-                unidadeLida: emPreparo.precisaEscolherUnidade ? dados.unidadeId : (emPreparo.lido.unidade?.id || ''),
                 codigoValidacao: emPreparo.analise.codigoValidacao || '',
                 conferidoEm: new Date().toISOString()
             },

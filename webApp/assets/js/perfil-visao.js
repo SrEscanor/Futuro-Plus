@@ -97,13 +97,16 @@ export function formacoesDosCertificados(certificados) {
 
 const tipoDaInstituicao = (nome) => (/^\s*fatec\b/i.test(nome) ? 'Fatec' : (/^\s*etec\b/i.test(nome) ? 'Etec' : ''));
 
-// As escolas onde a pessoa se formou, uma vez cada.
-function instituicoesDasFormacoes(formacoes) {
+// As escolas onde a pessoa se formou, uma vez cada. meusComentariosPorUnidade
+// ({ unidadeId: comentario }) é o que a pessoa já comentou lá, para mostrar
+// no card em vez do botão de comentar.
+function instituicoesDasFormacoes(formacoes, meusComentariosPorUnidade = {}) {
     const mapa = new Map();
     formacoes.filter((formacao) => formacao.instituicao).forEach((formacao) => {
         const chave = formacao.unidadeId || formacao.instituicao.toLowerCase();
         const atual = mapa.get(chave) || {
-            nome: formacao.instituicao, unidadeId: formacao.unidadeId, tipo: tipoDaInstituicao(formacao.instituicao), formacoes: 0
+            nome: formacao.instituicao, unidadeId: formacao.unidadeId, tipo: tipoDaInstituicao(formacao.instituicao), formacoes: 0,
+            comentario: meusComentariosPorUnidade[formacao.unidadeId] || null
         };
         atual.formacoes += 1;
         mapa.set(chave, atual);
@@ -241,7 +244,7 @@ export function montarConta(dados) {
                 estado: 'Ainda não'
             }
         ],
-        instituicoes: instituicoesDasFormacoes(formacoes),
+        instituicoes: instituicoesDasFormacoes(formacoes, dados.meusComentariosPorUnidade || {}),
         push: dados.push || { texto: '', podeAtivar: false }
     };
 }
@@ -532,6 +535,13 @@ export function paginaDaInstituicao(unidadeId) {
     return paginaDaUnidade(unidadeId);
 }
 
+const estrelinhas = (nota) => '★'.repeat(nota || 0) + '☆'.repeat(5 - (nota || 0));
+
+function resumoDoComentario(texto, maximo = 140) {
+    const limpo = (texto || '').trim();
+    return limpo.length > maximo ? `${limpo.slice(0, maximo - 1).trim()}…` : limpo;
+}
+
 function instituicoes(c) {
     if (!c.instituicoes.length) return '';
     return `
@@ -543,7 +553,7 @@ function instituicoes(c) {
             ${c.instituicoes.map((unidade) => {
                 const destino = paginaDaInstituicao(unidade.unidadeId);
                 const sub = `${unidade.formacoes} ${plural(unidade.formacoes, 'formação concluída', 'formações concluídas')}`;
-                const rotulo = `Comentar sobre a ${unidade.tipo || 'instituição'}`;
+                const rotulo = unidade.comentario ? 'Editar comentário' : `Comentar sobre a ${unidade.tipo || 'instituição'}`;
                 return `
             <li class="instituicao">
                 <img class="instituicao-logo" src="${logoPadraoPorTipo(unidade.tipo)}" alt="" width="46" height="46">
@@ -551,6 +561,11 @@ function instituicoes(c) {
                     <span class="instituicao-nome">${escapeHtml(unidade.nome)}</span>
                     <span class="instituicao-sub">${sub}</span>
                 </${destino ? 'a' : 'span'}>
+                ${unidade.comentario ? `
+                <blockquote class="instituicao-meu-comentario">
+                    ${unidade.comentario.nota ? `<span class="instituicao-comentario-nota" aria-hidden="true">${estrelinhas(unidade.comentario.nota)}</span>` : ''}
+                    <p>&ldquo;${escapeHtml(resumoDoComentario(unidade.comentario.texto))}&rdquo;</p>
+                </blockquote>` : ''}
                 ${destino
                     ? `<a class="btn-perfil btn-perfil--pequeno btn-perfil--icone btn-perfil--suave" href="${escapeHtml(destino)}#quem-estudou">${icone('balao')}${rotulo}</a>`
                     : `<button type="button" class="btn-perfil btn-perfil--pequeno btn-perfil--icone btn-perfil--suave" disabled>${icone('balao')}Comentários em breve</button>`}

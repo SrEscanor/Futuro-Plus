@@ -7,6 +7,7 @@ import { localizarRuaDoAluno } from './geocodificacao.js';
 import { ITENS_DO_PERFIL } from './perfil-completude.js';
 import { htmlDoPerfil, montarConta } from './perfil-visao.js';
 import { ativarNotificacoesPush, statusNotificacaoPush } from './notificacoes-push.js';
+import { lerMeusComentarios } from './instituicao-dados.js';
 
 // A página abre no perfil montado (o que a pessoa — e, no futuro, uma Etec —
 // veria). O formulário é o modo de edição, com uma marcação por campo do que
@@ -50,6 +51,9 @@ let resultados = { vocacional: null, gardner: null };
 let certificados = [];
 let catalogoCursos = [];
 let cursoDesejadoInfo = null;
+// o comentário mais recente desta conta em cada unidade onde há formação
+// confirmada, para mostrar no card "Minhas instituições" ({ unidadeId: comentario })
+let meusComentariosPorUnidade = {};
 
 const elemento = (id) => document.getElementById(id);
 
@@ -103,6 +107,7 @@ function mostrarVisualizacao(novoPerfil = null) {
         perfil,
         resultados,
         certificados,
+        meusComentariosPorUnidade,
         cursoDesejado: cursoDesejadoInfo,
         push: situacaoDoPush()
     }));
@@ -153,6 +158,28 @@ async function carregarCertificados() {
     } catch (erro) {
         console.error('Erro ao carregar os certificados:', erro);
         certificados = [];
+    }
+}
+
+// Busca o comentário desta conta em cada unidade onde há formação confirmada
+// (mesmo filtro de perfil-visao.js: certificado com curso do catálogo e nome
+// conferido), para mostrar no card "Minhas instituições". Quando há mais de
+// um (formou-se em dois cursos na mesma escola), mostra o mais recente.
+async function carregarMeusComentarios() {
+    const unidadeIds = [...new Set(certificados
+        .filter((c) => c.cursoId && c.verificacao?.nomeConfere && c.unidadeId)
+        .map((c) => c.unidadeId))];
+
+    try {
+        const listas = await Promise.all(unidadeIds.map((id) => lerMeusComentarios(id, usuarioAtual.uid)));
+        meusComentariosPorUnidade = {};
+        listas.forEach((lista, i) => {
+            const maisRecente = [...lista].sort((a, b) => (b.criadoEm?.toMillis?.() || 0) - (a.criadoEm?.toMillis?.() || 0))[0];
+            if (maisRecente) meusComentariosPorUnidade[unidadeIds[i]] = maisRecente;
+        });
+    } catch (erro) {
+        console.error('Erro ao carregar meus comentários nas instituições:', erro);
+        meusComentariosPorUnidade = {};
     }
 }
 
@@ -409,6 +436,7 @@ onAuthStateChanged(auth, async (usuario) => {
     // curso entram em seguida
     mostrarVisualizacao();
     await Promise.all([carregarCertificados(), acharCursoDesejado()]);
+    await carregarMeusComentarios();
     if (!elemento('perfil-visualizacao').hidden) mostrarVisualizacao();
 });
 

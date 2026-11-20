@@ -4,8 +4,9 @@
 //
 //   teste.unidade       o documento instituicoes/{id} (null = não existe)
 //   teste.comentarios   Map id -> comentário { texto, nota, nome, curso, ano,
-//                       certificadoId, uid, ... }; id é "uid_certificadoId",
-//                       ou só o uid nos comentários "antigos" (sem o campo uid)
+//                       certificadoId, uid, ... }; id é "uid_cursoId" (ou
+//                       "uid_certificadoId" sem curso do catálogo), ou só o
+//                       uid nos comentários "antigos" (sem o campo uid)
 //   teste.perguntas     Map id -> pergunta { texto, autorUid, nome, criadaEm, respostas }
 //   teste.conta         o que observarConta entrega: { logado: false } ou
 //                       { logado, uid, nome, admin, certificados, certificadosDisponiveis }
@@ -77,7 +78,10 @@ export async function salvarComentario(unidadeId, conta, { texto, nota, certific
         ano: certificado.anoConclusao ?? null, certificadoId, uid: conta.uid
     };
     const agora = new Date().toISOString();
-    const id = existente ? existente.id : `${conta.uid}_${certificadoId}`;
+    // mesma regra da real: a vaga de comentário é por curso do catálogo, não
+    // pelo id do certificado em si (ver instituicao-dados.js)
+    const chave = certificado.cursoId || certificadoId;
+    const id = existente ? existente.id : `${conta.uid}_${chave}`;
     const salvo = existente
         ? { ...estado().comentarios.get(existente.id), ...campos, editadoEm: agora }
         : { ...campos, criadoEm: agora };
