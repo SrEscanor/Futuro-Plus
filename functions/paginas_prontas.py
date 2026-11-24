@@ -133,7 +133,9 @@ def unidades_do_curso(curso, unidades) -> list:
     superior = curso.get("nivel") == "superior"
     escolhidas = []
     for unidade in unidades or []:
-        if not any(normalizar(nome) == termo for nome in unidade.get("cursos") or []):
+        # os cursos da unidade vêm como no cadastro ({"nome", "categoria"}) ou só o nome
+        nomes = (c.get("nome") if isinstance(c, dict) else c for c in unidade.get("cursos") or [])
+        if not any(normalizar(nome) == termo for nome in nomes):
             continue
         eh_fatec = str(unidade.get("tipo") or "").strip().lower() == "fatec"
         if eh_fatec == superior:

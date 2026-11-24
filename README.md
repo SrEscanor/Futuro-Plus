@@ -227,7 +227,7 @@ npx firebase-tools deploy --only storage
 - `firestore` publica as regras e os índices.
 - `storage` publica as regras do Storage.
 
-O build tira `curso.html` e `instituicao.html` da raiz de `webApp/dist` e guarda em `webApp/dist/modelos/`. No site, esses dois endereços são entregues pela função `pagina_pronta`, que usa os modelos. Por isso, quando uma mudança cria ou muda uma função usada pelo site (`pagina_pronta` ou `sitemap_dinamico`), publique as funções **antes** do hosting. No `npm run dev` nada muda: o Vite entrega as duas páginas direto.
+O build tira `curso.html` e `instituicao.html` da raiz de `webApp/dist` e guarda em `webApp/dist/modelos/`. No site, esses dois endereços são entregues pela função `pagina_pronta`, que usa os modelos. Por isso, quando uma mudança cria ou muda uma função usada pelo site (`pagina_pronta`, `dados_resumidos` ou `sitemap_dinamico`), publique as funções **antes** do hosting. No `npm run dev` nada muda: o Vite entrega as duas páginas direto.
 
 **Página nova:** acrescente o nome dela na regra de cache das páginas `.html` do `firebase.json`, a do `"no-cache"`. A home aberta como `/` tem uma regra própria, logo abaixo. Essa regra lista as páginas uma a uma de propósito, para deixar de fora `curso.html` e `instituicao.html`: se elas entrarem, o cache da página pronta deixa de funcionar e cada visita passa a chamar a função.
 
@@ -235,7 +235,9 @@ O build tira `curso.html` e `instituicao.html` da raiz de `webApp/dist` e guarda
 
 ## 💸 Custos
 
-As Cloud Functions pedem o plano **Blaze** do Firebase, que cobra conforme o uso. O site, as funções e o banco são pensados para caber na cota gratuita. O assistente virtual usa a API da **OpenAI** e o **Tavily**, que são cobrados por uso.
+As Cloud Functions pedem o plano **Blaze** do Firebase, que cobra conforme o uso. O site, as funções e o banco são pensados para caber na cota gratuita.
+
+O que mais gastava cota era a leitura do Firestore: a Início, o catálogo, a lista de instituições, a página de cada curso e o Teste Vocacional liam as unidades e os cursos inteiros a cada visita. Hoje essas páginas leem `/dados/unidades.json` e `/dados/cursos.json`, listas resumidas montadas pela função `dados_resumidos` e guardadas por 1h na rede do Firebase (`assets/js/dados-resumidos.js`). Uma mudança feita no admin aparece nessas listas em até cerca de 1h30, ou logo depois de um deploy do hosting, que limpa esse cache. O assistente virtual usa a API da **OpenAI** e o **Tavily**, que são cobrados por uso.
 
 ---
 

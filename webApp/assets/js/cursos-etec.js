@@ -1,5 +1,6 @@
 import { auth, db } from './firebase-config.js';
-import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
+import { carregarUnidades as carregarListaDeUnidades } from './dados-resumidos.js';
 import {
     renderizarCardInstituicao,
     escapeHtml,
@@ -295,8 +296,8 @@ async function ordenarPelaLocalizacao() {
 async function carregarUnidades() {
     const container = elemento('grid-unidades');
     try {
-        const snap = await getDocs(collection(db, 'instituicoes'));
-        unidadesCache = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        // a lista resumida (dados-resumidos.js), não as 324 unidades do Firestore
+        unidadesCache = await carregarListaDeUnidades();
         montarFiltros();
         renderizarUnidades();
         ordenarPelaLocalizacao().catch((erro) => console.error('Erro ao ordenar por proximidade:', erro));

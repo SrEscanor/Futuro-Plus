@@ -1,6 +1,7 @@
 import { auth, db } from './firebase-config.js';
-import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { escapeHtml, normalizar, atualizarMetaDescricao, definirDadosEstruturados } from './card-unidade.js';
+import { carregarUnidades } from './dados-resumidos.js';
 import {
     carregarRegioesSP,
     resolverLocalizacaoUsuario,
@@ -603,12 +604,12 @@ async function carregar() {
         // página de um listaria as unidades do outro.
         const termo = normalizar(curso.nome);
         const ehSuperior = curso.nivel === 'superior';
-        const unidadesSnap = await getDocs(collection(db, 'instituicoes')).catch((erro) => {
+        // a lista resumida (dados-resumidos.js), não as 324 unidades do Firestore
+        const todas = await carregarUnidades().catch((erro) => {
             console.error('Erro ao carregar as unidades do curso:', erro);
-            return { docs: [] };
+            return [];
         });
-        const unidades = unidadesSnap.docs
-            .map((d) => ({ id: d.id, ...d.data() }))
+        const unidades = todas
             .filter((u) => {
                 if (!(u.cursos || []).some((c) => normalizar(c?.nome) === termo)) return false;
                 const unidadeEhFatec = (u.tipo || '').trim().toLowerCase() === 'fatec';

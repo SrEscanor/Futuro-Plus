@@ -1,8 +1,7 @@
 // Prévia dos cursos com maior demanda (candidatos por vaga) na Início:
 // usa o mesmo dado de cursos/{id}.demanda que a página do curso e o
 // painel admin usam, só que aqui para escolher os mais disputados.
-import { db } from './firebase-config.js';
-import { collection, getDocs } from 'firebase/firestore';
+import { carregarCursos } from './dados-resumidos.js';
 import { escapeHtml, logoPadraoPorTipo } from './card-unidade.js';
 import { resumoDaDemanda } from './demanda-curso.js';
 import { ativarScrollHorizontalComMouse } from './scroll-horizontal.js';
@@ -52,9 +51,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     ativarScrollHorizontalComMouse(container);
 
     try {
-        const snap = await getDocs(collection(db, 'cursos'));
-        const maisDisputados = snap.docs
-            .map((d) => ({ id: d.id, ...d.data() }))
+        // a lista resumida (dados-resumidos.js), não os 363 cursos do Firestore
+        const cursos = await carregarCursos();
+        const maisDisputados = cursos
             .map((curso) => ({ curso, resumo: resumoDaDemanda(curso.demanda) }))
             .filter((item) => item.resumo)
             .sort((a, b) => b.resumo.porVaga - a.resumo.porVaga)

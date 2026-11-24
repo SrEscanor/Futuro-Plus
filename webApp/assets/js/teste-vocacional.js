@@ -1,5 +1,6 @@
 import { auth, db } from './firebase-config.js';
-import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
+import { carregarCursos, carregarUnidades } from './dados-resumidos.js';
 import { salvarResultadoNoPerfil, extrairResultadoVocacional } from './resultado-teste.js';
 import { escapeHtml, normalizar } from './card-unidade.js';
 import {
@@ -453,22 +454,23 @@ async function mostrarResultado(resultadoPronto = null, { aoVivo = true } = {}) 
 // ------------------------------------------------------------------
 
 async function carregarDados() {
-    const [resposta, unidadesSnap] = await Promise.all([
+    // as listas resumidas (dados-resumidos.js), não as 324 unidades e os 363
+    // cursos direto do Firestore
+    const [resposta, unidades] = await Promise.all([
         fetch(CATALOGO_OFICIAL),
-        getDocs(collection(db, 'instituicoes'))
+        carregarUnidades()
     ]);
 
     const oficial = await resposta.json();
     const porSlug = new Map(oficial.map((c) => [c.slug, c]));
 
     // o que o painel já editou vale mais que o arquivo
-    const cursosSnap = await getDocs(collection(db, 'cursos')).catch(() => null);
-    cursosSnap?.docs.forEach((d) => porSlug.set(d.id, { slug: d.id, ...porSlug.get(d.id), ...d.data() }));
+    const cursosEditados = await carregarCursos().catch(() => []);
+    cursosEditados.forEach(({ id, ...dados }) => porSlug.set(id, { slug: id, ...porSlug.get(id), ...dados }));
     catalogo = [...porSlug.values()];
 
     unidadesPorCurso = new Map();
-    unidadesSnap.docs.forEach((d) => {
-        const dados = d.data();
+    unidades.forEach((dados) => {
         // Etec é o único tipo técnico hoje; qualquer outro tipo (Fatec, ou um
         // tipo novo cadastrado nas unidades) conta como oferta de nível superior.
         const tipo = (dados.tipo || '').trim().toLowerCase();

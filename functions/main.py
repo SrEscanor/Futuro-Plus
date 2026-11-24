@@ -1036,10 +1036,11 @@ HOSTS_DO_SITE = {"futuroplus.com.br", "www.futuroplus.com.br", "futuroplus-bce54
 CACHE_PAGINA_PRONTA = "public, max-age=0, s-maxage=3600"
 CACHE_PAGINA_CURTO = "public, max-age=0, s-maxage=60"
 
-# Lista resumida das unidades (para "Onde estudar") e catálogo oficial, uma
-# leitura por hora por instância em vez de uma por página.
+# Listas resumidas das unidades e dos cursos (para "Onde estudar" e para
+# /dados/unidades.json e /dados/cursos.json) e catálogo oficial: lidas no
+# máximo a cada 30 min por instância, em vez de a cada página.
 _CACHE_PAGINAS = {}
-VALIDADE_CACHE_PAGINAS = 3600
+VALIDADE_CACHE_PAGINAS = 1800
 
 PAGINA_INDISPONIVEL = (
     '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="robots" content="noindex">'
@@ -1078,21 +1079,63 @@ def _guardado(chave, carregar):
     return valor
 
 
-def _unidades_resumidas(db):
+# Os campos das unidades que as páginas públicas usam (lista de
+# instituições, "Onde estudar", recomendações e Teste Vocacional).
+CAMPOS_DA_UNIDADE = ["nome", "tipo", "municipio", "regiao", "logotipoUrl", "localizacao", "cursos"]
+# O que fica fora da lista de cursos: as matrizes (o grosso do documento,
+# lidas só na página do próprio curso) e o controle do painel admin.
+CAMPOS_FORA_DO_CURSO = {"matrizes", "matrizFatec", "matrizesEtec", "camposEditados", "atualizadoPor",
+                        "atualizadoEm", "editadoManualmente"}
+
+
+def _para_json(valor):
+    """Valor do Firestore em algo que vira JSON: data vira texto ISO e o que
+    não tiver forma conhecida vira texto."""
+    if isinstance(valor, dict):
+        return {str(chave): _para_json(item) for chave, item in valor.items()}
+    if isinstance(valor, (list, tuple)):
+        return [_para_json(item) for item in valor]
+    if valor is None or isinstance(valor, (str, int, float, bool)):
+        return valor
+    if isinstance(valor, datetime):
+        return valor.isoformat()
+    if hasattr(valor, "latitude") and hasattr(valor, "longitude"):
+        return {"lat": valor.latitude, "lng": valor.longitude}
+    return str(valor)
+
+
+def _lista_de_unidades(db):
     def carregar():
-        consulta = db.collection("instituicoes").select(["nome", "tipo", "municipio", "cursos"])
         unidades = []
-        for documento in consulta.stream():
+        for documento in db.collection("instituicoes").select(CAMPOS_DA_UNIDADE).stream():
             dados = documento.to_dict() or {}
+            local = dados.get("localizacao") if isinstance(dados.get("localizacao"), dict) else {}
+            tem_local = local.get("lat") is not None and local.get("lng") is not None
             unidades.append({
                 "id": documento.id,
                 "nome": dados.get("nome") or "",
                 "tipo": dados.get("tipo") or "",
                 "municipio": dados.get("municipio") or "",
-                "cursos": [c.get("nome") for c in dados.get("cursos") or [] if isinstance(c, dict) and c.get("nome")],
+                "regiao": dados.get("regiao") or "",
+                "logotipoUrl": dados.get("logotipoUrl") or "",
+                "localizacao": {"lat": local["lat"], "lng": local["lng"], "precisao": local.get("precisao")} if tem_local else None,
+                "cursos": [
+                    {"nome": c["nome"], "categoria": c.get("categoria") or ""}
+                    for c in dados.get("cursos") or [] if isinstance(c, dict) and c.get("nome")
+                ],
             })
-        return unidades
+        return _para_json(unidades)
     return _guardado("unidades", carregar)
+
+
+def _lista_de_cursos(db):
+    def carregar():
+        return [
+            {"id": documento.id, **_para_json({chave: valor for chave, valor in (documento.to_dict() or {}).items()
+                                               if chave not in CAMPOS_FORA_DO_CURSO})}
+            for documento in db.collection("cursos").stream()
+        ]
+    return _guardado("cursos", carregar)
 
 
 def _catalogo_oficial(origem):
@@ -1125,7 +1168,7 @@ def _pagina_do_curso(req, origem, modelo, db):
     curso = (documento.to_dict() or {}) if documento.exists else _catalogo_oficial(origem).get(slug)
     if not curso:
         return modelo, 404
-    return paginas_prontas.pagina_do_curso(modelo, curso, slug, _unidades_resumidas(db)) or modelo, 200
+    return paginas_prontas.pagina_do_curso(modelo, curso, slug, _lista_de_unidades(db)) or modelo, 200
 
 
 def _pagina_da_instituicao(req, modelo, db):
@@ -1177,3 +1220,49 @@ def pagina_pronta(req: https_fn.Request) -> https_fn.Response:
 
     pronta = pagina is not modelo
     return _resposta_html(pagina, status=status, cache=CACHE_PAGINA_PRONTA if pronta else CACHE_PAGINA_CURTO)
+
+
+# JSON não aponta para arquivos que mudam de nome no deploy, então pode ficar
+# 5 min no navegador; na rede do Hosting fica 1h.
+CACHE_DADOS_RESUMIDOS = "public, max-age=300, s-maxage=3600"
+
+
+@https_fn.on_request(
+    region=options.SupportedRegion.SOUTHAMERICA_EAST1,
+    max_instances=5,
+    memory=options.MemoryOption.MB_256,
+)
+def dados_resumidos(req: https_fn.Request) -> https_fn.Response:
+    """/dados/unidades.json e /dados/cursos.json (rewrite em firebase.json):
+    a lista das unidades e a dos cursos, só com o que as páginas públicas
+    usam. Antes, cada visita à Início, ao catálogo, à lista de instituições,
+    à página de um curso ou ao Teste Vocacional lia as 324 unidades ou os 363
+    cursos direto do Firestore, e a cota grátis (50 mil leituras por dia)
+    acabava em umas 150 visitas. Agora a rede do Hosting guarda a lista por
+    1h, e o Firestore é lido no máximo a cada 30 min por instância.
+
+    O site lê estes endereços em assets/js/dados-resumidos.js, que volta a
+    ler o Firestore direto se a lista não vier."""
+    caminho = req.path or ""
+    if caminho.endswith("/unidades.json"):
+        chave, carregar = "unidades", _lista_de_unidades
+    elif caminho.endswith("/cursos.json"):
+        chave, carregar = "cursos", _lista_de_cursos
+    else:
+        return https_fn.Response("Não encontrado.", status=404)
+
+    try:
+        itens = carregar(firestore.client())
+    except Exception as erro:
+        print(f"Erro ao montar a lista resumida ({chave}): {erro}")
+        return https_fn.Response(json.dumps({"erro": "Lista indisponível agora."}), status=503, headers={
+            "Content-Type": "application/json; charset=utf-8",
+            "Cache-Control": "no-store",
+        })
+
+    corpo = json.dumps({chave: itens, "geradoEm": datetime.now(timezone.utc).isoformat()},
+                       ensure_ascii=False, separators=(",", ":"))
+    return https_fn.Response(corpo, status=200, headers={
+        "Content-Type": "application/json; charset=utf-8",
+        "Cache-Control": CACHE_DADOS_RESUMIDOS,
+    })

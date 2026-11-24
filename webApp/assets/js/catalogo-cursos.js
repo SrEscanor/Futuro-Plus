@@ -1,9 +1,7 @@
-import { db } from './firebase-config.js';
-import { collection, getDocs } from 'firebase/firestore';
+import { carregarCursos as carregarListaDeCursos } from './dados-resumidos.js';
 import { escapeHtml, normalizar, logoPadraoPorTipo } from './card-unidade.js';
 import { renderizarPaginacao } from './paginacao.js';
 
-const CURSOS_COLLECTION = 'cursos';
 const CATALOGO_OFICIAL = '/dados/catalogo-cursos.json';
 const CURSOS_POR_PAGINA = 16;
 
@@ -12,8 +10,9 @@ const filtros = { nivel: '', eixo: '', busca: '', pagina: 1 };
 let eixosExpandidos = false;
 
 async function carregarCursos() {
-    const snap = await getDocs(collection(db, CURSOS_COLLECTION));
-    if (snap.size) return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    // a lista resumida (dados-resumidos.js), não os 363 cursos do Firestore
+    const cursos = await carregarListaDeCursos();
+    if (cursos.length) return cursos;
 
     // Enquanto o catálogo não foi importado no Painel Admin, cai no arquivo
     // oficial (o mesmo usado em curso.html), para a página nunca ficar vazia.

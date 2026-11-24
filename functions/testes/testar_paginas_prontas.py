@@ -275,6 +275,58 @@ else:
         conferir(status == 503 and cache == "no-store" and 'http-equiv="refresh"' in corpo,
                  "sem o modelo devia dar 503 com o aviso que recarrega")
 
+    # ---- listas resumidas: /dados/unidades.json e /dados/cursos.json ----
+    from datetime import datetime as Data, timezone as Fuso
+
+    def pedir(endereco):
+        with flask.Flask("teste").test_request_context(endereco):
+            resposta = main.dados_resumidos(flask.request)
+        return resposta.status_code, resposta.headers.get("Cache-Control", ""), resposta.get_data(as_text=True)
+
+    banco = Banco()
+    banco.colecoes["instituicoes"]["002"]["localizacao"] = {"lat": -23.5, "lng": -46.6, "precisao": "rua"}
+    banco.colecoes["instituicoes"]["002"]["diretor"] = "não vai para a lista"
+    banco.colecoes["cursos"]["quimica"] = {
+        "nome": "Química",
+        "matrizFatec": {"disciplinas": [{"nome": "x"}] * 50},
+        "matrizesEtec": [{"disciplinas": []}],
+        "atualizadoEm": Data(2026, 11, 1, tzinfo=Fuso.utc),
+        "demanda": {"historico": [{"periodo": "2026-1", "inscritos": 10, "vagas": 2}], "atualizadaEm": Data(2026, 11, 2, tzinfo=Fuso.utc)},
+    }
+    Banco.leituras_de_unidades = 0
+    main._CACHE_PAGINAS.clear()
+    with mock.patch.object(main.firestore, "client", return_value=banco):
+        status, cache, corpo = pedir("/dados/unidades.json")
+        conferir(status == 200 and cache == main.CACHE_DADOS_RESUMIDOS, "lista de unidades sem 200 ou sem o cache")
+        unidades = {u["id"]: u for u in json.loads(corpo).get("unidades", [])}
+        unidade = unidades.get("002", {})
+        conferir(set(unidade) == {"id", "nome", "tipo", "municipio", "regiao", "logotipoUrl", "localizacao", "cursos"},
+                 f"campos da unidade na lista errados: {sorted(unidade)}")
+        conferir(unidade.get("cursos") == [{"nome": "Desenvolvimento de Sistemas", "categoria": ""}]
+                 and unidade.get("localizacao") == {"lat": -23.5, "lng": -46.6, "precisao": "rua"},
+                 "cursos ou localização da unidade errados na lista")
+        conferir(unidades.get("003", {}).get("localizacao") is None, "unidade sem localização devia vir com null")
+        pedir("/dados/unidades.json")
+        conferir(Banco.leituras_de_unidades == 1, "a lista de unidades leu o Firestore de novo (devia guardar por 30 min)")
+
+        status, _, corpo = pedir("/dados/cursos.json")
+        cursos = {c["id"]: c for c in json.loads(corpo).get("cursos", [])}
+        quimica = cursos.get("quimica", {})
+        conferir(status == 200 and quimica.get("nome") == "Química", "lista de cursos sem o curso")
+        conferir(not {"matrizFatec", "matrizesEtec", "atualizadoEm"} & set(quimica), "a lista de cursos levou as matrizes")
+        conferir(quimica.get("demanda", {}).get("historico", [{}])[0].get("vagas") == 2
+                 and quimica["demanda"]["atualizadaEm"].startswith("2026-11-02"),
+                 "a demanda do curso (com data) não veio certa na lista")
+        conferir(cursos.get("desenvolvimento-de-sistemas", {}).get("descricao", "").startswith("Aprende"),
+                 "a lista de cursos perdeu a descrição")
+
+        conferir(pedir("/dados/outra.json")[0] == 404, "endereço desconhecido devia dar 404")
+
+    main._CACHE_PAGINAS.clear()
+    with mock.patch.object(main.firestore, "client", side_effect=banco_quebrado):
+        status, cache, _ = pedir("/dados/cursos.json")
+        conferir(status == 503 and cache == "no-store", "com o Firestore fora do ar a lista devia dar 503 sem cache")
+
 if falhas:
     print(f"{len(falhas)} problema(s):")
     for falha in falhas:

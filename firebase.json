@@ -58,6 +58,20 @@
           "functionId": "pagina_pronta",
           "region": "southamerica-east1"
         }
+      },
+      {
+        "source": "/dados/unidades.json",
+        "function": {
+          "functionId": "dados_resumidos",
+          "region": "southamerica-east1"
+        }
+      },
+      {
+        "source": "/dados/cursos.json",
+        "function": {
+          "functionId": "dados_resumidos",
+          "region": "southamerica-east1"
+        }
       }
     ],
     "headers": [

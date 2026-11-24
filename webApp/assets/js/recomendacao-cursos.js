@@ -1,5 +1,6 @@
-import { collection, doc, getDoc, getDocs, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "./firebase-config.js";
+import { carregarUnidades } from "./dados-resumidos.js";
 import { categoriasTeste } from "./categorias-teste.js";
 import { escapeHtml, normalizar } from "./card-unidade.js";
 import { distanciaKm, formatarDistancia, localizarRuaDoAluno } from "./geocodificacao.js";
@@ -196,12 +197,12 @@ export async function carregarOfertaCursos() {
     let cursos = lerCache(sessionStorage, CHAVE_OFERTA, 6 * 60 * 60 * 1000);
 
     if (!cursos) {
-        const snap = await getDocs(collection(db, "instituicoes"));
+        // a lista resumida (dados-resumidos.js), não as 324 unidades do Firestore
+        const unidades = await carregarUnidades();
         cursos = {};
-        snap.docs.forEach((documento) => {
-            const u = documento.data();
+        unidades.forEach((u) => {
             const unidade = {
-                id: documento.id,
+                id: u.id,
                 nome: u.nome,
                 municipio: u.municipio,
                 tipo: u.tipo || "",
