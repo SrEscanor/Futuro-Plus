@@ -371,14 +371,16 @@ const TIPOS_DE_BLOCO = {
 
 function htmlDoBloco(bloco, indice, total) {
     const tipo = TIPOS_DE_BLOCO[bloco.tipo];
-    // só o parágrafo tem negrito (o intertítulo já é todo destacado)
-    const negrito = bloco.tipo === 'paragrafo'
+    // só o parágrafo tem negrito e itálico (o intertítulo já é todo destacado)
+    const marcas = bloco.tipo === 'paragrafo'
         ? `<button type="button" class="np-controle np-controle--negrito" data-acao="negrito" data-indice="${indice}"
-                aria-label="Negrito no trecho selecionado" title="Negrito no trecho selecionado (Ctrl+B)">B</button>`
+                aria-label="Negrito no trecho selecionado" title="Negrito no trecho selecionado (Ctrl+B)">B</button>
+            <button type="button" class="np-controle np-controle--italico" data-acao="italico" data-indice="${indice}"
+                aria-label="Itálico no trecho selecionado" title="Itálico no trecho selecionado (Ctrl+I)">I</button>`
         : '';
     const controles = `
         <div class="np-bloco-controles">
-            ${negrito}
+            ${marcas}
             <button type="button" class="np-controle" data-acao="subir" data-indice="${indice}"${indice === 0 ? ' disabled' : ''}
                 aria-label="Subir ${tipo.nome.toLowerCase()}" title="Subir">&uarr;</button>
             <button type="button" class="np-controle" data-acao="descer" data-indice="${indice}"${indice === total - 1 ? ' disabled' : ''}
@@ -420,16 +422,20 @@ function adicionarBloco(tipo) {
     if (tipo === 'imagem') escolherImagem(blocos.length - 1);
 }
 
-// Negrito no parágrafo: põe (ou tira, se já estiver) ** em volta do trecho
-// selecionado; a página da notícia mostra o trecho em negrito. Sem nada
-// selecionado, vale a palavra onde está o cursor; num espaço vazio, deixa
-// **** com o cursor no meio, para já digitar em negrito. Usa o insertText
-// do navegador para o Ctrl+Z desfazer (e o "input" atualizar a notícia).
+// Negrito e itálico no parágrafo: põe (ou tira, se já tiver) a marca em
+// volta do trecho selecionado, ** para negrito e _ para itálico, e a página
+// da notícia mostra o trecho formatado. Sem nada selecionado, vale a palavra
+// onde está o cursor; num espaço vazio, deixa as duas marcas com o cursor no
+// meio, para já digitar formatado. Com os dois juntos (_**assim**_), passa
+// por cima da outra marca para achar a sua. Usa o insertText do navegador
+// para o Ctrl+Z desfazer (e o "input" atualizar a notícia).
+const MARCAS = { negrito: '**', italico: '_' };
 const LETRA = /[\p{L}\p{N}]/u;
 
-function aplicarNegrito(campo) {
+function aplicarMarca(campo, marca) {
     if (!campo) return;
     const texto = campo.value;
+    const n = marca.length;
     let inicio = campo.selectionStart;
     let fim = campo.selectionEnd;
     if (inicio === fim) {
@@ -439,17 +445,30 @@ function aplicarNegrito(campo) {
     // espaço nas pontas fica fora: "** palavra**" não seria negrito
     while (inicio < fim && /\s/.test(texto[inicio])) inicio += 1;
     while (fim > inicio && /\s/.test(texto[fim - 1])) fim -= 1;
-
     const trecho = texto.slice(inicio, fim);
+
+    // a marca logo em volta do trecho, passando por cima da outra
+    const envolve = (de, ate, m) => de >= m.length
+        && texto.slice(de - m.length, de) === m && texto.slice(ate, ate + m.length) === m;
+    const outras = Object.values(MARCAS).filter((m) => m !== marca);
+    let de = inicio;
+    let ate = fim;
+    while (!envolve(de, ate, marca)) {
+        const outra = outras.find((m) => envolve(de, ate, m));
+        if (!outra) break;
+        de -= outra.length;
+        ate += outra.length;
+    }
+
     let troca;
-    if (texto.slice(inicio - 2, inicio) === '**' && texto.slice(fim, fim + 2) === '**' && inicio >= 2) {
-        // já em negrito, com os asteriscos fora da seleção: tira
-        troca = { de: inicio - 2, ate: fim + 2, por: trecho, selecao: [inicio - 2, fim - 2] };
-    } else if (trecho.length >= 4 && trecho.startsWith('**') && trecho.endsWith('**')) {
-        // a seleção pegou os asteriscos junto: tira
-        troca = { de: inicio, ate: fim, por: trecho.slice(2, -2), selecao: [inicio, fim - 4] };
+    if (envolve(de, ate, marca)) {
+        // já tinha a marca, fora da seleção: tira (o que está dentro fica)
+        troca = { de: de - n, ate: ate + n, por: texto.slice(de, ate), selecao: [inicio - n, fim - n] };
+    } else if (trecho.length >= 2 * n && trecho.startsWith(marca) && trecho.endsWith(marca)) {
+        // a seleção pegou as marcas junto: tira
+        troca = { de: inicio, ate: fim, por: trecho.slice(n, -n), selecao: [inicio, fim - 2 * n] };
     } else {
-        troca = { de: inicio, ate: fim, por: `**${trecho}**`, selecao: [inicio + 2, fim + 2] };
+        troca = { de: inicio, ate: fim, por: `${marca}${trecho}${marca}`, selecao: [inicio + n, fim + n] };
     }
     if (texto.length - (troca.ate - troca.de) + troca.por.length > LIMITES.paragrafo) return;
 
@@ -826,19 +845,22 @@ function ligarEventos() {
             subir: () => moverBloco(alvo, -1),
             descer: () => moverBloco(alvo, 1),
             'remover-bloco': () => removerBloco(alvo),
-            negrito: () => aplicarNegrito(el('np-blocos').querySelector(`textarea[data-indice="${alvo}"]`))
+            negrito: () => aplicarMarca(el('np-blocos').querySelector(`textarea[data-indice="${alvo}"]`), MARCAS.negrito),
+            italico: () => aplicarMarca(el('np-blocos').querySelector(`textarea[data-indice="${alvo}"]`), MARCAS.italico)
         };
         acoes[botao.dataset.acao]?.();
     };
-    // o B não tira o foco do parágrafo, senão a seleção se perderia no clique
+    // o B e o I não tiram o foco do parágrafo, senão a seleção se perderia no clique
     el('np-blocos').addEventListener('mousedown', (evento) => {
-        if (evento.target.closest('[data-acao="negrito"]')) evento.preventDefault();
+        if (evento.target.closest('[data-acao="negrito"], [data-acao="italico"]')) evento.preventDefault();
     });
+    const ATALHOS = { b: MARCAS.negrito, i: MARCAS.italico };
     el('np-blocos').addEventListener('keydown', (evento) => {
         const campo = evento.target.closest('textarea.np-bloco-texto');
-        if (!campo || !(evento.ctrlKey || evento.metaKey) || evento.altKey || evento.key.toLowerCase() !== 'b') return;
+        const marca = ATALHOS[evento.key?.toLowerCase()];
+        if (!campo || !marca || !(evento.ctrlKey || evento.metaKey) || evento.altKey || evento.shiftKey) return;
         evento.preventDefault();
-        aplicarNegrito(campo);
+        aplicarMarca(campo, marca);
     });
     for (const area of [el('np-imagem-principal'), el('np-blocos')]) {
         area.addEventListener('input', aoDigitar);

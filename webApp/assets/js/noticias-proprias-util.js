@@ -104,15 +104,18 @@ export function textoLongo(texto, limite) {
     return String(texto ?? '').replace(/\r\n?/g, '\n').replace(/\n{3,}/g, '\n\n').trim().slice(0, limite);
 }
 
-// Negrito no parágrafo, marcado no editor como **assim** (o botão B e o
-// Ctrl+B do painel põem os asteriscos). Recebe o texto JÁ escapado: o
-// escapeHtml não mexe em asterisco, então só os pares de ** viram <strong>
-// e nenhum HTML de quem escreveu passa. Como no Markdown, o trecho não
-// começa nem termina com espaço ("**** e **" não vira negrito); um ** sem
-// par continua aparecendo como está, e o negrito não atravessa a quebra de
-// linha.
-export function negritoEmHtml(textoEscapado) {
-    return String(textoEscapado ?? '').replace(/\*\*([^*\s](?:[^*\n]*[^*\s])?)\*\*/g, '<strong>$1</strong>');
+// Negrito e itálico no parágrafo, marcados no editor como **assim** e
+// _assim_ (os botões B e I e o Ctrl+B / Ctrl+I do painel põem as marcas).
+// Recebe o texto JÁ escapado: o escapeHtml não mexe em asterisco nem em
+// sublinhado, então só os pares de marcas viram <strong> e <em>, e nenhum
+// HTML de quem escreveu passa. Como no Markdown, o trecho não começa nem
+// termina com espaço ("**** e **" não vira negrito) e o _ só vale fora de
+// palavra (nome_de_arquivo continua como está). Marca sem par aparece como
+// está, e nada atravessa a quebra de linha. Os dois juntos: _**assim**_.
+export function formatacaoEmHtml(textoEscapado) {
+    return String(textoEscapado ?? '')
+        .replace(/\*\*([^*\s](?:[^*\n]*[^*\s])?)\*\*/g, '<strong>$1</strong>')
+        .replace(/(^|[^\p{L}\p{N}_])_([^_\s](?:[^_\n]*[^_\s])?)_(?![\p{L}\p{N}_])/gu, '$1<em>$2</em>');
 }
 
 // Imagem só por https (as do Storage). No computador de quem desenvolve
