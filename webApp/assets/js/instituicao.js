@@ -415,6 +415,9 @@ async function iniciar() {
         unidade = await lerUnidade(id);
     } catch (erro) {
         console.error('Erro ao ler a unidade:', erro);
+        // a página pronta (functions/paginas_prontas.py) já mostra o básico da
+        // unidade: sem conexão com o Firestore, fica isso em vez do erro
+        if (document.querySelector('.inst-pronta')) return;
         naoEncontrada('Não deu para abrir esta instituição', 'Confira a conexão e tente de novo em instantes.');
         return;
     }
@@ -426,7 +429,9 @@ async function iniciar() {
     estado.unidade = unidade;
     estado.cursos = cursosDaUnidade(unidade);
     estado.fixas = perguntasFixas(unidade, estado.cursos);
-    document.title = `Futuro+ | ${unidade.nome}`;
+    // o nome primeiro, que é o que se pesquisa; igual ao da página pronta
+    // (titulo_da_instituicao em functions/paginas_prontas.py)
+    document.title = `${unidade.nome}: cursos, endereço e avaliações | Futuro+`;
     // o mesmo texto real do card "Sobre a instituição" (textoSobre),
     // truncado — em vez de uma frase genérica igual em toda unidade.
     const descricao = textoSobre(unidade, estado.cursos);

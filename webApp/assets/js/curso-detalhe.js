@@ -563,6 +563,10 @@ async function carregar() {
         const curso = snap?.exists() ? snap.data() : await buscarNoCatalogoOficial(id);
 
         if (!curso) {
+            // a página pronta (functions/paginas_prontas.py) já trouxe o curso,
+            // que o servidor achou no Firestore: se aqui ele não veio (sem
+            // conexão), fica o que já está na tela em vez do aviso
+            if (container.querySelector('.curso-topo')) return;
             container.innerHTML = `<p class="sem-resultados">
                 Ainda não temos a descrição deste curso.
                 <a href="instituicoes.html?curso=${encodeURIComponent(identificador)}">Ver as unidades que oferecem</a>.
@@ -618,6 +622,8 @@ async function carregar() {
         if (avaliar) renderizar(curso, unidades, avaliar);
     } catch (erro) {
         console.error('Erro ao carregar o curso:', erro);
+        // com o curso já na tela (página pronta ou parte já montada), fica ele
+        if (container.querySelector('.curso-topo')) return;
         container.innerHTML = '<p class="sem-resultados">Não foi possível carregar este curso agora. Tente novamente mais tarde.</p>';
     }
 }

@@ -1,6 +1,8 @@
 User-agent: *
 Allow: /
 Disallow: /admin-
+# modelos que a função pagina_pronta preenche (curso.html e instituicao.html)
+Disallow: /modelos/
 
 Sitemap: https://futuroplus.com.br/sitemap.xml
 Sitemap: https://futuroplus.com.br/sitemap-conteudo.xml

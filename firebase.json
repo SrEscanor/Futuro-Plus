@@ -44,6 +44,20 @@
           "functionId": "sitemap_dinamico",
           "region": "southamerica-east1"
         }
+      },
+      {
+        "source": "/curso.html",
+        "function": {
+          "functionId": "pagina_pronta",
+          "region": "southamerica-east1"
+        }
+      },
+      {
+        "source": "/instituicao.html",
+        "function": {
+          "functionId": "pagina_pronta",
+          "region": "southamerica-east1"
+        }
       }
     ],
     "headers": [

@@ -1015,3 +1015,161 @@ def sitemap_dinamico(req: https_fn.Request) -> https_fn.Response:
         # toda hora.
         "Cache-Control": "public, max-age=3600",
     })
+
+
+# ---------------------------------------------------------------------------
+# Páginas de curso e de instituição já preenchidas (paginas_prontas.py)
+# ---------------------------------------------------------------------------
+
+# Endereços em que o site responde; o modelo é sempre buscado no mesmo site
+# que recebeu o pedido, e nunca num endereço vindo de fora.
+HOSTS_DO_SITE = {"futuroplus.com.br", "www.futuroplus.com.br", "futuroplus-bce54.web.app", "futuroplus-bce54.firebaseapp.com"}
+
+# A página pronta fica 6h guardada na rede do Hosting (que se esvazia a cada
+# deploy do site) e 5 min no navegador. Uma mudança feita no admin aparece na
+# hora para quem abre (o JavaScript lê o Firestore de novo) e na página pronta
+# em até 6h.
+CACHE_PAGINA_PRONTA = "public, max-age=300, s-maxage=21600"
+CACHE_PAGINA_CURTO = "public, max-age=60, s-maxage=60"
+
+# Lista resumida das unidades (para "Onde estudar") e catálogo oficial, uma
+# leitura por hora por instância em vez de uma por página.
+_CACHE_PAGINAS = {}
+VALIDADE_CACHE_PAGINAS = 3600
+
+PAGINA_INDISPONIVEL = (
+    '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="robots" content="noindex">'
+    '<meta http-equiv="refresh" content="5"><title>Futuro+</title></head><body style="font-family:sans-serif;'
+    'text-align:center;padding:48px 16px">Não deu para abrir esta página agora. Tentando de novo em instantes…'
+    '<p><a href="/">Voltar ao Futuro+</a></p></body></html>'
+)
+
+
+def _origem_do_site(req):
+    """O endereço do site que recebeu o pedido (o Hosting manda em
+    X-Forwarded-Host), só se for um dos nossos."""
+    host = (req.headers.get("X-Forwarded-Host") or req.host or "").split(",")[0].strip().lower()
+    return f"https://{host}" if host in HOSTS_DO_SITE else "https://futuroplus.com.br"
+
+
+def _baixar_do_site(origem, caminho):
+    """Um arquivo estático do site (o modelo da página ou o catálogo). Sem
+    cache aqui de propósito para o modelo: depois de um deploy, os arquivos de
+    CSS e JS mudam de nome, e um modelo velho guardado faria a página apontar
+    para arquivos que não existem mais."""
+    try:
+        resposta = requests.get(f"{origem}{caminho}", timeout=6)
+        return resposta.text if resposta.status_code == 200 else None
+    except requests.RequestException as erro:
+        print(f"Não deu para baixar {caminho} do site: {erro}")
+        return None
+
+
+def _guardado(chave, carregar):
+    agora = datetime.now(timezone.utc).timestamp()
+    momento, valor = _CACHE_PAGINAS.get(chave, (0, None))
+    if valor is None or agora - momento > VALIDADE_CACHE_PAGINAS:
+        valor = carregar()
+        _CACHE_PAGINAS[chave] = (agora, valor)
+    return valor
+
+
+def _unidades_resumidas(db):
+    def carregar():
+        consulta = db.collection("instituicoes").select(["nome", "tipo", "municipio", "cursos"])
+        unidades = []
+        for documento in consulta.stream():
+            dados = documento.to_dict() or {}
+            unidades.append({
+                "id": documento.id,
+                "nome": dados.get("nome") or "",
+                "tipo": dados.get("tipo") or "",
+                "municipio": dados.get("municipio") or "",
+                "cursos": [c.get("nome") for c in dados.get("cursos") or [] if isinstance(c, dict) and c.get("nome")],
+            })
+        return unidades
+    return _guardado("unidades", carregar)
+
+
+def _catalogo_oficial(origem):
+    """O mesmo /dados/catalogo-cursos.json que a página usa quando o curso
+    ainda não está no Firestore, por slug."""
+    def carregar():
+        texto = _baixar_do_site(origem, "/dados/catalogo-cursos.json")
+        try:
+            return {item.get("slug"): item for item in json.loads(texto or "[]") if isinstance(item, dict)}
+        except ValueError:
+            return {}
+    return _guardado(f"catalogo:{origem}", carregar)
+
+
+def _resposta_html(corpo, status=200, cache=CACHE_PAGINA_PRONTA):
+    return https_fn.Response(corpo, status=status, headers={
+        "Content-Type": "text/html; charset=utf-8",
+        "Cache-Control": cache,
+    })
+
+
+def _pagina_do_curso(req, origem, modelo, db):
+    import paginas_prontas
+
+    identificador = req.args.get("c") or req.args.get("curso") or ""
+    slug = paginas_prontas.slugificar(identificador)
+    if not slug or "/" in identificador:
+        return modelo, 200
+    documento = db.collection("cursos").document(slug).get()
+    curso = (documento.to_dict() or {}) if documento.exists else _catalogo_oficial(origem).get(slug)
+    if not curso:
+        return modelo, 404
+    return paginas_prontas.pagina_do_curso(modelo, curso, slug, _unidades_resumidas(db)) or modelo, 200
+
+
+def _pagina_da_instituicao(req, modelo, db):
+    import paginas_prontas
+
+    unidade_id = req.args.get("u") or ""
+    if not unidade_id or "/" in unidade_id:
+        return modelo, 200
+    documento = db.collection("instituicoes").document(unidade_id).get()
+    if not documento.exists:
+        return modelo, 404
+    return paginas_prontas.pagina_da_instituicao(modelo, documento.to_dict() or {}, unidade_id) or modelo, 200
+
+
+@https_fn.on_request(
+    region=options.SupportedRegion.SOUTHAMERICA_EAST1,
+    max_instances=10,
+    memory=options.MemoryOption.MB_256,
+)
+def pagina_pronta(req: https_fn.Request) -> https_fn.Response:
+    """Entrega /curso.html e /instituicao.html já com o conteúdo dentro, para
+    o Google e para a prévia de link (ver paginas_prontas.py). O build tira
+    esses dois arquivos da raiz do site e guarda em /modelos/
+    (webApp/scripts/separar-modelos.cjs), então o Hosting manda os dois
+    endereços para cá (rewrite em firebase.json). Os endereços continuam os
+    mesmos de sempre (curso.html?c=..., instituicao.html?u=...).
+
+    Se algo falhar ao montar, entrega o modelo como está: a página funciona
+    igual a antes, montada só pelo JavaScript."""
+    caminho = req.path or ""
+    tipo = "curso" if caminho.endswith("/curso.html") else "instituicao" if caminho.endswith("/instituicao.html") else ""
+    if not tipo:
+        return https_fn.Response("Página não encontrada.", status=404)
+
+    origem = _origem_do_site(req)
+    modelo = _baixar_do_site(origem, f"/modelos/{tipo}.html")
+    if modelo is None:
+        return _resposta_html(PAGINA_INDISPONIVEL, status=503, cache="no-store")
+
+    try:
+        db = firestore.client()
+        if tipo == "curso":
+            pagina, status = _pagina_do_curso(req, origem, modelo, db)
+        else:
+            pagina, status = _pagina_da_instituicao(req, modelo, db)
+    except Exception as erro:
+        print(f"Erro ao montar a página pronta ({tipo}): {erro}")
+        return _resposta_html(modelo, cache=CACHE_PAGINA_CURTO)
+
+    pronta = pagina is not modelo
+    return _resposta_html(pagina, status=status, cache=CACHE_PAGINA_PRONTA if pronta else CACHE_PAGINA_CURTO)

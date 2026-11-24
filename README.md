@@ -69,6 +69,7 @@ O projeto foi desenvolvido como **Trabalho de Conclusão de Curso (TCC)**.
 ### ✨ E mais
 - **Tour guiado** na primeira visita, com destaque nas principais telas.
 - **Pronto para buscadores:** sitemap (com a página de cada curso e de cada instituição, gerada na hora), robots.txt, dados estruturados (schema.org) e descrição própria em cada página.
+- **Páginas de curso e de instituição prontas:** uma função do Firebase (`pagina_pronta`) entrega `curso.html` e `instituicao.html` já com o título, a descrição, a prévia de link e o texto principal dentro do HTML. O Google lê tudo sem esperar o JavaScript, e o link compartilhado mostra o nome do curso ou da unidade.
 
 ---
 
@@ -164,6 +165,10 @@ functions/venv/Scripts/python.exe functions/testes/testar_funcoes.py
 functions/venv/Scripts/python.exe functions/testes/testar_seguranca_chat.py
 ```
 
+```bash
+functions/venv/Scripts/python.exe functions/testes/testar_paginas_prontas.py
+```
+
 Para subir tudo localmente com os emuladores do Firebase:
 
 ```bash
@@ -221,6 +226,8 @@ npx firebase-tools deploy --only storage
 - `functions` publica as funções em Python e em Node.
 - `firestore` publica as regras e os índices.
 - `storage` publica as regras do Storage.
+
+O build tira `curso.html` e `instituicao.html` da raiz de `webApp/dist` e guarda em `webApp/dist/modelos/`. No site, esses dois endereços são entregues pela função `pagina_pronta`, que usa os modelos. Por isso, quando uma mudança cria ou muda uma função usada pelo site (`pagina_pronta` ou `sitemap_dinamico`), publique as funções **antes** do hosting. No `npm run dev` nada muda: o Vite entrega as duas páginas direto.
 
 ---
 
