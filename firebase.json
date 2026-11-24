@@ -62,7 +62,7 @@
     ],
     "headers": [
       {
-        "source": "**/*.html",
+        "source": "/@(index|404|login|cadastro|perfil|mural|testes|teste-vocacional|teste-afinidades|quiz-gardner|cursos|instituicoes|noticias|noticia|privacidade|termos-de-uso|admin-instituicoes|admin-cursos|admin-notificacoes|admin-noticias|admin-noticias-proprias|admin-comunidade|admin-termos).html",
         "headers": [
           {
             "key": "Cache-Control",

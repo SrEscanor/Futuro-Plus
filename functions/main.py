@@ -1025,12 +1025,16 @@ def sitemap_dinamico(req: https_fn.Request) -> https_fn.Response:
 # que recebeu o pedido, e nunca num endereço vindo de fora.
 HOSTS_DO_SITE = {"futuroplus.com.br", "www.futuroplus.com.br", "futuroplus-bce54.web.app", "futuroplus-bce54.firebaseapp.com"}
 
-# A página pronta fica 6h guardada na rede do Hosting (que se esvazia a cada
-# deploy do site) e 5 min no navegador. Uma mudança feita no admin aparece na
-# hora para quem abre (o JavaScript lê o Firestore de novo) e na página pronta
-# em até 6h.
-CACHE_PAGINA_PRONTA = "public, max-age=300, s-maxage=21600"
-CACHE_PAGINA_CURTO = "public, max-age=60, s-maxage=60"
+# A página pronta fica 1h guardada na rede do Hosting (que se esvazia a cada
+# deploy do site) e nada no navegador (max-age=0): depois de um deploy, os
+# arquivos de CSS e JS mudam de nome, e uma página velha guardada no
+# navegador apontaria para arquivos que não existem mais. Uma mudança feita
+# no admin aparece na hora para quem abre (o JavaScript lê o Firestore de
+# novo) e na página pronta em até 1h. Para valer, a regra de cache das
+# páginas .html no firebase.json não pode incluir curso.html nem
+# instituicao.html: se incluir, ela troca este cabeçalho por "no-cache".
+CACHE_PAGINA_PRONTA = "public, max-age=0, s-maxage=3600"
+CACHE_PAGINA_CURTO = "public, max-age=0, s-maxage=60"
 
 # Lista resumida das unidades (para "Onde estudar") e catálogo oficial, uma
 # leitura por hora por instância em vez de uma por página.

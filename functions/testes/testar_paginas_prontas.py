@@ -232,7 +232,8 @@ else:
     with mock.patch.object(main.firestore, "client", return_value=banco), mock.patch.object(main.requests, "get", side_effect=baixar):
         status, cache, corpo = abrir("/curso.html?c=desenvolvimento-de-sistemas")
         conferir(status == 200 and "<h1>Desenvolvimento de Sistemas</h1>" in corpo, "a função não devolveu o curso pronto")
-        conferir("s-maxage=21600" in cache, "página pronta sem o cache da rede")
+        conferir(cache == main.CACHE_PAGINA_PRONTA and "max-age=0," in cache and "s-maxage=3600" in cache,
+                 "página pronta sem o cache da rede (ou guardada no navegador)")
         conferir(pedidos[0] == "https://futuroplus.com.br/modelos/curso.html", "buscou o modelo no lugar errado")
 
         abrir("/curso.html?c=desenvolvimento-de-sistemas")

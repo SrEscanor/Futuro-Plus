@@ -229,6 +229,8 @@ npx firebase-tools deploy --only storage
 
 O build tira `curso.html` e `instituicao.html` da raiz de `webApp/dist` e guarda em `webApp/dist/modelos/`. No site, esses dois endereços são entregues pela função `pagina_pronta`, que usa os modelos. Por isso, quando uma mudança cria ou muda uma função usada pelo site (`pagina_pronta` ou `sitemap_dinamico`), publique as funções **antes** do hosting. No `npm run dev` nada muda: o Vite entrega as duas páginas direto.
 
+**Página nova:** acrescente o nome dela na regra de cache das páginas `.html` do `firebase.json`, a do `"no-cache"`. Essa regra lista as páginas uma a uma de propósito, para deixar de fora `curso.html` e `instituicao.html`: se elas entrarem, o cache da página pronta deixa de funcionar e cada visita passa a chamar a função.
+
 ---
 
 ## 💸 Custos
