@@ -1,92 +1,270 @@
-# FuturoPlus 🚀
+# Futuro+ 🚀
 
-O **FuturoPlus** é uma plataforma de orientação vocacional e profissional voltada para estudantes de Etecs e Fatecs. Ele ajuda o estudante a descobrir suas áreas de afinidade, escolher entre os cursos técnicos e tecnológicos do Centro Paula Souza e planejar os próximos passos até a matrícula.
+O **Futuro+** é uma plataforma gratuita de orientação vocacional e profissional para quem quer estudar nas **Etecs e Fatecs** do Centro Paula Souza. Num só lugar, dá para descobrir afinidades, comparar cursos técnicos e superiores de tecnologia, achar a unidade mais perto de casa, ler o que diz quem já estudou lá e acompanhar as notícias dos vestibulinhos.
 
-O projeto nasceu com base em **Kotlin Multiplatform (KMP)** e **Compose Multiplatform** (Android/iOS), e hoje tem sua interface principal ativa em uma **Web App** desenvolvida em **JavaScript puro (Vite)**, além de um assistente virtual com IA rodando em **Cloud Functions (Python)**.
+O projeto foi desenvolvido como **Trabalho de Conclusão de Curso (TCC)**.
+
+<p>
+  🌐 <strong>Acesse: <a href="https://futuroplus.com.br">futuroplus.com.br</a></strong><br>
+  📸 Instagram: <a href="https://www.instagram.com/futuroplus_">@futuroplus_</a> · 💼 LinkedIn: <a href="https://www.linkedin.com/in/futuroplus">futuroplus</a>
+</p>
 
 ---
 
-## 🌟 Como Funciona
+## Sumário
 
-* **Descubra seu perfil:** o estudante faz o Teste Vocacional completo ou um teste rápido baseado na teoria das inteligências múltiplas de Howard Gardner (por afinidades ou por perguntas diretas — os dois dão o mesmo resultado).
-* **Explore os cursos:** um catálogo com os cursos técnicos e tecnológicos de Etecs, Fatecs e outras instituições, com busca, filtros por proximidade, modalidade e tipo de instituição.
-* **Guarde suas conquistas:** o Mural de Certificados centraliza cursos extras já concluídos, com o CPF borrado automaticamente ao enviar o certificado.
-* **Tire dúvidas na hora:** um assistente virtual (chatbot com múltiplos agentes de IA) responde sobre editais, cotas, isenção de taxa, vagas, unidades mais próximas e notícias dos vestibulares, buscando na web e nos manuais oficiais do Centro Paula Souza.
+- [O que dá para fazer no site](#-o-que-dá-para-fazer-no-site)
+- [Área administrativa](#-área-administrativa)
+- [Tecnologias](#-tecnologias)
+- [Estrutura do repositório](#-estrutura-do-repositório)
+- [Como rodar o projeto](#-como-rodar-o-projeto)
+- [Publicação](#-publicação)
+- [Custos](#-custos)
+- [Fluxo do site](#-fluxo-do-site)
+- [Modelo de dados](#-modelo-de-dados)
 
-## 🚀 Diferencial Competitivo
+---
 
-Em vez de recomendar cursos genéricos, o **FuturoPlus** cruza o resultado do teste vocacional/Gardner do estudante com o catálogo real de cursos das Etecs e Fatecs (com pré-requisitos, eixos e regras de especialização do CPS), indicando cursos de verdade — e não só uma área de interesse abstrata.
+## 🌟 O que dá para fazer no site
 
-## 🛠️ Tecnologias Utilizadas
+### 🧭 Descobrir o perfil
+- **Teste Vocacional** completo, com o resultado guardado no perfil (precisa de conta).
+- **Teste rápido das inteligências múltiplas** (teoria de Howard Gardner), em dois formatos: por afinidades ou por perguntas diretas. Os dois chegam ao mesmo resultado.
+- **Central de Testes**, para rever os resultados sem refazer, e arte pronta para compartilhar nos stories.
+- **Cursos recomendados de verdade:** o resultado é cruzado com o catálogo real das Etecs e Fatecs, respeitando pré-requisitos, eixos e as regras das especializações, em vez de indicar só uma área genérica.
 
-* **JavaScript (Vanilla) + Vite:** interface Web principal, leve e sem framework.
-* **Firebase Authentication:** login por e-mail/senha e login com Google.
-* **Firebase Firestore:** cadastro de instituições/cursos, perfis, resultados de teste e certificados do mural.
-* **Firebase Cloud Functions (Python) + OpenAI Agents SDK:** assistente virtual com agentes especializados (manuais/RAG, notícias/web) e roteamento automático por assunto.
-* **Tavily API:** busca na web para informações em tempo real (vagas, notícias, links oficiais).
-* **Kotlin Multiplatform (KMP) + Compose Multiplatform:** base compartilhada para Android e iOS.
-* **GitLive Firebase SDK:** integração multiplataforma dos serviços Firebase no KMP.
+### 📚 Escolher o curso
+- **Catálogo** de cursos técnicos (Etec) e superiores de tecnologia (Fatec), com busca e filtros.
+- **Página de cada curso:** o que se aprende, o que o profissional faz, onde trabalhar, duração e carga horária.
+- **Demanda do vestibulinho:** candidatos por vaga e o histórico dos últimos semestres, coletados do site oficial.
+- **Matriz curricular interativa:** as disciplinas por semestre ou módulo, com horas, eixos e certificações. Na Etec, cada forma de oferta (técnico, M-Tec…) ganha uma aba. O PDF oficial do plano de curso também fica disponível.
+- **Onde estudar:** as unidades que oferecem o curso, em ordem de distância para quem tem endereço no perfil.
 
-## 📱 Status das Funcionalidades
+### 🏫 Escolher onde estudar
+- **Lista de instituições** com filtros por tipo, curso, modalidade e região, e ordem por proximidade.
+- **Página da instituição:** foto da fachada (do site do CPS), endereço com link para o mapa, cursos oferecidos, **comentários e notas de quem estudou lá** (só com certificado validado no Mural) e **dúvidas** respondidas por quem estudou na unidade ou pela equipe.
 
-* ✅ **Autenticação:** login/cadastro por e-mail e por Google, exclusão de conta com carência de 30 dias.
-* ✅ **Teste Vocacional e Teste de Inteligências (Gardner):** dois formatos de teste com o mesmo resultado final.
-* ✅ **Catálogo de Cursos:** busca, filtros e recomendação ligada ao resultado do teste.
-* ✅ **Mural de Certificados:** upload de certificados com borrado automático de CPF.
-* ✅ **Assistente Virtual com IA:** chatbot multiagente (manuais, notícias, unidades) com guardrails de segurança.
-* ✅ **Termos e Privacidade:** aceite obrigatório com reconsentimento sempre que o conteúdo muda.
-* ✅ **Tour guiado:** tutorial interativo de primeira visita, com destaque nas principais telas.
-* ✅ **Área administrativa:** gestão de instituições, cursos e Termos/Privacidade.
+### 🎓 Mural de certificados
+- Envio do certificado em imagem ou PDF.
+- Leitura automática (OCR) do nome, do curso, da unidade e do ano, conferida de novo no servidor.
+- **CPF e RG cobertos automaticamente** antes de o certificado aparecer no mural.
+- Cada certificado validado dá direito a comentar e avaliar a unidade onde a pessoa estudou.
 
-## 🚀 Como Rodar o Projeto
+### 📰 Notícias e Blog
+- **Notícias de Etecs e Fatecs** buscadas sozinhas nos feeds oficiais e na imprensa. Elas só aparecem depois de aprovadas no painel, e as de outros sites saem do ar depois de 90 dias.
+- **Blog do Futuro+:** notícias escritas pela equipe, com rascunho, aprovação obrigatória, agendamento, imagens com legenda, negrito e itálico.
 
-### Web
-1. Navegue até a pasta `webApp/` e instale as dependências: `npm install`.
-2. Rode o servidor de desenvolvimento: `npm run dev`.
-3. Acesse o endereço mostrado no terminal (por padrão, `http://localhost:5173`).
+### 🔔 Notificações
+- Avisos no sino do topo e numa janela ao entrar, para quem tem conta, para visitantes ou para todo mundo.
+- **Notificação push** no celular ou no computador, para quem ativar no perfil.
 
-### Assistente Virtual (Cloud Functions)
-1. Navegue até a pasta `functions/` e instale as dependências Python: `pip install -r requirements.txt`.
-2. Configure as chaves de API necessárias (OpenAI, Tavily) em um arquivo `.env`.
-3. Rode localmente com o emulador do Firebase: `firebase emulators:start`.
+### 👤 Perfil e conta
+- Login por e-mail e senha ou pelo Google, com aceite dos Termos de Uso e da Política de Privacidade (e novo aceite sempre que o texto muda).
+- Perfil com progresso e próximo passo, formações do Mural, conquistas e instituições.
+- Exclusão de conta com carência de 30 dias.
 
-### Android
-1. Adicione o `google-services.json` em `androidApp/`.
-2. Execute a configuração `androidApp` no Android Studio.
+### 🤖 Assistente virtual
+- Chatbot com vários agentes de IA que responde sobre editais, cotas, isenção de taxa, vagas, unidades mais próximas e notícias dos vestibulares. Ele busca na web e nos manuais oficiais do Centro Paula Souza, com proteções contra uso fora do assunto.
 
-### iOS
-1. Adicione o `GoogleService-Info.plist` em `iosApp/`.
-2. Abra `iosApp` no Xcode e instale as dependências via SPM.
-3. Clique em Run.
+### ✨ E mais
+- **Tour guiado** na primeira visita, com destaque nas principais telas.
+- **Pronto para buscadores:** sitemap (com a página de cada curso e de cada instituição, gerada na hora), robots.txt, dados estruturados (schema.org) e descrição própria em cada página.
 
-## Fluxograma do Site (simplificado)
+---
 
-```mermaid
-graph TD
-    A[Visitante abre o site] --> B{Tem conta?}
-    B -- Não --> C[Cadastro ou Login com Google]
-    B -- Sim --> D[Login]
-    C --> E[Aceite dos Termos e Privacidade]
-    D --> E
-    E --> F[Painel Início]
-    F --> G[Teste Vocacional / Teste Gardner]
-    G --> H[Recomendação de Cursos]
-    F --> I[Catálogo de Cursos Etec/Fatec]
-    F --> J[Mural de Certificados]
-    F --> K[Assistente Virtual - Chat IA]
-    H --> I
-    I --> L[Detalhes do Curso/Unidade]
+## 🔐 Área administrativa
+
+Restrita às contas marcadas como administradoras no Firestore. As páginas ficam em `admin-*.html` e não aparecem nos buscadores.
+
+| Painel | O que faz |
+|---|---|
+| **Unidades** | Importa o CSV de unidades do CPS, busca as fotos da fachada e as logos e localiza cada unidade no mapa. |
+| **Catálogo de cursos** | Importa o CSV oficial (mostrando antes o que muda), lê a matriz curricular do PDF (inclusive tabela em imagem, por OCR) e define as capas por eixo. |
+| **Notificações** | Cria, agenda e ativa os avisos, com push opcional. |
+| **Notícias** | Aprova o que a coleta trouxe e escolhe as notícias do carrossel da Início. |
+| **Blog** | Editor das notícias do Futuro+, com aprovação e agendamento. |
+| **Comunidade** | Mostra as avaliações e dúvidas novas e o histórico de tudo o que acontece nos comentários, inclusive o que foi apagado e por quem. |
+| **Termos e Privacidade** | Edita os textos legais e publica uma nova versão. |
+
+Notificações, Notícias, Blog e Comunidade guardam um histórico de quem fez o quê, que ninguém consegue apagar, com busca e filtros por data, pessoa e ação. Quem é admin também recebe um aviso quando alguém avalia um curso ou faz uma pergunta sobre uma instituição: no sino e, para quem ativou, por push.
+
+---
+
+## 🧰 Tecnologias
+
+- **Site:** JavaScript puro (sem framework) com **Vite**. No navegador, **pdf.js** lê os PDFs e **Tesseract.js** faz o OCR.
+- **Firebase:** Authentication, Firestore, Storage, Hosting, Cloud Messaging (push) e Cloud Functions.
+- **Funções em Python** (`functions/`): assistente virtual (**OpenAI Agents SDK** + **Tavily**), coleta das notícias e da demanda, envio de imagens, histórico da comunidade, push, sitemap e tarefas agendadas.
+- **Função em Node** (`functions-node/`): valida os certificados do Mural no servidor, também com Tesseract.js.
+- **Apps:** **Kotlin Multiplatform** + **Compose Multiplatform** (Android e iOS), com o GitLive Firebase SDK. Foi a base onde o projeto começou; hoje a interface principal é o site.
+
+---
+
+## 📁 Estrutura do repositório
+
+```text
+Futuro-Plus/
+├── webApp/                 site (Vite): páginas .html, assets/js, assets/css e public/
+│   └── testes/             roteiros de teste com Firebase simulado (não entram no site)
+├── functions/              Cloud Functions em Python
+│   └── testes/             testes das funções, sem tocar no Firebase
+├── functions-node/         Cloud Function em Node (validação dos certificados)
+├── androidApp/ iosApp/ shared/   apps em Kotlin Multiplatform
+├── firestore.rules         regras de segurança do Firestore
+├── firestore.indexes.json  índices do Firestore
+├── storage.rules           regras de segurança do Storage
+└── firebase.json           configuração do Hosting, das funções e dos emuladores
 ```
 
 ---
 
-## Diagrama de UML (simplificado)
+## 💻 Como rodar o projeto
+
+### Site
+Precisa do Node.js 20.19 ou mais novo.
+
+```bash
+cd webApp
+npm install
+npm run dev
+```
+
+O site abre em `http://localhost:5173`. Sem login e sem os dados do Firestore, várias páginas ficam vazias. Para testar com login e dados simulados, abra `http://localhost:5173/404.html` e rode no console um dos roteiros de `webApp/testes`, por exemplo:
+
+```js
+await import('/testes/painel-cursos.js');
+```
+
+Cada roteiro explica no começo do arquivo o que ele monta e como usar.
+
+### Funções em Python
+Precisa do Python 3.10.
+
+```bash
+cd functions
+python -m venv venv
+venv/Scripts/pip install -r requirements.txt
+```
+
+No Linux ou no macOS, use `venv/bin/pip`. O assistente virtual precisa de um arquivo `functions/.env`, que não vai para o repositório:
+
+```text
+OPENAI_API_KEY=...
+TAVILY_API_KEY=...
+VECTOR_STORE_ID=...
+```
+
+Para rodar os testes das funções, a partir da pasta do projeto:
+
+```bash
+functions/venv/Scripts/python.exe functions/testes/testar_funcoes.py
+```
+
+Para subir tudo localmente com os emuladores do Firebase:
+
+```bash
+npx firebase-tools emulators:start
+```
+
+### Demanda do vestibulinho
+O site do vestibular bloqueia os pedidos que saem dos servidores do Google, então a demanda (candidatos por vaga) é atualizada por um script rodado no seu computador. Ele usa uma chave de conta de serviço do Firebase, que deve ficar fora da pasta do projeto e nunca ir para o repositório. As instruções completas estão no começo do arquivo. Da pasta `functions/`, com o venv ativado:
+
+```bash
+python atualizar_demanda_local.py --credencial "C:\caminho\para\chave.json"
+```
+
+### Função em Node (certificados)
+Precisa do Node.js 22.
+
+```bash
+cd functions-node
+npm install
+```
+
+### Apps Android e iOS
+- **Android:** coloque o `google-services.json` em `androidApp/` e rode a configuração `androidApp` no Android Studio.
+- **iOS:** coloque o `GoogleService-Info.plist` em `iosApp/`, abra `iosApp` no Xcode, instale as dependências pelo SPM e clique em Run.
+
+---
+
+## 🚀 Publicação
+
+Tudo a partir da pasta do projeto. Primeiro, gere o site:
+
+```bash
+npm --prefix webApp run build
+```
+
+Depois publique só o que mudou, uma parte de cada vez:
+
+```bash
+npx firebase-tools deploy --only hosting
+```
+
+```bash
+npx firebase-tools deploy --only functions
+```
+
+```bash
+npx firebase-tools deploy --only firestore
+```
+
+```bash
+npx firebase-tools deploy --only storage
+```
+
+- `hosting` publica o site (a pasta `webApp/dist`).
+- `functions` publica as funções em Python e em Node.
+- `firestore` publica as regras e os índices.
+- `storage` publica as regras do Storage.
+
+---
+
+## 💸 Custos
+
+As Cloud Functions pedem o plano **Blaze** do Firebase, que cobra conforme o uso. O site, as funções e o banco são pensados para caber na cota gratuita. O assistente virtual usa a API da **OpenAI** e o **Tavily**, que são cobrados por uso.
+
+---
+
+## 🔀 Fluxo do site
+
+```mermaid
+graph TD
+    A[Pessoa abre futuroplus.com.br] --> B[Início]
+    B --> C[Testes]
+    B --> D[Catálogo de cursos]
+    B --> E[Instituições]
+    B --> F[Notícias e Blog]
+    B --> G[Assistente virtual]
+    B --> H[Mural de certificados]
+    C --> I[Resultado e cursos recomendados]
+    I --> J[Página do curso]
+    D --> J
+    J --> K[Onde estudar: unidades mais perto]
+    K --> L[Página da instituição]
+    E --> L
+    H --> M[Certificado validado]
+    M --> N[Comentar e avaliar a unidade]
+    N --> L
+    P[Cadastro ou login com Google] --> Q[Aceite dos Termos e Privacidade]
+    Q --> B
+```
+
+---
+
+## 🧩 Modelo de dados
+
+As principais coleções do Firestore:
 
 ```mermaid
 erDiagram
-    USUARIO ||--o{ CERTIFICADO : possui
-    USUARIO ||--o| RESULTADO_TESTE : tem
-    INSTITUICAO ||--o{ CURSO : oferece
+    USUARIO ||--o{ CERTIFICADO : guarda
+    USUARIO ||--o{ COMENTARIO : escreve
+    USUARIO ||--o{ DUVIDA : pergunta
+    CERTIFICADO ||--o| COMENTARIO : "da direito a"
+    INSTITUICAO ||--o{ COMENTARIO : recebe
+    INSTITUICAO ||--o{ DUVIDA : recebe
+    INSTITUICAO }o--o{ CURSO : oferece
 
     USUARIO {
         string uid
@@ -95,25 +273,35 @@ erDiagram
         boolean admin
     }
     CERTIFICADO {
-        string id
         string titulo
-        string instituicao
-        int cargaHoraria
-    }
-    RESULTADO_TESTE {
-        string categoriaPrincipal
-        string ranking
-        date data
+        int anoConclusao
+        string unidadeLida
+        boolean nomeConfere
     }
     INSTITUICAO {
-        string id
         string nome
         string tipo
-        string cidade
+        string municipio
+        string foto
     }
     CURSO {
         string nome
-        string categoria
-        string modalidade
+        string nivel
+        string eixos
+        string duracao
+        object demanda
+        object matriz
+    }
+    COMENTARIO {
+        string texto
+        int nota
+        string curso
+        int ano
+    }
+    DUVIDA {
+        string texto
+        map respostas
     }
 ```
+
+Além dessas, o projeto usa `noticias`, `noticias_fila` e `noticias_proprias` (notícias e Blog), `notificacoes` e `fcm_tokens` (avisos e push), `avisos_admin` e `comunidade_historico` (aviso para admins e histórico da comunidade), os históricos de cada painel e `configuracoes`. As coleções `demanda` e `chat_sessions` só são usadas pelo servidor. As regras de acesso de cada uma estão em `firestore.rules`.
