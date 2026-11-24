@@ -322,6 +322,35 @@ else:
 
         conferir(pedir("/dados/outra.json")[0] == 404, "endereço desconhecido devia dar 404")
 
+        # o Hosting não comprime o que sai de função: a própria função comprime
+        import gzip
+
+        def pedir_comprimido(endereco, funcao, host="futuroplus.com.br"):
+            cabecalhos = {"Accept-Encoding": "gzip, deflate, br", "X-Forwarded-Host": host}
+            with flask.Flask("teste").test_request_context(endereco, headers=cabecalhos):
+                resposta = funcao(flask.request)
+            return resposta.headers, resposta.get_data()
+
+        # lista do tamanho da de verdade (a comprimida só vale acima de 1 KB)
+        for numero in range(60):
+            banco.colecoes["cursos"][f"curso-{numero}"] = {"nome": f"Curso {numero}", "eixos": ["Gestão e Negócios"],
+                                                           "descricao": "Texto do catálogo oficial do curso. " * 8}
+        main._CACHE_PAGINAS.clear()
+        cabecalhos, bruto = pedir_comprimido("/dados/cursos.json", main.dados_resumidos)
+        conferir(cabecalhos.get("Content-Encoding") == "gzip" and "Accept-Encoding" in cabecalhos.get("Vary", ""),
+                 "a lista de cursos não saiu comprimida (ou sem o Vary)")
+        try:
+            conferir(json.loads(gzip.decompress(bruto)).get("cursos"), "a lista comprimida não abre igual à normal")
+        except OSError:
+            falhas.append("a lista comprimida não é um gzip válido")
+        conferir(len(bruto) < len(pedir("/dados/cursos.json")[2].encode("utf-8")) / 2, "a compressão quase não reduziu a lista")
+
+        with mock.patch.object(main.requests, "get", side_effect=baixar):
+            cabecalhos, bruto = pedir_comprimido("/curso.html?c=desenvolvimento-de-sistemas", main.pagina_pronta)
+        conferir(cabecalhos.get("Content-Encoding") == "gzip"
+                 and "<h1>Desenvolvimento de Sistemas</h1>" in gzip.decompress(bruto).decode("utf-8"),
+                 "a página pronta não saiu comprimida")
+
     main._CACHE_PAGINAS.clear()
     with mock.patch.object(main.firestore, "client", side_effect=banco_quebrado):
         status, cache, _ = pedir("/dados/cursos.json")

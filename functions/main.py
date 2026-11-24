@@ -1,3 +1,4 @@
+import gzip
 import io
 import json
 import re
@@ -1150,8 +1151,22 @@ def _catalogo_oficial(origem):
     return _guardado(f"catalogo:{origem}", carregar)
 
 
-def _resposta_html(corpo, status=200, cache=CACHE_PAGINA_PRONTA):
-    return https_fn.Response(corpo, status=status, headers={
+def _resposta_comprimida(req, corpo, status, cabecalhos):
+    """O Hosting só comprime sozinho os arquivos estáticos: o que sai de uma
+    função vai do jeito que ela manda. Sem isso, /dados/cursos.json ia com
+    500 KB em vez de uns 100 KB (e a cota grátis de transferência do Hosting
+    é de 360 MB por dia). Com "Vary", a rede guarda uma cópia comprimida e
+    outra não, e cada navegador recebe a que pediu."""
+    dados = corpo.encode("utf-8") if isinstance(corpo, str) else corpo
+    cabecalhos = {**cabecalhos, "Vary": "Accept-Encoding"}
+    if "gzip" in (req.headers.get("Accept-Encoding") or "").lower() and len(dados) > 1024:
+        dados = gzip.compress(dados, compresslevel=6)
+        cabecalhos["Content-Encoding"] = "gzip"
+    return https_fn.Response(dados, status=status, headers=cabecalhos)
+
+
+def _resposta_html(req, corpo, status=200, cache=CACHE_PAGINA_PRONTA):
+    return _resposta_comprimida(req, corpo, status, {
         "Content-Type": "text/html; charset=utf-8",
         "Cache-Control": cache,
     })
@@ -1206,7 +1221,7 @@ def pagina_pronta(req: https_fn.Request) -> https_fn.Response:
     origem = _origem_do_site(req)
     modelo = _baixar_do_site(origem, f"/modelos/{tipo}.html")
     if modelo is None:
-        return _resposta_html(PAGINA_INDISPONIVEL, status=503, cache="no-store")
+        return _resposta_html(req, PAGINA_INDISPONIVEL, status=503, cache="no-store")
 
     try:
         db = firestore.client()
@@ -1216,10 +1231,10 @@ def pagina_pronta(req: https_fn.Request) -> https_fn.Response:
             pagina, status = _pagina_da_instituicao(req, modelo, db)
     except Exception as erro:
         print(f"Erro ao montar a página pronta ({tipo}): {erro}")
-        return _resposta_html(modelo, cache=CACHE_PAGINA_CURTO)
+        return _resposta_html(req, modelo, cache=CACHE_PAGINA_CURTO)
 
     pronta = pagina is not modelo
-    return _resposta_html(pagina, status=status, cache=CACHE_PAGINA_PRONTA if pronta else CACHE_PAGINA_CURTO)
+    return _resposta_html(req, pagina, status=status, cache=CACHE_PAGINA_PRONTA if pronta else CACHE_PAGINA_CURTO)
 
 
 # JSON não aponta para arquivos que mudam de nome no deploy, então pode ficar
@@ -1262,7 +1277,7 @@ def dados_resumidos(req: https_fn.Request) -> https_fn.Response:
 
     corpo = json.dumps({chave: itens, "geradoEm": datetime.now(timezone.utc).isoformat()},
                        ensure_ascii=False, separators=(",", ":"))
-    return https_fn.Response(corpo, status=200, headers={
+    return _resposta_comprimida(req, corpo, 200, {
         "Content-Type": "application/json; charset=utf-8",
         "Cache-Control": CACHE_DADOS_RESUMIDOS,
     })
