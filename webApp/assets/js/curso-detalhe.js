@@ -1,6 +1,6 @@
 import { auth, db } from './firebase-config.js';
 import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
-import { escapeHtml, normalizar } from './card-unidade.js';
+import { escapeHtml, normalizar, atualizarMetaDescricao, definirDadosEstruturados } from './card-unidade.js';
 import {
     carregarRegioesSP,
     resolverLocalizacaoUsuario,
@@ -24,7 +24,7 @@ const CATALOGO_OFICIAL = '/dados/catalogo-cursos.json';
 
 // O que a página está mostrando: guardado para redesenhar quando a pessoa
 // troca de matriz ou quando a distância até as unidades fica pronta.
-const estado = { curso: null, unidades: [], avaliar: null, matriz: 0, fotosDosEixos: {} };
+const estado = { curso: null, unidades: [], avaliar: null, matriz: 0, fotosDosEixos: {}, logado: false };
 
 async function buscarNoCatalogoOficial(id) {
     const resposta = await fetch(CATALOGO_OFICIAL);
@@ -53,7 +53,8 @@ const ICONES = {
     camadas: '<path d="m12 3 9 5-9 5-9-5zM3 13l9 5 9-5M3 18l9 5 9-5"/>',
     pessoas: '<circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0M16 5.2a3 3 0 0 1 0 5.6M17 14.3a6 6 0 0 1 4 5.7"/>',
     baixar: '<path d="M12 4v11M7 11l5 5 5-5M5 20h14"/>',
-    fechar: '<path d="M6 6l12 12M18 6 6 18"/>'
+    fechar: '<path d="M6 6l12 12M18 6 6 18"/>',
+    local: '<path d="M12 21s7-7.4 7-12a7 7 0 1 0-14 0c0 4.6 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/>'
 };
 
 function icone(nome, tamanho = 22) {
@@ -184,12 +185,26 @@ function textoProximidade({ nivel, km }) {
 // lista de instituições, que tem busca e filtros.
 const MAXIMO_UNIDADES = 8;
 
-function listaDeUnidades(unidades, avaliar, nomeDoCurso) {
+// Sem localização (visitante, ou conta sem endereço no perfil), convida a
+// resolver isso em vez de só listar as unidades em ordem qualquer — é o que
+// faz a diferença entre "lista" e "as mais pertinho de você".
+function convitePorProximidade(escolas, logado) {
+    return logado
+        ? `<p class="inst-dica-proximidade">${icone('local', 18)} Complete seu endereço no
+             <a href="perfil.html">perfil</a> para ver as ${escolas} mais pertinho de você.</p>`
+        : `<p class="inst-dica-proximidade">${icone('local', 18)}
+             <a href="login.html">Entre na sua conta</a> para ver as ${escolas} mais pertinho de você.</p>`;
+}
+
+function listaDeUnidades(unidades, avaliar, curso, logado) {
     // null: o cadastro de unidades ainda está carregando
     if (!unidades) return '<p class="sem-cursos">Carregando unidades...</p>';
     if (!unidades.length) {
         return '<p class="sem-cursos">Nenhuma unidade do cadastro oferece este curso no momento.</p>';
     }
+
+    const escolas = curso.nivel === 'superior' ? 'Fatecs' : 'Etecs';
+    const convite = avaliar ? '' : convitePorProximidade(escolas, logado);
 
     const comProximidade = unidades.map((u) => ({ unidade: u, proximidade: avaliar ? avaliar(u) : null }));
     if (avaliar) {
@@ -199,11 +214,11 @@ function listaDeUnidades(unidades, avaliar, nomeDoCurso) {
 
     const restantes = comProximidade.length - MAXIMO_UNIDADES;
     const verTodas = restantes > 0
-        ? `<a class="curso-ver-todas" href="instituicoes.html?curso=${encodeURIComponent(nomeDoCurso)}">
+        ? `<a class="curso-ver-todas" href="instituicoes.html?curso=${encodeURIComponent(curso.nome)}">
              Ver as outras ${restantes} unidades &rarr;</a>`
         : '';
 
-    return `<ul class="curso-unidades">
+    return `${convite}<ul class="curso-unidades">
         ${comProximidade.slice(0, MAXIMO_UNIDADES).map(({ unidade, proximidade }) => {
             const distancia = proximidade ? textoProximidade(proximidade) : '';
             return `<li>
@@ -416,7 +431,10 @@ function abrirMatrizCompleta() {
 export function renderizar(curso, unidades, avaliar) {
     Object.assign(estado, { curso, unidades, avaliar });
     const container = document.getElementById('curso-detalhe');
-    document.title = `Futuro+ | ${curso.nome}`;
+    // "Curso Técnico/Superior (Etec/Fatec)" no título ajuda a aparecer em
+    // buscas desse tipo ("técnico em X", "curso superior de Y").
+    const tipoDoCurso = curso.nivel === 'superior' ? 'Superior de Tecnologia (Fatec)' : 'Técnico (Etec)';
+    document.title = `${curso.nome} — Curso ${tipoDoCurso} | Futuro+`;
 
     const textos = [
         bloco('livro', 'O que você aprende', curso.descricao),
@@ -447,7 +465,7 @@ export function renderizar(curso, unidades, avaliar) {
             ${textos ? `<div class="curso-cartao curso-textos">${textos}</div>` : ''}
             <section class="curso-cartao curso-onde-estudar">
                 <h2>${icone('capelo')} Onde estudar</h2>
-                ${listaDeUnidades(unidades, avaliar, curso.nome)}
+                ${listaDeUnidades(unidades, avaliar, curso, estado.logado)}
             </section>
         </div>
 
@@ -527,6 +545,12 @@ async function carregar() {
 
     try {
         const id = slugificar(identificador);
+        // Precisa saber antes de desenhar "Onde estudar" a primeira vez com
+        // unidades de verdade, lá embaixo — senão quem está logado via "entre
+        // na conta" até localizacaoDoUsuario() terminar (e não terminar de
+        // novo se não tiver endereço salvo, porque aí não há re-render).
+        await auth.authStateReady();
+        estado.logado = Boolean(auth.currentUser);
         // As capas dos eixos carregam junto com o curso. Se chegarem depois
         // de a página estar montada, ela é redesenhada com a imagem certa.
         const fotos = carregarFotosDosEixos().then((mapa) => {
@@ -545,6 +569,22 @@ async function carregar() {
             </p>`;
             return;
         }
+
+        // Sem isso, toda página de curso mostrava a mesma descrição
+        // genérica — ruim pra aparecer em buscas específicas ("técnico em
+        // X", "curso superior de Y"). O título já é cuidado em renderizar().
+        const descricaoCurso = (curso.descricao || '').trim()
+            || `${curso.nome}: veja onde cursar, pré-requisitos e tudo sobre o curso ${curso.nivel === 'superior' ? 'superior de tecnologia' : 'técnico'} nas Etecs e Fatecs.`;
+        atualizarMetaDescricao(descricaoCurso.slice(0, 155));
+        definirDadosEstruturados({
+            '@context': 'https://schema.org',
+            '@type': 'Course',
+            name: curso.nome,
+            description: descricaoCurso,
+            url: `https://futuroplus.com.br/curso.html?c=${encodeURIComponent(id)}`,
+            provider: { '@type': 'Organization', name: 'Centro Paula Souza', sameAs: 'https://www.cps.sp.gov.br/' },
+            educationalLevel: curso.nivel === 'superior' ? 'Superior de Tecnologia' : 'Técnico'
+        });
 
         // O conteúdo do curso aparece na hora; a lista de unidades entra
         // quando o cadastro (bem maior) terminar de carregar.

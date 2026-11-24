@@ -37,6 +37,15 @@
       "**/.*",
       "**/node_modules/**"
     ],
+    "rewrites": [
+      {
+        "source": "/sitemap-conteudo.xml",
+        "function": {
+          "functionId": "sitemap_dinamico",
+          "region": "southamerica-east1"
+        }
+      }
+    ],
     "headers": [
       {
         "source": "**/*.html",

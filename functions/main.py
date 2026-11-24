@@ -3,7 +3,7 @@ import json
 import re
 import zipfile
 from datetime import datetime, timezone
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse
 
 import requests
 import firebase_admin
@@ -810,7 +810,7 @@ def limpar_noticias_recusadas(req: https_fn.Request) -> https_fn.Response:
 
     except Exception as e:
         print(f"Erro ao limpar notícias recusadas: {e}")
-        return https_fn.Response(json.dumps({"erro": f"Erro interno: {str(e)}"}), status=500, headers=cabecalho_json)
+        return https_fn.Response(json.dumps({"erro": "Erro interno. Tente novamente em alguns minutos."}), status=500, headers=cabecalho_json)
 
 
 @scheduler_fn.on_schedule(
@@ -854,3 +854,41 @@ def coletar_noticias_agendada(event: scheduler_fn.ScheduledEvent) -> None:
                 antigas, f"notícia com mais de {dias} dias", f"notícias com mais de {dias} dias", ""))
     except Exception as erro:
         print(f"Erro ao tirar do site as notícias antigas: {erro}")
+
+
+@https_fn.on_request(
+    region=options.SupportedRegion.SOUTHAMERICA_EAST1,
+    max_instances=5,
+    memory=options.MemoryOption.MB_256,
+)
+def sitemap_dinamico(req: https_fn.Request) -> https_fn.Response:
+    """Sitemap com o endereço de cada instituição e de cada curso do
+    catálogo, montado na hora a partir do Firestore — o sitemap.xml estático
+    (webApp/public/sitemap.xml) só lista as páginas fixas do site. Sem este
+    aqui, o Google só acha a página de cada Etec/Fatec e de cada curso
+    seguindo link por link a partir de cursos.html/instituicoes.html, o que
+    demora muito mais pra indexar tudo. Servido em /sitemap-conteudo.xml por
+    um rewrite do Hosting (firebase.json) e referenciado em robots.txt."""
+    db = firestore.client()
+    base = "https://futuroplus.com.br"
+
+    enderecos = [f"{base}/instituicao.html?u={quote(doc.id, safe='')}" for doc in db.collection("instituicoes").stream()]
+    enderecos += [f"{base}/curso.html?c={quote(doc.id, safe='')}" for doc in db.collection("cursos").stream()]
+
+    agora = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    itens = "".join(
+        f"<url><loc>{endereco}</loc><lastmod>{agora}</lastmod><changefreq>monthly</changefreq></url>"
+        for endereco in enderecos
+    )
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + itens + '</urlset>'
+    )
+
+    return https_fn.Response(xml, status=200, headers={
+        "Content-Type": "application/xml; charset=utf-8",
+        # 1h de cache: o catálogo não muda de hora em hora, e assim o
+        # Googlebot batendo várias vezes não gera leitura nova no Firestore
+        # toda hora.
+        "Cache-Control": "public, max-age=3600",
+    })

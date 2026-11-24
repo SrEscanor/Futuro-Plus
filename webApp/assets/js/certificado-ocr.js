@@ -136,12 +136,17 @@ export function areasDeRg(palavras = []) {
 // garantia, também o padrão pronto do CPF sozinho ou quebrado em até 3
 // palavras seguidas — útil quando a leitura não pegou a palavra "CPF" mas
 // o número saiu inteiro.
+// o CPF tem que começar já na primeira palavra da janela — sem isso,
+// "MACHADO,CPF480.957.518-71" "contém" um CPF lá no meio, e a palavra de
+// antes (o sobrenome) entrava arrastada na rasura junto com o número.
+const PADRAO_CPF_NO_INICIO = new RegExp(`^${PADRAO_CPF.source}`);
+
 export function areasDeCpf(palavras = []) {
     const areas = areasAposRotulo(palavras, 'cpf');
     for (let i = 0; i < palavras.length; i += 1) {
         for (let fim = i; fim < Math.min(palavras.length, i + 3); fim += 1) {
             const junto = palavras.slice(i, fim + 1).map((p) => p.text || '').join('').replace(/\s/g, '');
-            if (PADRAO_CPF.test(junto)) {
+            if (PADRAO_CPF_NO_INICIO.test(junto)) {
                 palavras.slice(i, fim + 1).forEach((p) => areas.push(p.bbox));
                 break;
             }

@@ -669,7 +669,7 @@ function itemProprioHtml(noticia) {
             <div class="noticia-item-acoes">
                 ${botaoDestacarHtml(noticia)}
                 ${botaoNotificarHtml(noticia)}
-                <a class="btn btn-primario" href="admin-noticias-proprias.html?revisar=${encodeURIComponent(idDe(noticia))}">Abrir em Notícias próprias</a>
+                <a class="btn btn-primario" href="admin-noticias-proprias.html?revisar=${encodeURIComponent(idDe(noticia))}">Abrir no Blog</a>
             </div>
         </li>`;
 }

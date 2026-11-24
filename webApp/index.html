@@ -32,6 +32,25 @@
         "areaServed": "BR"
     }
     </script>
+    <!-- Caixa de busca do Google embaixo do resultado (só aparece se o
+         Google decidir, geralmente pra sites com bastante busca pelo nome —
+         mas não custa nada já deixar marcado). "instituicoes.html?curso=" já
+         existe e filtra por instituição, cidade ou curso (cursos-etec.js). -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "url": "https://futuroplus.com.br/",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://futuroplus.com.br/instituicoes.html?curso={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+        }
+    }
+    </script>
     <link rel="stylesheet" href="assets/css/ondas.css">
     <link rel="stylesheet" href="assets/css/dashboard.css">
     <link rel="stylesheet" href="assets/css/cursos-etec.css">
@@ -79,7 +98,7 @@
             <a href="admin-termos.html" id="menu-admin-termos" class="menu-item menu-admin-area" data-icone="📜" hidden>Termos e Privacidade</a>
             <a href="admin-notificacoes.html" id="menu-admin-notificacoes" class="menu-item menu-admin-area" data-icone="🔔" hidden>Notificações</a>
             <a href="admin-noticias.html" id="menu-admin-noticias" class="menu-item menu-admin-area" data-icone="🗞️" hidden>Notícias</a>
-            <a href="admin-noticias-proprias.html" id="menu-admin-noticias-proprias" class="menu-item menu-admin-area" data-icone="✍️" hidden>Notícias próprias</a>
+            <a href="admin-noticias-proprias.html" id="menu-admin-noticias-proprias" class="menu-item menu-admin-area" data-icone="✍️" hidden>Blog</a>
             <a href="admin-comunidade.html" id="menu-admin-comunidade" class="menu-item menu-admin-area" data-icone="💬" hidden>Comunidade</a>
         </nav>
 

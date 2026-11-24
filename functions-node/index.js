@@ -16,6 +16,7 @@ const { getFirestore } = require('firebase-admin/firestore');
 const { getStorage } = require('firebase-admin/storage');
 const { onDocumentCreated } = require('firebase-functions/v2/firestore');
 const { createWorker } = require('tesseract.js');
+const { Jimp, ResizeStrategy } = require('jimp');
 const { conferirNome, lerDadosDoCertificado, pareceDiplomaEad, unidadeTemCurso } = require('./certificado-dados');
 
 initializeApp();
@@ -27,7 +28,38 @@ function emendarQuebraDeLinha(texto) {
     return (texto || '').replace(/([a-zà-ÿ])-\s*\n\s*([a-zà-ÿ])/gi, '$1$2');
 }
 
-async function lerTexto(bytes) {
+// Imagem pequena (print de tela, foto que veio pelo WhatsApp) lê mal: cada
+// letra fica com poucos pixels. Mesma ampliação de certificado-ocr.js
+// (prepararParaLeitura), só que lá é feita com canvas do navegador — aqui
+// com Jimp (puro JavaScript, sem precisar de binário nativo nem do Tesseract
+// instalado no ambiente da função).
+const LARGURA_PARA_LEITURA = 1800;
+const AMPLIACAO_MAXIMA = 2.5;
+
+async function ampliarParaLeitura(bytes) {
+    const imagem = await Jimp.read(bytes);
+    const escala = Math.min(AMPLIACAO_MAXIMA, LARGURA_PARA_LEITURA / imagem.width);
+    if (escala <= 1.15) return bytes;
+
+    // bicúbica: mesma qualidade "high" que o navegador pede no canvas
+    // (imageSmoothingQuality) antes do OCR — o padrão do Jimp é mais simples
+    // e deixava o texto ampliado com serrilhado, pior pra ler.
+    imagem.resize({
+        w: Math.round(imagem.width * escala),
+        h: Math.round(imagem.height * escala),
+        mode: ResizeStrategy.BICUBIC
+    });
+    return imagem.getBuffer('image/jpeg');
+}
+
+async function lerTexto(bytesOriginais) {
+    let bytes = bytesOriginais;
+    try {
+        bytes = await ampliarParaLeitura(bytesOriginais);
+    } catch (erro) {
+        console.error('Não consegui ampliar a imagem antes do OCR, lendo o tamanho original:', erro);
+    }
+
     const worker = await createWorker('por');
     try {
         const { data } = await worker.recognize(bytes);
@@ -67,7 +99,10 @@ exports.validarCertificado = onDocumentCreated(
             db.collection('instituicoes').get()
         ]);
 
-        const nomeDaConta = perfilSnap.data()?.nome || '';
+        // o perfil guarda nome e sobrenome em campos separados (cadastro.js) —
+        // mesma junção de mural.js/perfil.js, senão sobra só o primeiro nome
+        // e conferirNome() nunca acha "nome e sobrenome" pra comparar.
+        const nomeDaConta = [perfilSnap.data()?.nome, perfilSnap.data()?.sobrenome].filter(Boolean).join(' ');
         const cursos = cursosSnap.docs.map((d) => ({ id: d.id, nome: d.data().nome || '', nivel: d.data().nivel || '' }));
         const unidades = instituicoesSnap.docs.map((d) => ({
             id: d.id, nome: d.data().nome || '', tipo: d.data().tipo || '', cursos: d.data().cursos || []
@@ -98,6 +133,7 @@ exports.validarCertificado = onDocumentCreated(
             uid: event.params.uid,
             certificadoId: event.params.certificadoId,
             nomeConfere: nome.confere === true,
+            motivoNome: nome.motivo,
             unidadeLida
         }));
     }

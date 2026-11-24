@@ -21,6 +21,34 @@ export function escapeHtml(str) {
     }[c]));
 }
 
+// Atualiza (ou cria) a <meta name="description"> com um resumo específico da
+// unidade ou do curso carregado — sem isso, toda página de instituição ou de
+// curso mostrava a mesma frase genérica, ruim pra aparecer em buscas
+// específicas ("Etec X", "técnico em Y").
+export function atualizarMetaDescricao(texto) {
+    let meta = document.querySelector('meta[name="description"]');
+    if (!meta) {
+        meta = document.createElement('meta');
+        meta.name = 'description';
+        document.head.appendChild(meta);
+    }
+    meta.setAttribute('content', texto);
+}
+
+// Dado estruturado (schema.org) da unidade ou do curso carregado, pro Google
+// entender o conteúdo da página — uma só tag por página, criada ou
+// atualizada na hora que os dados chegam.
+export function definirDadosEstruturados(dados) {
+    let script = document.getElementById('dados-estruturados-pagina');
+    if (!script) {
+        script = document.createElement('script');
+        script.type = 'application/ld+json';
+        script.id = 'dados-estruturados-pagina';
+        document.head.appendChild(script);
+    }
+    script.textContent = JSON.stringify(dados);
+}
+
 // Minúsculas, sem acento e sem pontuação: usado para comparar nomes de
 // cursos e cidades vindos de fontes diferentes (CSV, IBGE, busca).
 export function normalizar(texto) {

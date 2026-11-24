@@ -6,7 +6,8 @@ import {
     apagarComentario, apagarPergunta, apagarResposta, criarPergunta, lerAvaliacao, lerComentarios,
     lerMeusComentarios, lerPerguntas, lerUnidade, observarConta, responderPergunta, salvarComentario
 } from './instituicao-dados.js';
-import { LIMITES, cursosDaUnidade, perguntasFixas, primeiroNome, problemaNoTexto } from './instituicao-util.js';
+import { LIMITES, cursosDaUnidade, perguntasFixas, primeiroNome, problemaNoTexto, textoSobre } from './instituicao-util.js';
+import { atualizarMetaDescricao, definirDadosEstruturados } from './card-unidade.js';
 import {
     htmlCapa, htmlCapaSimples, htmlCursos, htmlDuvidas, htmlNaoEncontrada, htmlNumeros, htmlQuemEstudou, htmlSobre
 } from './instituicao-visao.js';
@@ -426,6 +427,24 @@ async function iniciar() {
     estado.cursos = cursosDaUnidade(unidade);
     estado.fixas = perguntasFixas(unidade, estado.cursos);
     document.title = `Futuro+ | ${unidade.nome}`;
+    // o mesmo texto real do card "Sobre a instituição" (textoSobre),
+    // truncado — em vez de uma frase genérica igual em toda unidade.
+    const descricao = textoSobre(unidade, estado.cursos);
+    atualizarMetaDescricao(descricao.slice(0, 155));
+
+    const { lat, lng } = unidade.localizacao || {};
+    definirDadosEstruturados({
+        '@context': 'https://schema.org',
+        '@type': (unidade.tipo || '').trim().toLowerCase() === 'fatec' ? 'CollegeOrUniversity' : 'School',
+        name: unidade.nome,
+        description: descricao,
+        url: `https://futuroplus.com.br/instituicao.html?u=${encodeURIComponent(id)}`,
+        ...(unidade.municipio ? {
+            address: { '@type': 'PostalAddress', addressLocality: unidade.municipio, addressRegion: 'SP', addressCountry: 'BR' }
+        } : {}),
+        ...(lat != null && lng != null ? { geo: { '@type': 'GeoCoordinates', latitude: lat, longitude: lng } } : {}),
+        parentOrganization: { '@type': 'Organization', name: 'Centro Paula Souza', sameAs: 'https://www.cps.sp.gov.br/' }
+    });
     elemento('inst-capa-miolo').innerHTML = htmlCapa(unidade, estado.cursos);
     desenharNumeros();
     elemento('inst-sobre').innerHTML = htmlSobre(unidade, estado.cursos);
