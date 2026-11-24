@@ -42,6 +42,15 @@ service firebase.storage {
       allow write: if false;
     }
 
+    // PDF da matriz curricular (Etec): enviado pelo painel Admin · Cursos
+    // através da função enviar_matriz, que confere se quem envia é
+    // administrador. Leitura pública, para o botão "Plano de curso (PDF)"
+    // na página do curso.
+    match /matrizes/{caminho=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     match /{caminho=**} {
       allow read, write: if false;
     }

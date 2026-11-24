@@ -9,6 +9,7 @@ import { duracaoDaMatriz } from './matriz-curricular.js';
 import { resumoDaDemanda } from './demanda-curso.js';
 import { capaDoEixo, carregarFotosDosEixos } from './capas-eixos.js';
 import { enviarCapa, removerCapaDoEixo } from './enviar-capa.js';
+import { enviarMatriz } from './enviar-matriz.js';
 import {
     ligarMatrizes, limparMatrizes, matrizesParaSalvar, prepararMatrizesDoCurso, problemaParaSalvar,
     receberPdfDaMatriz as receberPdfNosCartoes
@@ -450,7 +451,28 @@ function lerDestaquesDigitados() {
 // O PDF da matriz vai para os cartões (admin-matriz.js): plano de curso da
 // Fatec nos cursos superiores; matriz do SIGA ou do SEI nas Etecs.
 async function receberPdfDaMatriz(arquivo) {
-    if (cursoEmEdicao()) await receberPdfNosCartoes(arquivo);
+    if (!cursoEmEdicao()) return;
+    const resultado = await receberPdfNosCartoes(arquivo);
+    // Etec não costuma ter um link oficial pra colar em "Plano de Curso" (a
+    // Fatec tem); guardamos o próprio PDF enviado, pra página do curso
+    // também poder mostrar o botão "Plano de curso (PDF)". Não sobrescreve
+    // um link que o admin já tenha colado à mão.
+    if (resultado?.sucesso && resultado.etec && !document.getElementById('f-plano-curso').value.trim()) {
+        await guardarPdfDaMatriz(arquivo);
+    }
+}
+
+async function guardarPdfDaMatriz(arquivo) {
+    try {
+        const { url } = await enviarMatriz({ id: editandoId, arquivo });
+        document.getElementById('f-plano-curso').value = url;
+        mostrarStatus('status-matriz',
+            'Matriz lida e PDF guardado: o botão "Plano de curso (PDF)" já vai aparecer na página do curso. '
+            + 'Clique em "Salvar curso" para gravar.', 'ok');
+    } catch (err) {
+        console.error('Erro ao guardar o PDF da matriz:', err);
+        // a leitura da matriz já funcionou; só o PDF em si não subiu, sem bloquear o resto
+    }
 }
 
 // ========================================================
@@ -583,7 +605,9 @@ function abrirFormulario(curso) {
         ? 'Serve o projeto pedagógico ou a matriz curricular da Fatec. O leitor tira a grade e a descrição de cada '
             + 'disciplina; o PDF em si não é guardado. Vale ao salvar o curso.'
         : 'Serve a matriz do SIGA (M-Tec e técnico) e a homologada no SEI, mesmo com a tabela em imagem: o painel lê a '
-            + 'imagem no próprio navegador. Cada forma de oferta vira uma aba na página do curso. Vale ao salvar o curso.';
+            + 'imagem no próprio navegador. Cada forma de oferta vira uma aba na página do curso. Se o campo "Link do '
+            + 'Plano de Curso" abaixo estiver vazio, o próprio PDF enviado é guardado, pra ter o botão de ver o PDF '
+            + 'também. Vale ao salvar o curso.';
     prepararMatrizesDoCurso(curso, (texto, tipo) => mostrarStatus('status-matriz', texto, tipo));
 
     document.getElementById('modal-form').classList.add('aberto');

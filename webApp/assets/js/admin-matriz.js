@@ -154,12 +154,16 @@ function daLeituraDaFatec(lida, arquivo) {
     };
 }
 
+// Devolve { sucesso, etec }: usado pelo painel (admin-cursos.js) para saber
+// se vale a pena também guardar o PDF da matriz da Etec no Storage (enviar-
+// matriz.js), para a página do curso oferecer o botão "Plano de curso (PDF)".
 export async function receberPdfDaMatriz(arquivo) {
+    const etec = estado.etec;
     avisar(`Lendo ${arquivo.name}...`);
     try {
         let matriz;
         let problema = null;
-        if (estado.etec) {
+        if (etec) {
             const lida = await lerMatrizEtecDoPdf(arquivo, (p) => avisar(`Lendo a imagem da matriz (OCR): ${p}%. Leva uns 10 segundos.`));
             if (lida.problema) problema = lida.problema;
             else matriz = { ...lida.matriz, arquivo: arquivo.name, mostrar: 'interativa', revisada: false, lidaEm: new Date().toISOString() };
@@ -172,7 +176,7 @@ export async function receberPdfDaMatriz(arquivo) {
             estado.problema = { tipo: problema, arquivo: arquivo.name };
             renderizarCartoes();
             avisar('');
-            return;
+            return { sucesso: false, etec };
         }
         estado.problema = null;
 
@@ -202,11 +206,13 @@ export async function receberPdfDaMatriz(arquivo) {
             + ' Clique em "Salvar curso" para gravar.',
             matriz.confiavel && !outroCurso ? 'ok' : ''
         );
+        return { sucesso: true, etec };
     } catch (erro) {
         console.error('Erro ao ler a matriz:', erro);
         estado.problema = { tipo: 'erro', arquivo: arquivo.name };
         renderizarCartoes();
         avisar('');
+        return { sucesso: false, etec };
     }
 }
 

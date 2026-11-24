@@ -666,6 +666,72 @@ def enviar_capa(req: https_fn.Request) -> https_fn.Response:
         return responder({"erro": "Erro interno. Tente novamente em alguns minutos."}, 500)
 
 
+# PDF da matriz curricular (Etec): o painel já lê a grade por OCR/texto, mas
+# até aqui o arquivo em si era descartado depois — sem ele, a página do curso
+# não tinha como oferecer "ver o PDF" (diferente da Fatec, que tem o link do
+# Plano de Curso preenchido à mão). Guardamos o PDF enviado e devolvemos a URL
+# pública; quem preenche o campo "Link do Plano de Curso" com ela é o painel.
+TAMANHO_MAXIMO_MATRIZ = 15 * 1024 * 1024
+
+
+@https_fn.on_request(
+    cors=options.CorsOptions(cors_origins="*", cors_methods=["get", "post"]),
+    region=options.SupportedRegion.SOUTHAMERICA_EAST1,
+    max_instances=3,
+    memory=options.MemoryOption.MB_256,
+)
+def enviar_matriz(req: https_fn.Request) -> https_fn.Response:
+    """Guarda no Storage o PDF da matriz curricular enviado pelo painel
+    Admin · Cursos e devolve o endereço público dele, para a página do curso
+    poder mostrar o botão "Plano de curso (PDF)" mesmo em curso de Etec."""
+    if req.method == "OPTIONS":
+        return https_fn.Response(status=204)
+
+    cabecalho_json = {"Content-Type": "application/json"}
+
+    def responder(dados, status=200):
+        return https_fn.Response(json.dumps(dados), status=status, headers=cabecalho_json)
+
+    try:
+        db = firestore.client()
+        _, erro = _exigir_admin(req, db)
+        if erro:
+            return erro
+
+        dados = req.get_json(silent=True) or {}
+        identificador = re.sub(r"[^a-z0-9-]", "", (dados.get("id") or "").strip().lower())[:120]
+        if not identificador:
+            return responder({"erro": "Informe o 'id' do curso."}, 400)
+
+        import base64
+        import binascii
+        try:
+            conteudo = base64.b64decode(dados.get("pdf") or "", validate=True)
+        except (binascii.Error, ValueError):
+            return responder({"erro": "O arquivo chegou corrompido. Tente enviar de novo."}, 400)
+        if not conteudo:
+            return responder({"erro": "Nenhum arquivo recebido."}, 400)
+        if not conteudo.startswith(b"%PDF"):
+            return responder({"erro": "O arquivo não parece ser um PDF."}, 400)
+        if len(conteudo) > TAMANHO_MAXIMO_MATRIZ:
+            return responder({"erro": "O arquivo passa de 15 MB."}, 413)
+
+        bucket = storage.bucket("futuroplus-bce54.firebasestorage.app")
+        blob = bucket.blob(f"matrizes/{identificador}.pdf")
+        blob.cache_control = "public, max-age=86400"
+        blob.upload_from_string(conteudo, content_type="application/pdf")
+        blob.make_public()
+
+        # O arquivo mantém o nome ao ser trocado; o "?v=" faz o navegador
+        # buscar a versão nova em vez de mostrar a antiga guardada.
+        url = f"{blob.public_url}?v={int(datetime.now(timezone.utc).timestamp())}"
+        return responder({"url": url})
+
+    except Exception as e:
+        print(f"Erro ao enviar a matriz: {e}")
+        return responder({"erro": "Erro interno. Tente novamente em alguns minutos."}, 500)
+
+
 TIPOS_DE_IMAGEM_NOTICIA = {"image/webp": "webp", "image/jpeg": "jpg", "image/png": "png"}
 TAMANHO_MAXIMO_IMAGEM_NOTICIA = 4 * 1024 * 1024
 
