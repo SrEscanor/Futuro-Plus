@@ -4,10 +4,9 @@ O **Futuro+** é uma plataforma gratuita de orientação vocacional e profission
 
 O projeto foi desenvolvido como **Trabalho de Conclusão de Curso (TCC)**.
 
-<p>
-  🌐 <strong>Acesse: <a href="https://futuroplus.com.br">futuroplus.com.br</a></strong><br>
-  📸 Instagram: <a href="https://www.instagram.com/futuroplus_">@futuroplus_</a> · 💼 LinkedIn: <a href="https://www.linkedin.com/in/futuroplus">futuroplus</a>
-</p>
+🌐 **Acesse: [futuroplus.com.br](https://futuroplus.com.br)**
+
+📸 Instagram: [@futuroplus_](https://www.instagram.com/futuroplus_) · 💼 LinkedIn: [futuroplus](https://www.linkedin.com/in/futuroplus)
 
 ---
 
@@ -64,7 +63,8 @@ O projeto foi desenvolvido como **Trabalho de Conclusão de Curso (TCC)**.
 - Exclusão de conta com carência de 30 dias.
 
 ### 🤖 Assistente virtual
-- Chatbot com vários agentes de IA que responde sobre editais, cotas, isenção de taxa, vagas, unidades mais próximas e notícias dos vestibulares. Ele busca na web e nos manuais oficiais do Centro Paula Souza, com proteções contra uso fora do assunto.
+- Chatbot com vários agentes de IA que responde sobre editais, cotas, isenção de taxa, vagas, unidades mais próximas e notícias dos vestibulares. Ele busca na web e nos manuais oficiais do Centro Paula Souza.
+- **Proteções:** só para quem tem conta, com limite de mensagens por dia e de tamanho da mensagem. Recusa assunto fora do vestibular e barra tentativas de *prompt injection* (mandar ignorar as instruções, trocar de papel, revelar o prompt), inclusive as escondidas nas páginas que a busca traz. A resposta só mostra link de site oficial e é barrada se vazar chave de API ou as instruções do assistente.
 
 ### ✨ E mais
 - **Tour guiado** na primeira visita, com destaque nas principais telas.
@@ -154,10 +154,14 @@ TAVILY_API_KEY=...
 VECTOR_STORE_ID=...
 ```
 
-Para rodar os testes das funções, a partir da pasta do projeto:
+Para rodar os testes das funções e das proteções do assistente, a partir da pasta do projeto:
 
 ```bash
 functions/venv/Scripts/python.exe functions/testes/testar_funcoes.py
+```
+
+```bash
+functions/venv/Scripts/python.exe functions/testes/testar_seguranca_chat.py
 ```
 
 Para subir tudo localmente com os emuladores do Firebase:

@@ -6,6 +6,8 @@ from agents import (
     output_guardrail,
 )
 
+from seguranca_chat import parece_injecao, parece_vazamento_de_instrucoes, tem_chave_de_api
+
 
 def _texto_ultima_mensagem_usuario(user_input: Union[str, list[TResponseInputItem]]) -> str:
     """
@@ -43,15 +45,11 @@ def _texto_ultima_mensagem_usuario(user_input: Union[str, list[TResponseInputIte
 
 @input_guardrail(run_in_parallel=False)
 def bloquear_injecao_prompt(ctx, agent, user_input: Union[str, list[TResponseInputItem]]) -> GuardrailFunctionOutput:
-    texto = _texto_ultima_mensagem_usuario(user_input).lower()
-    padroes_injecao = [
-        "ignore as instruções anteriores",
-        "ignore todas as regras",
-        "system prompt",
-        "você agora é",
-        "modo developer"
-    ]
-    encontrou = any(p in texto for p in padroes_injecao)
+    # Antes eram 5 frases exatas ("ignore as instruções anteriores"...): sem
+    # acento, em inglês ou com outra palavra já passava. parece_injecao()
+    # (seguranca_chat.py) pega as variações sem barrar pergunta normal; os
+    # exemplos dos dois lados estão em functions/testes/testar_seguranca_chat.py.
+    encontrou = parece_injecao(_texto_ultima_mensagem_usuario(user_input))
     return GuardrailFunctionOutput(
         output_info="Tentativa de injeção de prompt detectada" if encontrou else "Entrada permitida",
         tripwire_triggered=encontrou,
@@ -69,8 +67,21 @@ def bloquear_linguagem_inapropriada_entrada(ctx, agent, user_input: Union[str, l
 
 @output_guardrail
 def bloquear_vazamento_chaves_api(ctx, agent, agent_output: str) -> GuardrailFunctionOutput:
-    encontrou = "sk-" in agent_output or "tvly-" in agent_output
+    # só a chave inteira conta: o "sk-" solto de antes barrava "risk-free"
+    encontrou = tem_chave_de_api(agent_output)
     return GuardrailFunctionOutput(
         output_info="Vazamento de chave de API detectado na saída" if encontrou else "Saída permitida",
+        tripwire_triggered=encontrou,
+    )
+
+
+@output_guardrail
+def bloquear_vazamento_de_instrucoes(ctx, agent, agent_output: str) -> GuardrailFunctionOutput:
+    """Barra a resposta que repete pedaços das instruções dos agentes (o
+    "prompt"), caso alguma tentativa de extração passe pelo guardrail de
+    entrada."""
+    encontrou = parece_vazamento_de_instrucoes(agent_output)
+    return GuardrailFunctionOutput(
+        output_info="Resposta repetindo as instruções do assistente" if encontrou else "Saída permitida",
         tripwire_triggered=encontrou,
     )

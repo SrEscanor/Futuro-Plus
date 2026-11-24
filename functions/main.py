@@ -44,6 +44,47 @@ def _dentro_do_limite_diario(db, uid):
     return atualizar(db.transaction())
 
 
+def _texto_do_item(item):
+    conteudo = item.get("content") if isinstance(item, dict) else None
+    if isinstance(conteudo, str):
+        return conteudo
+    if isinstance(conteudo, list):
+        return " ".join(parte.get("text", "") for parte in conteudo if isinstance(parte, dict))
+    return ""
+
+
+def _tirar_mensagem_barrada_do_historico(session, mensagem):
+    """O SDK grava no histórico a mensagem que o guardrail de entrada barrou
+    (persist_session_items_for_guardrail_trip, em agents/run.py). Se ela
+    ficasse lá, a tentativa de injeção voltaria para o modelo em todas as
+    perguntas seguintes, como se fosse uma mensagem normal da pessoa. Só tira
+    o último item, e só se for mesmo essa mensagem. Roda num loop próprio
+    para não mexer no loop que o Runner.run_sync usa."""
+    import asyncio
+
+    async def tirar():
+        ultimos = await session.get_items(limit=1)
+        ultimo = ultimos[-1] if ultimos else None
+        if isinstance(ultimo, dict) and ultimo.get("role") == "user" and _texto_do_item(ultimo) == mensagem:
+            await session.pop_item()
+
+    loop = asyncio.new_event_loop()
+    try:
+        loop.run_until_complete(tirar())
+    except Exception as erro:
+        print(f"Não foi possível tirar a mensagem barrada do histórico: {erro}")
+    finally:
+        loop.close()
+
+
+def _registrar_guardrail(tipo, erro):
+    """Só o tipo e o motivo, sem o texto da conversa, para acompanhar pelos
+    logs quantas tentativas o assistente barra."""
+    resultado = getattr(erro, "guardrail_result", None)
+    motivo = getattr(getattr(resultado, "output", None), "output_info", "")
+    print(json.dumps({"guardrail_acionado": tipo, "motivo": str(motivo)}))
+
+
 @https_fn.on_request(
     cors=options.CorsOptions(cors_origins="*", cors_methods=["get", "post"]),
     # São Paulo em vez do padrão (Iowa, EUA) — reduz a latência de rede pra
@@ -78,11 +119,6 @@ def chat_bot(req: https_fn.Request) -> https_fn.Response:
         return https_fn.Response(json.dumps({"erro": "Sessão inválida ou expirada. Faça login novamente."}), status=401)
 
     db = firestore.client()
-    if not _dentro_do_limite_diario(db, id_usuario):
-        return https_fn.Response(
-            json.dumps({"erro": "Você atingiu o limite de mensagens do assistente por hoje. Tente de novo mais tarde."}),
-            status=429,
-        )
 
     try:
         # 1. Importamos o seu chatbot AQUI DENTRO para não travar a inicialização do Firebase!
@@ -92,6 +128,7 @@ def chat_bot(req: https_fn.Request) -> https_fn.Response:
         from contexto_chat import ContextoChat
         from ferramentas_unidades import e_busca_de_unidades, garantir_botao_da_pagina_de_cursos
         from tools import garantir_botao_de_inscricao
+        from seguranca_chat import LIMITE_MENSAGEM, filtrar_links
 
         dados = req.get_json()
         if not dados:
@@ -99,8 +136,23 @@ def chat_bot(req: https_fn.Request) -> https_fn.Response:
 
         mensagem = dados.get("mensagem", "")
 
-        if not mensagem:
+        if not mensagem or not isinstance(mensagem, str):
             return https_fn.Response(json.dumps({"erro": "A mensagem não pode estar vazia"}), status=400)
+
+        # Texto gigante só serve para esconder instrução no meio ou gastar
+        # crédito da OpenAI; uma dúvida sobre vestibular cabe com folga.
+        if len(mensagem) > LIMITE_MENSAGEM:
+            return https_fn.Response(
+                json.dumps({"erro": f"Sua mensagem passou de {LIMITE_MENSAGEM} caracteres. Pode resumir a dúvida?"}),
+                status=400,
+            )
+
+        # o limite do dia só conta mensagem que vai mesmo para o assistente
+        if not _dentro_do_limite_diario(db, id_usuario):
+            return https_fn.Response(
+                json.dumps({"erro": "Você atingiu o limite de mensagens do assistente por hoje. Tente de novo mais tarde."}),
+                status=429,
+            )
 
         # Um objeto Agent da SDK não é chamável diretamente (ex: agente(msg) dava
         # erro "'Agent' object is not callable"). É preciso executá-lo com Runner.
@@ -125,21 +177,26 @@ def chat_bot(req: https_fn.Request) -> https_fn.Response:
             resultado = Runner.run_sync(
                 agente_orquestrador, mensagem, session=session, context=contexto, run_config=configuracao
             )
-        except InputGuardrailTripwireTriggered:
+        except InputGuardrailTripwireTriggered as erro:
+            _registrar_guardrail("entrada", erro)
+            _tirar_mensagem_barrada_do_historico(session, mensagem)
             return https_fn.Response(
                 json.dumps({"resposta": "Desculpe, não posso ajudar com esse tipo de mensagem. Posso te ajudar com dúvidas sobre o vestibular da ETEC ou FATEC?"}),
                 status=200,
                 headers={"Content-Type": "application/json"}
             )
-        except OutputGuardrailTripwireTriggered:
+        except OutputGuardrailTripwireTriggered as erro:
+            _registrar_guardrail("saida", erro)
             return https_fn.Response(
                 json.dumps({"resposta": "Desculpe, não consegui gerar uma resposta segura para essa pergunta. Pode tentar reformular?"}),
                 status=200,
                 headers={"Content-Type": "application/json"}
             )
 
-        # Extrai a resposta final do agente
-        resposta_texto = getattr(resultado, "final_output", None) or str(resultado)
+        # Extrai a resposta final do agente. Link de site que não é oficial sai
+        # (o chat transforma todo https://... em link clicável): é por aí que
+        # uma ordem escondida numa página da web viraria link de golpe na tela.
+        resposta_texto = filtrar_links(getattr(resultado, "final_output", None) or str(resultado))
         garantir_botao_de_inscricao(contexto, resposta_texto)
         garantir_botao_da_pagina_de_cursos(contexto, mensagem, resposta_texto)
 
