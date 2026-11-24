@@ -2,7 +2,7 @@
 // e no "Ver como fica" do painel. Tudo o que vem da notícia passa por
 // escapeHtml antes de entrar na página.
 import { escapeHtml } from './noticias-util.js';
-import { ETIQUETAS, dataHora, haQuantoTempo, paraData } from './noticias-proprias-util.js';
+import { ETIQUETAS, dataHora, haQuantoTempo, negritoEmHtml, paraData } from './noticias-proprias-util.js';
 
 const ICONE_LINK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" '
     + 'stroke-linejoin="round" aria-hidden="true"><path d="M10 14a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1 1"/>'
@@ -29,7 +29,8 @@ function figura({ url, legenda, credito }, principal = false) {
 }
 
 function bloco(item) {
-    if (item.tipo === 'paragrafo') return `<p>${escapeHtml(item.texto).replace(/\n/g, '<br>')}</p>`;
+    // **assim** vira negrito (ver negritoEmHtml)
+    if (item.tipo === 'paragrafo') return `<p>${negritoEmHtml(escapeHtml(item.texto)).replace(/\n/g, '<br>')}</p>`;
     if (item.tipo === 'intertitulo') return `<h2>${escapeHtml(item.texto)}</h2>`;
     if (item.tipo === 'imagem') return figura(item);
     return '';

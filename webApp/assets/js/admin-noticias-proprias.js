@@ -371,8 +371,14 @@ const TIPOS_DE_BLOCO = {
 
 function htmlDoBloco(bloco, indice, total) {
     const tipo = TIPOS_DE_BLOCO[bloco.tipo];
+    // só o parágrafo tem negrito (o intertítulo já é todo destacado)
+    const negrito = bloco.tipo === 'paragrafo'
+        ? `<button type="button" class="np-controle np-controle--negrito" data-acao="negrito" data-indice="${indice}"
+                aria-label="Negrito no trecho selecionado" title="Negrito no trecho selecionado (Ctrl+B)">B</button>`
+        : '';
     const controles = `
         <div class="np-bloco-controles">
+            ${negrito}
             <button type="button" class="np-controle" data-acao="subir" data-indice="${indice}"${indice === 0 ? ' disabled' : ''}
                 aria-label="Subir ${tipo.nome.toLowerCase()}" title="Subir">&uarr;</button>
             <button type="button" class="np-controle" data-acao="descer" data-indice="${indice}"${indice === total - 1 ? ' disabled' : ''}
@@ -412,6 +418,49 @@ function adicionarBloco(tipo) {
     desenharBlocos();
     el('np-blocos').lastElementChild?.querySelector('textarea, input')?.focus();
     if (tipo === 'imagem') escolherImagem(blocos.length - 1);
+}
+
+// Negrito no parágrafo: põe (ou tira, se já estiver) ** em volta do trecho
+// selecionado; a página da notícia mostra o trecho em negrito. Sem nada
+// selecionado, vale a palavra onde está o cursor; num espaço vazio, deixa
+// **** com o cursor no meio, para já digitar em negrito. Usa o insertText
+// do navegador para o Ctrl+Z desfazer (e o "input" atualizar a notícia).
+const LETRA = /[\p{L}\p{N}]/u;
+
+function aplicarNegrito(campo) {
+    if (!campo) return;
+    const texto = campo.value;
+    let inicio = campo.selectionStart;
+    let fim = campo.selectionEnd;
+    if (inicio === fim) {
+        while (inicio > 0 && LETRA.test(texto[inicio - 1])) inicio -= 1;
+        while (fim < texto.length && LETRA.test(texto[fim])) fim += 1;
+    }
+    // espaço nas pontas fica fora: "** palavra**" não seria negrito
+    while (inicio < fim && /\s/.test(texto[inicio])) inicio += 1;
+    while (fim > inicio && /\s/.test(texto[fim - 1])) fim -= 1;
+
+    const trecho = texto.slice(inicio, fim);
+    let troca;
+    if (texto.slice(inicio - 2, inicio) === '**' && texto.slice(fim, fim + 2) === '**' && inicio >= 2) {
+        // já em negrito, com os asteriscos fora da seleção: tira
+        troca = { de: inicio - 2, ate: fim + 2, por: trecho, selecao: [inicio - 2, fim - 2] };
+    } else if (trecho.length >= 4 && trecho.startsWith('**') && trecho.endsWith('**')) {
+        // a seleção pegou os asteriscos junto: tira
+        troca = { de: inicio, ate: fim, por: trecho.slice(2, -2), selecao: [inicio, fim - 4] };
+    } else {
+        troca = { de: inicio, ate: fim, por: `**${trecho}**`, selecao: [inicio + 2, fim + 2] };
+    }
+    if (texto.length - (troca.ate - troca.de) + troca.por.length > LIMITES.paragrafo) return;
+
+    campo.focus();
+    campo.setSelectionRange(troca.de, troca.ate);
+    const trocou = troca.por ? document.execCommand('insertText', false, troca.por) : document.execCommand('delete');
+    if (!trocou) {
+        campo.setRangeText(troca.por, troca.de, troca.ate, 'end');
+        campo.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    campo.setSelectionRange(...troca.selecao);
 }
 
 function moverBloco(indice, passo) {
@@ -776,10 +825,21 @@ function ligarEventos() {
             'remover-imagem': () => removerImagem(alvo),
             subir: () => moverBloco(alvo, -1),
             descer: () => moverBloco(alvo, 1),
-            'remover-bloco': () => removerBloco(alvo)
+            'remover-bloco': () => removerBloco(alvo),
+            negrito: () => aplicarNegrito(el('np-blocos').querySelector(`textarea[data-indice="${alvo}"]`))
         };
         acoes[botao.dataset.acao]?.();
     };
+    // o B não tira o foco do parágrafo, senão a seleção se perderia no clique
+    el('np-blocos').addEventListener('mousedown', (evento) => {
+        if (evento.target.closest('[data-acao="negrito"]')) evento.preventDefault();
+    });
+    el('np-blocos').addEventListener('keydown', (evento) => {
+        const campo = evento.target.closest('textarea.np-bloco-texto');
+        if (!campo || !(evento.ctrlKey || evento.metaKey) || evento.altKey || evento.key.toLowerCase() !== 'b') return;
+        evento.preventDefault();
+        aplicarNegrito(campo);
+    });
     for (const area of [el('np-imagem-principal'), el('np-blocos')]) {
         area.addEventListener('input', aoDigitar);
         area.addEventListener('click', aoClicar);

@@ -104,6 +104,17 @@ export function textoLongo(texto, limite) {
     return String(texto ?? '').replace(/\r\n?/g, '\n').replace(/\n{3,}/g, '\n\n').trim().slice(0, limite);
 }
 
+// Negrito no parágrafo, marcado no editor como **assim** (o botão B e o
+// Ctrl+B do painel põem os asteriscos). Recebe o texto JÁ escapado: o
+// escapeHtml não mexe em asterisco, então só os pares de ** viram <strong>
+// e nenhum HTML de quem escreveu passa. Como no Markdown, o trecho não
+// começa nem termina com espaço ("**** e **" não vira negrito); um ** sem
+// par continua aparecendo como está, e o negrito não atravessa a quebra de
+// linha.
+export function negritoEmHtml(textoEscapado) {
+    return String(textoEscapado ?? '').replace(/\*\*([^*\s](?:[^*\n]*[^*\s])?)\*\*/g, '<strong>$1</strong>');
+}
+
 // Imagem só por https (as do Storage). No computador de quem desenvolve
 // (emulador e roteiros de teste) também vale http://localhost.
 function imagemLimpa(imagem) {
