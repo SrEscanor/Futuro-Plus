@@ -8,6 +8,10 @@ import {
     verificarNotificacaoModalVisitante, configurarSinoVisitante
 } from './notificacoes.js';
 import { iniciarAtencaoChat } from './chat-atencao.js';
+import { ativarVLibras } from './vlibras.js';
+
+// o botão de Libras (VLibras) em todas as páginas com o menu lateral
+ativarVLibras();
 
 document.addEventListener('DOMContentLoaded', () => {
 

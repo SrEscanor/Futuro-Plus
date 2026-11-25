@@ -2,6 +2,10 @@ import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/aut
 import { auth } from "./firebase-config.js"; // Certifique-se de importar o 'auth' exportado do seu config
 import { integrarResultadoPendenteComPerfil } from "./resultado-teste.js";
 import { entrarComGoogle } from "./auth-google.js";
+import { ativarVLibras } from "./vlibras.js";
+
+// o botão de Libras (VLibras), como nas outras páginas públicas
+ativarVLibras();
 
 const formLogin = document.getElementById("formLogin");
 const botaoEntrar = document.querySelector(".btn-login");

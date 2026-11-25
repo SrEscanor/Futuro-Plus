@@ -4,6 +4,10 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import { integrarResultadoPendenteComPerfil } from "./resultado-teste.js";
 import { localizarRuaDoAluno } from "./geocodificacao.js";
 import { entrarComGoogle } from "./auth-google.js";
+import { ativarVLibras } from './vlibras.js';
+
+// o botão de Libras (VLibras), como nas outras páginas públicas
+ativarVLibras();
 
 document.addEventListener('DOMContentLoaded', () => {
   const botaoGoogle = document.getElementById('btnGoogleCadastro');
