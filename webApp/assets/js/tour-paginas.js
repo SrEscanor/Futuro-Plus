@@ -23,7 +23,7 @@ const CONFIGS = {
             {
                 seletor: '#card-teste-afinidades-pag',
                 titulo: 'Teste de Afinidades',
-                texto: 'Mesma teoria do teste rápido, avaliando de 0 a 10 cada característica — dá o mesmo tipo de resultado, é só escolher o formato que você prefere.'
+                texto: 'Mesma teoria do teste rápido, avaliando de 0 a 10 cada característica, dá o mesmo tipo de resultado, é só escolher o formato que você prefere.'
             }
         ]
     },
@@ -39,7 +39,7 @@ const CONFIGS = {
             {
                 seletor: '#grid-cursos .card-curso-catalogo',
                 titulo: 'Cursos do catálogo',
-                texto: 'Cada card é um curso — vermelho é técnico (Etec), azul é superior (Fatec). Clique pra ver os detalhes e quais instituições oferecem.'
+                texto: 'Cada card é um curso, vermelho é técnico (Etec), azul é superior (Fatec). Clique pra ver os detalhes e quais instituições oferecem.'
             }
         ]
     },
@@ -55,7 +55,7 @@ const CONFIGS = {
             {
                 seletor: '#grid-unidades .card-unidade',
                 titulo: 'Instituições e cursos',
-                texto: 'Cada card é uma Etec, Fatec ou outra instituição, com um resumo dos cursos. Clique em "Ver instituição" pra ver todos os cursos dela — as outras aparecem do mesmo jeito, é só rolar a tela.'
+                texto: 'Cada card é uma Etec, Fatec ou outra instituição, com um resumo dos cursos. Clique em "Ver instituição" pra ver todos os cursos dela, as outras aparecem do mesmo jeito, é só rolar a tela.'
             }
         ]
     },
@@ -68,7 +68,7 @@ const CONFIGS = {
             {
                 seletor: '#btn-novo-certificado',
                 titulo: 'Adicione um certificado',
-                texto: 'Fez algum curso extra? Clique aqui pra pendurar o certificado no seu mural — o CPF é borrado automaticamente antes de enviar.'
+                texto: 'Fez algum curso extra? Clique aqui pra pendurar o certificado no seu mural, o CPF é borrado automaticamente antes de enviar.'
             },
             {
                 seletor: '.mural-parede',
@@ -84,7 +84,7 @@ const CONFIGS = {
             {
                 seletor: '#btn-editar-perfil',
                 titulo: 'Complete seu perfil',
-                texto: 'Clique aqui pra contar suas áreas de interesse, curso desejado e objetivo — isso ajuda a melhorar suas recomendações.'
+                texto: 'Clique aqui pra contar suas áreas de interesse, curso desejado e objetivo, isso ajuda a melhorar suas recomendações.'
             },
             {
                 seletor: '#perfil-cartao-testes',

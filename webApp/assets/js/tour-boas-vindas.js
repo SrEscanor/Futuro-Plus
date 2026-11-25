@@ -12,7 +12,7 @@ const PASSOS = [
         seletorDesktop: '.menu-panel',
         titulo: 'Menu',
         texto: 'Por aqui você navega entre Início, Testes, Cursos, Mural e Perfil quando quiser.',
-        textoDesktop: 'No computador o menu já fica fixo na lateral — é só clicar em Início, Testes, Cursos, Mural ou Perfil quando quiser.'
+        textoDesktop: 'No computador o menu já fica fixo na lateral, é só clicar em Início, Testes, Cursos, Mural ou Perfil quando quiser.'
     },
     {
         seletor: '#card-vocacional',
@@ -22,7 +22,7 @@ const PASSOS = [
     {
         seletor: '#card-perfil',
         titulo: 'Teste rápido de perfil',
-        texto: 'Baseado na teoria das inteligências múltiplas de Howard Gardner: descobre qual o seu tipo de inteligência mais forte (lógica, linguística, espacial, interpessoal, entre outras) e sugere áreas ligadas a ela. Dica: dá o MESMO resultado do "Teste de Afinidades" — só muda o jeito de responder. Não precisa fazer os dois.'
+        texto: 'Baseado na teoria das inteligências múltiplas de Howard Gardner: descobre qual o seu tipo de inteligência mais forte (lógica, linguística, espacial, interpessoal, entre outras) e sugere áreas ligadas a ela. Dica: dá o MESMO resultado do "Teste de Afinidades", só muda o jeito de responder. Não precisa fazer os dois.'
     },
     {
         // o bloco do mural: mini mural para quem tem certificado, convite para
@@ -34,7 +34,7 @@ const PASSOS = [
     {
         seletor: '#chatbot-toggle',
         titulo: 'Assistente virtual',
-        texto: 'Tem uma dúvida? Pergunte aqui a qualquer momento — sobre cursos, vestibulinho ou qualquer coisa do site.'
+        texto: 'Tem uma dúvida? Pergunte aqui a qualquer momento, sobre cursos, vestibulinho ou qualquer coisa do site.'
     }
 ];
 

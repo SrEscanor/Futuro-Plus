@@ -1687,6 +1687,12 @@ tbody tr:hover {
         flex: 1;
         min-width: 0;
     }
+
+    /* o passo com as três opções de tipo (painel de Unidades) fica mais
+       largo, senão os nomes das opções quebram palavra por palavra */
+    .fonte-card--linha .fonte-passos li.fonte-passo--largo {
+        flex: 1.7;
+    }
 }
 
 @media (max-width: 640px) {
