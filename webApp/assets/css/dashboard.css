@@ -1838,6 +1838,14 @@ a.btn-saiba {
     visibility: visible;
 }
 
+/* No celular o botão do VLibras fica no canto de baixo à esquerda
+   (vlibras.js): com o menu aberto ele ficaria por cima do menu */
+@media (max-width: 1023px) {
+    body:has(.menu-panel.aberto) #vlibras-access-wrapper {
+        display: none;
+    }
+}
+
 .menu-topo {
     display: flex;
     flex-direction: column;

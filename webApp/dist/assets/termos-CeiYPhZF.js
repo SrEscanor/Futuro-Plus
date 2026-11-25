@@ -1,1 +1,0 @@
-import"./firebase-config-jDGsFXrl.js";import{c as r,l as a}from"./legal-comum-6oTdwudN.js";import{T as o}from"./conteudo-legal-padrao-BqhUlQtQ.js";import{a as m}from"./vlibras-DQXnOYHD.js";r("termos-de-uso",o);a();m();
