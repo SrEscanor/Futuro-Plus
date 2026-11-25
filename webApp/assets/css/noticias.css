@@ -2,9 +2,9 @@
    Futuro+ · Notícias (página pública)
    Usa as variáveis de :root de dashboard.css. Os chips do filtro e a
    paginação vêm de cursos-etec.css; aqui fica só o que é desta página.
-   Escrito do celular para o computador: 1 coluna, 2 a partir de 640 px,
-   3 a partir de 1280 px e 4 a partir de 1700 px (com 12 por página a
-   grade fecha em qualquer uma delas).
+   Escrito do celular para o computador: 1 coluna, 2 a partir de 640 px e
+   3 a partir de 1280 px, com a primeira de cada página deitada de ponta a
+   ponta (com 10 por página a grade fecha em qualquer uma delas).
    ========================================================= */
 
 .noticias-main {
@@ -209,6 +209,29 @@ a.noticia-card:focus-visible {
     display: none;
 }
 
+/* Fixada no painel (até 5, no alto da lista): aparece em qualquer tela, no
+   roxo do botão Fixar do painel Admin · Notícias. */
+.noticia-fixada {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 11px 4px 9px;
+    border-radius: 99px;
+    background: #efeaff;
+    font-size: 11.5px;
+    font-weight: 800;
+    line-height: 1.3;
+    color: #5136b0;
+}
+
+.noticia-fixada svg {
+    flex: none;
+}
+
+.noticia-card--propria .noticia-fixada {
+    background: #fff;
+}
+
 .noticia-titulo {
     display: -webkit-box;
     -webkit-box-orient: vertical;
@@ -409,9 +432,10 @@ a.noticia-card:focus-visible {
     }
 }
 
-/* Três colunas. A grade tem 6 trilhos para a primeira página poder ter um
-   cartão de ponta a ponta (a mais nova) e dois de meia largura embaixo dele:
-   1 + 2 + 9 = 12, e nenhuma linha fica com buraco. */
+/* Três colunas. A grade tem 6 trilhos para cada página poder abrir com um
+   cartão de ponta a ponta (na primeira, a fixada do alto ou a mais nova) e
+   três linhas de três embaixo dele: 1 + 9 = 10, e nenhuma linha fica com
+   buraco. */
 @media (min-width: 1280px) {
     .noticias-grade {
         grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -423,11 +447,6 @@ a.noticia-card:focus-visible {
 
     .noticias-grade--destaque > li:first-child {
         grid-column: 1 / -1;
-    }
-
-    .noticias-grade--destaque > li:nth-child(2),
-    .noticias-grade--destaque > li:nth-child(3) {
-        grid-column: span 3;
     }
 
     /* o destaque deita: capa de um lado, texto do outro */
@@ -480,30 +499,11 @@ a.noticia-card:focus-visible {
         margin-top: 4px;
         font-size: 13px;
     }
-
-    .noticias-grade--destaque > li:nth-child(2) .noticia-titulo,
-    .noticias-grade--destaque > li:nth-child(3) .noticia-titulo {
-        font-size: 18px;
-    }
 }
 
-/* Quatro colunas, com 12 trilhos: destaque de ponta a ponta, três cartões de
-   um terço e oito normais (1 + 3 + 8 = 12). */
+/* Tela bem larga: as mesmas três colunas (com 10 por página, quatro
+   deixariam buraco), e o cartão deitado ganha mais espaço. */
 @media (min-width: 1700px) {
-    .noticias-grade {
-        grid-template-columns: repeat(12, minmax(0, 1fr));
-    }
-
-    .noticias-grade > li {
-        grid-column: span 3;
-    }
-
-    .noticias-grade--destaque > li:nth-child(2),
-    .noticias-grade--destaque > li:nth-child(3),
-    .noticias-grade--destaque > li:nth-child(4) {
-        grid-column: span 4;
-    }
-
     .noticias-grade--destaque > li:first-child .noticia-capa {
         flex-basis: 46%;
     }
@@ -519,10 +519,6 @@ a.noticia-card:focus-visible {
     .noticias-grade--destaque > li:first-child .noticia-resumo {
         max-width: 640px;
         font-size: 16px;
-    }
-
-    .noticias-grade--destaque > li:nth-child(4) .noticia-titulo {
-        font-size: 18px;
     }
 }
 

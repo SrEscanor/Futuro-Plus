@@ -19,8 +19,11 @@
 //                     cada registro { noticiaId, titulo, acao, detalhe, email, em }
 //   teste.destaques   o carrossel da Início: { itens: [{ id, titulo }],
 //                     atualizadoEm, atualizadoPor } (null = nunca mexeram)
+//   teste.fixadas     as fixadas da página Notícias, no mesmo formato
 import { INSTITUICOES, imagemSegura, linkSeguro, oQueFoiEditado } from '../assets/js/noticias-util.js';
-import { estaNoSite, itensDosDestaques, mudarListaDeDestaques } from '../assets/js/destaques-util.js';
+import {
+    estaNoSite, itensDasFixadas, itensDosDestaques, mudarListaDeDestaques, mudarListaDeFixadas
+} from '../assets/js/destaques-util.js';
 
 export const LIMITE_TITULO = 200;
 export const LIMITE_RESUMO = 400;
@@ -153,18 +156,40 @@ export async function salvarEdicao(noticia, campos) {
     return { ...noticia, ...novos };
 }
 
-// O carrossel da Início. A notícia de cada item vem de teste.noticias (só as
-// que estão "no site", status aprovada), como na consulta de verdade.
-export async function lerDestaques() {
+// O carrossel da Início (teste.destaques) e as fixadas da página Notícias
+// (teste.fixadas). A notícia de cada item vem de teste.noticias (só as que
+// estão "no site", status aprovada), como na consulta de verdade.
+const LISTAS = {
+    destaques: { limpar: itensDosDestaques, mudar: mudarListaDeDestaques },
+    fixadas: { limpar: itensDasFixadas, mudar: mudarListaDeFixadas }
+};
+
+async function lerLista(qual) {
     await chamada('listar');
-    const dados = estado().destaques || {};
+    const dados = estado()[qual] || {};
     const noSite = new Map(estado().noticias.filter((n) => n.status === 'aprovada').map((n) => [n.id, publica(n)]));
     return {
-        itens: itensDosDestaques(dados.itens).map((item) => ({ ...item, noticia: noSite.get(item.id) || null })),
+        itens: LISTAS[qual].limpar(dados.itens).map((item) => ({ ...item, noticia: noSite.get(item.id) || null })),
         atualizadoEm: dados.atualizadoEm || null,
         atualizadoPor: dados.atualizadoPor || ''
     };
 }
+
+async function mudarLista(qual, acao, noticia, opcoes = {}) {
+    await chamada('gravar');
+    const itens = LISTAS[qual].limpar(estado()[qual]?.itens);
+    const mudanca = LISTAS[qual].mudar(itens, acao, noticia, opcoes);
+    if (!mudanca) return itens;
+    estado()[qual] = { itens: mudanca.itens, atualizadoEm: new Date().toISOString(), atualizadoPor: 'admin@teste' };
+    registrar({ id: noticia.id, titulo: mudanca.titulo }, mudanca.acao, mudanca.detalhe);
+    estado().gravacoes.push([qual, acao, noticia.id, mudanca.itens.map((item) => item.id)]);
+    return copia(mudanca.itens);
+}
+
+export const lerDestaques = () => lerLista('destaques');
+export const lerFixadas = () => lerLista('fixadas');
+export const mudarDestaques = (acao, noticia, opcoes) => mudarLista('destaques', acao, noticia, opcoes);
+export const mudarFixadas = (acao, noticia, opcoes) => mudarLista('fixadas', acao, noticia, opcoes);
 
 export async function listarDestaquesDaInicio() {
     const { itens } = await lerDestaques();
@@ -172,15 +197,10 @@ export async function listarDestaquesDaInicio() {
     return itens.map((item) => item.noticia).filter((noticia) => estaNoSite(noticia, agora));
 }
 
-export async function mudarDestaques(acao, noticia, opcoes = {}) {
-    await chamada('gravar');
-    const itens = itensDosDestaques(estado().destaques?.itens);
-    const mudanca = mudarListaDeDestaques(itens, acao, noticia, opcoes);
-    if (!mudanca) return itens;
-    estado().destaques = { itens: mudanca.itens, atualizadoEm: new Date().toISOString(), atualizadoPor: 'admin@teste' };
-    registrar({ id: noticia.id, titulo: mudanca.titulo }, mudanca.acao, mudanca.detalhe);
-    estado().gravacoes.push(['destaques', acao, noticia.id, mudanca.itens.map((item) => item.id)]);
-    return copia(mudanca.itens);
+export async function listarFixadasDaPagina() {
+    const { itens } = await lerFixadas();
+    const agora = new Date();
+    return itens.map((item) => item.noticia).filter((noticia) => estaNoSite(noticia, agora));
 }
 
 // A primeira busca traz teste.proximasNovas notícias (padrão 2); as seguintes,

@@ -50,8 +50,8 @@ O projeto foi desenvolvido como **Trabalho de Conclusão de Curso (TCC)**.
 - Cada certificado validado dá direito a comentar e avaliar a unidade onde a pessoa estudou.
 
 ### 📰 Notícias e Blog
-- **Notícias de Etecs e Fatecs** buscadas sozinhas nos feeds oficiais e na imprensa. Elas só aparecem depois de aprovadas no painel, e as de outros sites saem do ar depois de 90 dias.
-- **Blog do Futuro+:** notícias escritas pela equipe, com rascunho, aprovação obrigatória, agendamento, imagens com legenda, negrito e itálico.
+- **Notícias de Etecs e Fatecs** buscadas sozinhas nos feeds oficiais e na imprensa. Elas só aparecem depois de aprovadas no painel, e as de outros sites saem do ar depois de 90 dias. A página mostra 10 por página, com até 5 notícias fixadas no alto.
+- **Blog do Futuro+:** notícias escritas pela equipe, com rascunho, aprovação obrigatória, agendamento, imagens com legenda, negrito, itálico e links no texto.
 
 ### 🔔 Notificações
 - Avisos no sino do topo e numa janela ao entrar, para quem tem conta, para visitantes ou para todo mundo.
@@ -82,7 +82,7 @@ Restrita às contas marcadas como administradoras no Firestore. As páginas fica
 | **Unidades** | Importa o CSV de unidades do CPS, busca as fotos da fachada e as logos e localiza cada unidade no mapa. |
 | **Catálogo de cursos** | Importa o CSV oficial (mostrando antes o que muda), lê a matriz curricular do PDF (inclusive tabela em imagem, por OCR) e define as capas por eixo. |
 | **Notificações** | Cria, agenda e ativa os avisos, com push opcional. |
-| **Notícias** | Aprova o que a coleta trouxe e escolhe as notícias do carrossel da Início. |
+| **Notícias** | Aprova o que a coleta trouxe, escolhe as notícias do carrossel da Início e fixa até 5 no alto da página Notícias. |
 | **Blog** | Editor das notícias do Futuro+, com aprovação e agendamento. |
 | **Comunidade** | Mostra as avaliações e dúvidas novas e o histórico de tudo o que acontece nos comentários, inclusive o que foi apagado e por quem. |
 | **Termos e Privacidade** | Edita os textos legais e publica uma nova versão. |

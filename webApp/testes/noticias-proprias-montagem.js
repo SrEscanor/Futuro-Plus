@@ -20,7 +20,8 @@ async function conferirQueACopiaEstaCompleta() {
 }
 
 // opcoes: { vazio, falhar, demora, logado, admin, email, destaques (ids do
-// carrossel da Início, por exemplo ['np-publicada', 'n09']) }
+// carrossel da Início, por exemplo ['np-publicada', 'n09']), fixadas (ids
+// das fixadas da página Notícias, no mesmo formato) }
 export function prepararEstado(opcoes = {}) {
     const exemplo = noticiasPropriasDeExemplo();
     const tituloDe = (id) => exemplo.proprias.get(id)?.titulo || 'Notícia de outro site';
@@ -30,6 +31,7 @@ export function prepararEstado(opcoes = {}) {
         publicadas: opcoes.vazio ? new Map() : exemplo.publicadas,
         historico: opcoes.vazio ? [] : exemplo.historico,
         destaques: opcoes.destaques ? { itens: opcoes.destaques.map((id) => ({ id, titulo: tituloDe(id) })) } : null,
+        fixadas: opcoes.fixadas ? { itens: opcoes.fixadas.map((id) => ({ id, titulo: tituloDe(id) })) } : null,
         historicoNoticias: [],
         gravacoes: [],
         falhar: opcoes.falhar || null,

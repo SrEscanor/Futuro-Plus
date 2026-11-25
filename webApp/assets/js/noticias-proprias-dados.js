@@ -16,16 +16,23 @@
 // Toda gravação vai junta (notícia + cópia pública + histórico), para uma
 // parte nunca ficar sem a outra. Quando a cópia do site é apagada (a notícia
 // sai do site ou é excluída), ela sai também do carrossel da Início
-// (configuracoes/destaques_inicio), na mesma transação; essa saída fica no
-// histórico do painel Notícias (noticias_historico), onde está o carrossel.
+// (configuracoes/destaques_inicio) e das fixadas da página Notícias
+// (configuracoes/noticias_fixadas), na mesma transação; essa saída fica no
+// histórico do painel Notícias (noticias_historico), onde estão as listas.
+// Fixar e desafixar pelo Blog é o mesmo do painel Notícias (lerFixadas e
+// mudarFixadas vêm de noticias-dados.js).
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import {
     collection, doc, getDoc, getDocs, limit, orderBy, query, runTransaction, serverTimestamp, where, writeBatch
 } from 'firebase/firestore';
 import { prepararGravacao } from './noticias-proprias-util.js';
-import { DOC_DESTAQUES, detalheComSaidaDoCarrossel, mudarListaDeDestaques } from './destaques-util.js';
+import {
+    DOC_DESTAQUES, DOC_FIXADAS, detalheComSaidaDasListas, mudarListaDeDestaques, mudarListaDeFixadas
+} from './destaques-util.js';
 import { paginaDoHistorico } from './historico-paginas.js';
+
+export { lerFixadas, mudarFixadas } from './noticias-dados.js';
 
 const PROPRIAS = 'noticias_proprias';
 const PUBLICADAS = 'noticias';
@@ -137,28 +144,41 @@ function registroDoHistorico(usuario, noticiaId, titulo, acao, detalhe = '') {
     };
 }
 
-// A cópia do site vai ser apagada: lê o carrossel da Início e, se a notícia
-// estava lá, tira (na mesma transação), com o registro no histórico do
-// painel Notícias. motivo: o detalhe desse registro. Devolve true se tirou.
-async function tirarDoCarrosselNaTransacao(transacao, usuario, id, titulo, motivo) {
-    const carrossel = await transacao.get(doc(db, ...DOC_DESTAQUES));
-    const mudanca = mudarListaDeDestaques(carrossel.exists() ? carrossel.data().itens : [], 'tirar',
-        { id, titulo }, { motivo });
-    if (!mudanca) return false;
-    transacao.set(doc(db, ...DOC_DESTAQUES), {
-        itens: mudanca.itens,
-        atualizadoEm: serverTimestamp(),
-        atualizadoPor: usuario.email || ''
+// As listas do painel Notícias de onde a notícia sai junto com o site.
+const LISTAS_DO_SITE = [
+    { chave: 'carrossel', caminho: DOC_DESTAQUES, mudar: mudarListaDeDestaques },
+    { chave: 'fixadas', caminho: DOC_FIXADAS, mudar: mudarListaDeFixadas }
+];
+
+// A cópia do site vai ser apagada: lê o carrossel da Início e as fixadas da
+// página Notícias e, se a notícia estava numa delas, tira (na mesma
+// transação), com o registro no histórico do painel Notícias. motivo: o
+// detalhe desse registro. Devolve de onde tirou: { carrossel, fixadas }.
+async function tirarDasListasNaTransacao(transacao, usuario, id, titulo, motivo) {
+    // numa transação, toda leitura vem antes da primeira gravação
+    const atuais = await Promise.all(LISTAS_DO_SITE.map((lista) => transacao.get(doc(db, ...lista.caminho))));
+    const saiu = {};
+    LISTAS_DO_SITE.forEach((lista, indice) => {
+        const atual = atuais[indice];
+        const mudanca = lista.mudar(atual.exists() ? atual.data().itens : [], 'tirar', { id, titulo }, { motivo });
+        saiu[lista.chave] = Boolean(mudanca);
+        if (!mudanca) return;
+        transacao.set(doc(db, ...lista.caminho), {
+            itens: mudanca.itens,
+            atualizadoEm: serverTimestamp(),
+            atualizadoPor: usuario.email || ''
+        });
+        transacao.set(doc(collection(db, HISTORICO_DO_PAINEL_NOTICIAS)),
+            registroDoHistorico(usuario, id, mudanca.titulo, mudanca.acao, mudanca.detalhe));
     });
-    transacao.set(doc(collection(db, HISTORICO_DO_PAINEL_NOTICIAS)),
-        registroDoHistorico(usuario, id, mudanca.titulo, mudanca.acao, mudanca.detalhe));
-    return true;
+    return saiu;
 }
 
 // Salva a notícia (as ações estão em prepararGravacao, no util). noticia: o
 // que está no editor, junto com o que já estava guardado. Devolve a notícia
-// como ficou guardada e, quando ela saiu do site, saiuDoCarrossel (true se
-// estava no carrossel da Início e saiu junto; não faz parte da notícia).
+// como ficou guardada e, quando ela saiu do site, saiuDoCarrossel e
+// saiuDasFixadas (true se estava no carrossel da Início ou nas fixadas da
+// página Notícias e saiu junto; não fazem parte da notícia).
 export async function salvarNoticiaPropria(noticia, acao, opcoes = {}) {
     const usuario = usuarioLogado();
     const id = noticia.id || novoId();
@@ -175,12 +195,12 @@ export async function salvarNoticiaPropria(noticia, acao, opcoes = {}) {
     };
 
     if (publica === null) {
-        const saiuDoCarrossel = await runTransaction(db, async (transacao) => {
-            const tirou = await tirarDoCarrosselNaTransacao(transacao, usuario, id, registro.titulo, 'saiu do site');
-            gravar(transacao, tirou ? detalheComSaidaDoCarrossel(acaoHistorico, detalhe) : detalhe);
+        const saiu = await runTransaction(db, async (transacao) => {
+            const tirou = await tirarDasListasNaTransacao(transacao, usuario, id, registro.titulo, 'saiu do site');
+            gravar(transacao, detalheComSaidaDasListas(acaoHistorico, detalhe, tirou));
             return tirou;
         });
-        return { id, ...registro, saiuDoCarrossel };
+        return { id, ...registro, saiuDoCarrossel: saiu.carrossel, saiuDasFixadas: saiu.fixadas };
     }
 
     const lote = writeBatch(db);
@@ -189,18 +209,19 @@ export async function salvarNoticiaPropria(noticia, acao, opcoes = {}) {
     return { id, ...registro };
 }
 
-// Exclui a notícia (do painel, do site e do carrossel da Início). O
-// histórico fica, com o registro da exclusão. As imagens são apagadas
-// depois, sem travar se der errado. Devolve { saiuDoCarrossel }.
+// Exclui a notícia (do painel, do site, do carrossel da Início e das
+// fixadas). O histórico fica, com o registro da exclusão. As imagens são
+// apagadas depois, sem travar se der errado. Devolve { saiuDoCarrossel,
+// saiuDasFixadas }.
 export async function excluirNoticiaPropria(noticia) {
     const usuario = usuarioLogado();
-    const saiuDoCarrossel = await runTransaction(db, async (transacao) => {
-        const tirou = await tirarDoCarrosselNaTransacao(transacao, usuario, noticia.id, noticia.titulo,
+    const saiu = await runTransaction(db, async (transacao) => {
+        const tirou = await tirarDasListasNaTransacao(transacao, usuario, noticia.id, noticia.titulo,
             'a notícia foi excluída');
         transacao.delete(doc(db, PROPRIAS, noticia.id));
         transacao.delete(doc(db, PUBLICADAS, noticia.id));
         transacao.set(doc(collection(db, HISTORICO)), registroDoHistorico(usuario, noticia.id, noticia.titulo,
-            'excluiu', tirou ? detalheComSaidaDoCarrossel('excluiu') : ''));
+            'excluiu', detalheComSaidaDasListas('excluiu', '', tirou)));
         return tirou;
     });
 
@@ -209,7 +230,7 @@ export async function excluirNoticiaPropria(noticia) {
     } catch (erro) {
         console.warn('A notícia foi excluída, mas as imagens ficaram no Storage:', erro);
     }
-    return { saiuDoCarrossel };
+    return { saiuDoCarrossel: saiu.carrossel, saiuDasFixadas: saiu.fixadas };
 }
 
 // ========================================================

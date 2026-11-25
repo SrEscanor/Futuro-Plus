@@ -160,6 +160,42 @@
     text-decoration: none;
 }
 
+/* Fixar no alto da página Notícias (aba No site): o mesmo roxo do botão
+   Fixar do painel Notícias. Regras que mexem em .btn repetem a classe
+   (.btn.x): no build o CSS comum vem depois deste. */
+.btn.np-fixar {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1.5px solid #c4b6f4;
+    background: var(--surface);
+    color: #5136b0;
+}
+
+.btn.np-fixar svg {
+    flex: none;
+}
+
+.btn.np-fixar:hover:not(:disabled) {
+    background: #f6f3ff;
+}
+
+.btn.np-fixar.np-fixar--ativo {
+    border-color: #6e56cf;
+    background: #6e56cf;
+    color: #fff;
+}
+
+.btn.np-fixar.np-fixar--ativo:hover:not(:disabled) {
+    border-color: #5c45bd;
+    background: #5c45bd;
+}
+
+.btn.np-fixar:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
 .np-excluir {
     display: grid;
     place-items: center;
@@ -701,6 +737,43 @@
     font-style: italic;
     font-weight: 700;
     color: var(--ink);
+}
+
+/* a corrente do link, no parágrafo */
+.np-controle--link {
+    color: var(--ink);
+}
+
+/* ---- a janelinha do link ---- */
+.modal.np-link-modal {
+    max-width: 480px;
+}
+
+.np-link-modal .campo input[aria-invalid] {
+    border-color: var(--red);
+}
+
+.np-link-erro {
+    margin-top: 4px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    background: var(--red-soft);
+    font-size: 13px;
+    line-height: 1.45;
+    color: #a41c1c;
+}
+
+.np-link-erro[hidden] {
+    display: none;
+}
+
+.np-link-modal .modal-rodape {
+    flex-wrap: wrap;
+}
+
+/* "Tirar o link" fica sozinho na ponta esquerda */
+.np-link-modal #np-link-tirar {
+    margin-right: auto;
 }
 
 .np-corpo-titulo kbd {

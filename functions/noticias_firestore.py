@@ -15,8 +15,10 @@ import noticias
 FILA = "noticias_fila"
 PUBLICADAS = "noticias"
 REGISTRO_DA_COLETA = ("noticias_coleta", "ultima")
-# o carrossel "Destaques para você" da Início (painel Admin · Notícias)
+# o carrossel "Destaques para você" da Início e as fixadas no alto da página
+# Notícias (as duas escolhidas no painel Admin · Notícias)
 DESTAQUES_DA_INICIO = ("configuracoes", "destaques_inicio")
+FIXADAS_DA_PAGINA = ("configuracoes", "noticias_fixadas")
 
 # Por quanto tempo um título já coletado barra outro igual vindo de outro
 # site. Passado isso, um título repetido pode ser notícia nova de verdade
@@ -116,19 +118,29 @@ def apagar_recusadas_antigas(db):
     return len(antigas)
 
 
-def ids_no_carrossel(db):
-    """Os ids das notícias que estão no carrossel da Início."""
-    registro = db.collection(DESTAQUES_DA_INICIO[0]).document(DESTAQUES_DA_INICIO[1]).get()
+def _ids_da_lista(db, caminho):
+    registro = db.collection(caminho[0]).document(caminho[1]).get()
     itens = (registro.to_dict() or {}).get("itens") if registro.exists else None
     return {str(item.get("id")) for item in (itens or []) if isinstance(item, dict) and item.get("id")}
 
 
-def deve_sair_do_site(registro, no_carrossel):
+def ids_no_carrossel(db):
+    """Os ids das notícias que estão no carrossel da Início."""
+    return _ids_da_lista(db, DESTAQUES_DA_INICIO)
+
+
+def ids_fixadas(db):
+    """Os ids das notícias fixadas no alto da página Notícias."""
+    return _ids_da_lista(db, FIXADAS_DA_PAGINA)
+
+
+def deve_sair_do_site(registro, escolhidas):
     """A notícia (já com mais de DIAS_NO_SITE dias) sai do site? Ficam as do
-    Futuro+, que o painel Notícias próprias cuida, e as do carrossel: essas
-    saem na primeira limpeza depois de deixarem o carrossel."""
+    Futuro+, que o painel Notícias próprias cuida, e as escolhidas no painel
+    (carrossel da Início e fixadas da página Notícias): essas saem na
+    primeira limpeza depois de deixarem a lista."""
     dados = registro.to_dict() or {}
-    return not dados.get("propria") and registro.id not in no_carrossel
+    return not dados.get("propria") and registro.id not in escolhidas
 
 
 def apagar_noticias_antigas_do_site(db):
@@ -137,10 +149,10 @@ def apagar_noticias_antigas_do_site(db):
     aprovação (noticias_fila). Chamada só pela coleta agendada (main.py), como
     apagar_recusadas_antigas. Devolve quantas foram apagadas."""
     limite = noticias.em_iso(datetime.now(timezone.utc) - timedelta(days=DIAS_NO_SITE))
-    no_carrossel = ids_no_carrossel(db)
+    escolhidas = ids_no_carrossel(db) | ids_fixadas(db)
     antigas = [
         registro for registro in db.collection(PUBLICADAS).where("publicadaEm", "<=", limite).stream()
-        if deve_sair_do_site(registro, no_carrossel)
+        if deve_sair_do_site(registro, escolhidas)
     ]
 
     # duas exclusões por notícia; um lote aceita 500

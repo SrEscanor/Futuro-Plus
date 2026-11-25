@@ -50,8 +50,9 @@ function historicoDeExemplo(lista) {
     return registros.map(({ horas, ...registro }, indice) => ({ id: `hx${indice + 1}`, uid: 'u1', em: em(horas), ...registro }));
 }
 
-// O carrossel da Início a partir de uma lista de ids (o título guardado vem
-// da notícia; id que não existe vira uma notícia que "saiu do site").
+// O carrossel da Início ou as fixadas a partir de uma lista de ids (o título
+// guardado vem da notícia; id que não existe vira uma notícia que "saiu do
+// site").
 function destaquesDeExemplo(ids, noticias) {
     if (!ids) return null;
     return {
@@ -62,13 +63,15 @@ function destaquesDeExemplo(ids, noticias) {
 }
 
 // opcoes: { noticias, demora, falhar, logado, admin, semColeta, propriasPendentes, historicoNoticias,
-// destaques (ids do carrossel da Início) } — ver noticias-dados-simulado.js
+// destaques (ids do carrossel da Início), fixadas (ids das fixadas da página Notícias) } — ver
+// noticias-dados-simulado.js
 export function prepararEstado(opcoes = {}) {
     const noticias = opcoes.noticias || noticiasDeExemplo();
     window.teste = {
         ...(window.teste || {}),
         noticias,
         destaques: destaquesDeExemplo(opcoes.destaques, noticias),
+        fixadas: destaquesDeExemplo(opcoes.fixadas, noticias),
         gravacoes: [],
         falhar: opcoes.falhar || null,
         demora: opcoes.demora ?? 250,

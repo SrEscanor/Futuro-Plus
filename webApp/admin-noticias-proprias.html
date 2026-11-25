@@ -134,8 +134,9 @@
 
                         <div class="np-corpo-titulo">
                             <span class="np-rotulo">Texto da notícia</span>
-                            <small>Parágrafos, intertítulos e imagens com legenda, na ordem que quiser. Negrito e
-                                itálico: selecione e aperte <kbd>Ctrl</kbd>+<kbd>B</kbd> ou <kbd>Ctrl</kbd>+<kbd>I</kbd>.</small>
+                            <small>Parágrafos, intertítulos e imagens com legenda, na ordem que quiser. Negrito,
+                                itálico e link: selecione e aperte <kbd>Ctrl</kbd>+<kbd>B</kbd>, <kbd>Ctrl</kbd>+<kbd>I</kbd>
+                                ou <kbd>Ctrl</kbd>+<kbd>K</kbd>.</small>
                         </div>
                         <div id="np-blocos" class="np-blocos"></div>
                         <div id="np-adicionar" class="np-adicionar">
@@ -217,6 +218,39 @@
             </section>
         </div>
     </main>
+
+    <!-- ---------- LINK NO TEXTO (botão de link do parágrafo ou Ctrl+K) ---------- -->
+    <div id="np-link" class="modal-overlay">
+        <div class="modal np-link-modal" role="dialog" aria-modal="true" aria-labelledby="np-link-titulo">
+            <div class="modal-cabecalho">
+                <h2 id="np-link-titulo">Link no texto</h2>
+                <button type="button" id="np-link-fechar" class="btn-fechar-modal" aria-label="Fechar">&times;</button>
+            </div>
+            <form id="np-link-form" novalidate>
+                <div class="modal-corpo">
+                    <div class="campo">
+                        <label for="np-link-texto">Texto do link</label>
+                        <input type="text" id="np-link-texto" maxlength="300" autocomplete="off"
+                            placeholder="O trecho que aparece sublinhado">
+                    </div>
+                    <div class="campo">
+                        <label for="np-link-endereco">Endereço</label>
+                        <input type="text" id="np-link-endereco" inputmode="url" autocomplete="off" spellcheck="false"
+                            placeholder="https://..." aria-describedby="np-link-dica">
+                        <span class="campo-dica" id="np-link-dica">Cole o endereço da página. Link para fora do
+                            Futuro+ abre em outra aba. Também vale um e-mail.</span>
+                    </div>
+                    <p class="np-link-erro" id="np-link-erro" role="alert" hidden></p>
+                </div>
+                <div class="modal-rodape">
+                    <button type="button" id="np-link-tirar" class="btn btn-secundario np-botao-perigo" hidden>Tirar o
+                        link</button>
+                    <button type="button" id="np-link-cancelar" class="btn btn-secundario">Cancelar</button>
+                    <button type="submit" id="np-link-salvar" class="btn btn-primario">Pôr o link</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- escolha de imagem (o painel diz para qual lugar ela vai) -->
     <input type="file" id="np-arquivo" accept="image/jpeg,image/png,image/webp" hidden>

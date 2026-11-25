@@ -8,15 +8,15 @@
     <link rel="icon" href="./favicon.ico" sizes="48x48">
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="./apple-touch-icon.png">
-  <script type="module" crossorigin src="./assets/adminNoticias-WZmg82N9.js"></script>
+  <script type="module" crossorigin src="./assets/adminNoticias-Bnfib17J.js"></script>
   <link rel="modulepreload" crossorigin href="./assets/firebase-config-h-KQCxoQ.js">
   <link rel="modulepreload" crossorigin href="./assets/historico-paginas-CB2wGtFd.js">
   <link rel="modulepreload" crossorigin href="./assets/admin-nav-contador-iTMMRzkl.js">
-  <link rel="modulepreload" crossorigin href="./assets/noticias-proprias-util-hJONuzA2.js">
-  <link rel="modulepreload" crossorigin href="./assets/destaques-util-enNUxLIo.js">
-  <link rel="modulepreload" crossorigin href="./assets/noticias-dados-MU-iwzNx.js">
+  <link rel="modulepreload" crossorigin href="./assets/noticias-proprias-util-6DILIAFS.js">
+  <link rel="modulepreload" crossorigin href="./assets/destaques-util-pH9dlmWH.js">
+  <link rel="modulepreload" crossorigin href="./assets/noticias-dados-D043lMI6.js">
   <link rel="modulepreload" crossorigin href="./assets/historico-filtros-BOgkprmx.js">
-  <link rel="stylesheet" crossorigin href="./assets/adminNoticias-BFqwgPtd.css">
+  <link rel="stylesheet" crossorigin href="./assets/adminNoticias-Deo0GVfx.css">
   <link rel="stylesheet" crossorigin href="./assets/admin-instituicoes-DFW_c3dY.css">
 </head>
 
@@ -151,13 +151,43 @@
                                 <path d="M18 13.5V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4.5M14 4h6v6M20 4l-9 9" />
                             </svg></a>
                     </div>
-                    <ol class="destaques-vagas" id="destaques-vagas"></ol>
+                    <ol class="destaques-vagas" id="destaques-vagas" data-lista="destaques"></ol>
+                </section>
+
+                <!-- Também só na aba No site: as fixadas no alto da página
+                     Notícias, escolhidas com o botão Fixar dos cards (aqui ou
+                     no Blog). Mesmo quadro do carrossel, em roxo. -->
+                <section class="destaques-painel destaques-painel--fixadas" id="fixadas-painel"
+                    aria-labelledby="fixadas-painel-titulo" tabindex="-1" hidden>
+                    <div class="destaques-painel-cabeca">
+                        <div>
+                            <h2 id="fixadas-painel-titulo">
+                                <svg class="destaques-painel-icone" viewBox="0 0 24 24" fill="currentColor"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M9 3h6l-.8 5.5 2.8 3V14H7v-2.5l2.8-3z" />
+                                    <path d="M12 14v7" fill="none" />
+                                </svg>
+                                <span>Fixadas no alto da página Notícias
+                                    <span class="destaques-painel-contagem" id="fixadas-contagem"></span></span>
+                            </h2>
+                            <p>Escolha até 5 notícias com o botão <strong>Fixar</strong> nos cards abaixo. Elas abrem a
+                                página Notícias, nesta ordem, antes das outras.</p>
+                        </div>
+                        <a class="btn btn-secundario" href="noticias.html" target="_blank" rel="noopener"
+                            aria-label="Ver a página Notícias (abre em outra aba)">Ver em Notícias
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M18 13.5V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4.5M14 4h6v6M20 4l-9 9" />
+                            </svg></a>
+                    </div>
+                    <ol class="destaques-vagas" id="fixadas-vagas" data-lista="fixadas"></ol>
                 </section>
 
                 <!-- A limpeza é da função coletar_noticias_agendada (functions/main.py) -->
                 <p class="noticias-regra" id="regra-no-site" hidden>Notícias de outros sites saem do site sozinhas 90 dias
                     depois de publicadas, na busca automática (a cada 6 horas). As do Futuro+ e as que estão no
-                    carrossel ficam.</p>
+                    carrossel ou fixadas ficam.</p>
 
                 <ul class="lista-noticias" id="lista-noticias" aria-busy="true"></ul>
             </section>
@@ -165,7 +195,8 @@
             <!-- ---------- HISTÓRICO ---------- -->
             <section id="painel-historico" class="noticias-historico" role="tabpanel" aria-labelledby="aba-historico" hidden>
                 <p class="historico-dica">Quem aprovou, recusou, tirou do site ou editou cada notícia e quem mexeu no
-                    carrossel da Início, com o e-mail de quem fez, e as buscas e limpezas. Ninguém consegue apagar ou
+                    carrossel da Início e nas fixadas da página Notícias, com o e-mail de quem fez, e as buscas e
+                    limpezas. Ninguém consegue apagar ou
                     mudar estes registros. A criação e a edição das notícias do Futuro+ ficam no histórico do painel
                     Blog.</p>
                 <!-- busca, Quando, Quem e O que fez: historico-filtros.js -->

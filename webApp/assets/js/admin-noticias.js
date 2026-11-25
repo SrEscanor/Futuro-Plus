@@ -10,21 +10,22 @@
 // A aba No site mostra também as notícias do Futuro+ (painel Notícias
 // próprias), com o card azul: elas não têm os botões das de fora, porque
 // tirar do site e editar são lá, onde fica o histórico delas. Toda notícia no
-// site tem "Notificar", que abre o painel Notificações com ela escolhida, e
+// site tem "Notificar", que abre o painel Notificações com ela escolhida,
 // "Destacar", que põe ela no carrossel "Destaques para você" da Início (até
-// 3; o quadro no alto da aba mostra a ordem e as vagas livres). A aba
+// 3), e "Fixar", que põe ela no alto da página Notícias (até 5); os quadros
+// no alto da aba mostram a ordem e as vagas livres das duas listas. A aba
 // Histórico mostra quem fez o quê, com o e-mail.
 import {
     LIMITE_RESUMO, LIMITE_TITULO, aprovarNoticias, buscarNoticiasAgora, contarFila, devolverParaPendentes,
-    lerDestaques, lerUltimaColeta, limparRecusadasAntigas, listarFila, listarHistoricoNoticiasPagina,
-    listarNoticiasPropriasPendentes, mudarDestaques, observarAdmin, recusarNoticias, sairDaConta, salvarEdicao,
-    tirarDoSite
+    lerDestaques, lerFixadas, lerUltimaColeta, limparRecusadasAntigas, listarFila, listarHistoricoNoticiasPagina,
+    listarNoticiasPropriasPendentes, mudarDestaques, mudarFixadas, observarAdmin, recusarNoticias, sairDaConta,
+    salvarEdicao, tirarDoSite
 } from './noticias-dados.js';
 import {
     capaDesenhada, dataCurta, dominioDoLink, escapeHtml, imagemSegura, linkSeguro, rotulosDaNoticia, tempoRelativo
 } from './noticias-util.js';
 import { ETIQUETAS, dataHora, haQuantoTempo, linkDaMateria } from './noticias-proprias-util.js';
-import { MAXIMO_DESTAQUES, destaquesDoCarrossel, estaNoSite } from './destaques-util.js';
+import { MAXIMO_DESTAQUES, MAXIMO_FIXADAS, destaquesDoCarrossel, estaNoSite } from './destaques-util.js';
 import { campoAcao, campoQuem, historicoComFiltros } from './historico-filtros.js';
 
 // O que cada aba diz quando está vazia e os botões de cada notícia dela:
@@ -100,7 +101,10 @@ const ACOES_HISTORICO = {
     tirou_antigas: ['tirou do site as notícias antigas', 'negativa'],
     destacou: ['pôs no carrossel da Início', 'positiva'],
     tirou_destaque: ['tirou do carrossel da Início', 'negativa'],
-    reordenou: ['mudou a ordem do carrossel', 'neutra']
+    reordenou: ['mudou a ordem do carrossel', 'neutra'],
+    fixou: ['fixou no alto da página Notícias', 'positiva'],
+    desafixou: ['desafixou da página Notícias', 'negativa'],
+    reordenou_fixadas: ['mudou a ordem das fixadas', 'neutra']
 };
 
 // Ícone de traço de "abre outro site", o mesmo da página Notícias.
@@ -114,6 +118,10 @@ const ICONE_SAIR = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" 
 const ESTRELA = (cheia) => `<svg viewBox="0 0 24 24" fill="${cheia ? 'currentColor' : 'none'}" stroke="currentColor"
     stroke-width="2" stroke-linejoin="round" aria-hidden="true">
     <path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5-4.8-4.6 6.6-.9z"/></svg>`;
+// o alfinete do botão Fixar (o mesmo da etiqueta "Fixada" da página Notícias)
+const ALFINETE = (cheio) => `<svg viewBox="0 0 24 24" fill="${cheio ? 'currentColor' : 'none'}" stroke="currentColor"
+    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M9 3h6l-.8 5.5 2.8 3V14H7v-2.5l2.8-3z"/><path d="M12 14v7" fill="none"/></svg>`;
 const ICONE_VAGA = {
     antes: '<path d="M19 12H5M11 6l-6 6 6 6"/>',
     depois: '<path d="M5 12h14M13 6l6 6-6 6"/>',
@@ -121,6 +129,72 @@ const ICONE_VAGA = {
 };
 const iconeDaVaga = (acao) => `<svg class="destaque-vaga-icone destaque-vaga-icone--${acao}" viewBox="0 0 24 24" fill="none"
     stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONE_VAGA[acao]}</svg>`;
+
+// As duas listas de notícias escolhidas da aba No site, cada uma com o seu
+// quadro de vagas e o seu botão nos cards (ver "Carrossel da Início e
+// fixadas", lá embaixo): o carrossel "Destaques para você" da Início (até 3)
+// e as fixadas no alto da página Notícias (até 5). entrar: a ação do botão
+// do card (e da gravação) que põe a notícia na lista.
+const LISTAS = {
+    destaques: {
+        maximo: MAXIMO_DESTAQUES,
+        entrar: 'destacar',
+        ler: lerDestaques,
+        mudar: mudarDestaques,
+        painel: 'destaques-painel',
+        vagas: 'destaques-vagas',
+        contagem: 'destaques-contagem',
+        nome: 'o carrossel da Início',
+        icone: ESTRELA,
+        botao: ['Destacar', (vaga) => `Na Início (${vaga})`],
+        rotulo: ['Destacar no carrossel da Início', (vaga) => `Na vaga ${vaga} do carrossel da Início. Tirar do carrossel`],
+        dica: 'Tirar do carrossel da Início',
+        lendo: 'Lendo o carrossel da Início…',
+        erroAoLer: 'Não deu para ler o carrossel agora.',
+        foraDoSite: 'Não aparece no carrossel. Tire daqui para liberar a vaga.',
+        agendada: (quando) => `Entra no carrossel quando for publicada (${quando}).`,
+        tirar: (nome) => `Tirar ${nome} do carrossel`,
+        cheia: `O carrossel da Início já tem ${MAXIMO_DESTAQUES} notícias. Tire uma delas no quadro do carrossel, `
+            + 'no alto desta aba, para destacar esta.',
+        erroAoMudar: 'Não foi possível mudar o carrossel. Tente de novo.',
+        avisos: {
+            tirou: (nome) => `Fora do carrossel da Início: ${nome}`,
+            mudou: 'O carrossel da Início foi atualizado.',
+            entrou: (nome, vaga) => `Na vaga ${vaga} do carrossel da Início: ${nome}`,
+            moveu: (nome, vaga) => `${nome} agora está na vaga ${vaga} do carrossel.`
+        },
+        nomeDaSaida: 'do carrossel da Início'
+    },
+    fixadas: {
+        maximo: MAXIMO_FIXADAS,
+        entrar: 'fixar',
+        ler: lerFixadas,
+        mudar: mudarFixadas,
+        painel: 'fixadas-painel',
+        vagas: 'fixadas-vagas',
+        contagem: 'fixadas-contagem',
+        nome: 'as fixadas da página Notícias',
+        icone: ALFINETE,
+        botao: ['Fixar', (vaga) => `Fixada (${vaga})`],
+        rotulo: ['Fixar no alto da página Notícias', (vaga) => `Na vaga ${vaga} das fixadas da página Notícias. Desafixar`],
+        dica: 'Desafixar da página Notícias',
+        lendo: 'Lendo as fixadas da página Notícias…',
+        erroAoLer: 'Não deu para ler as fixadas agora.',
+        foraDoSite: 'Não aparece na página Notícias. Tire daqui para liberar a vaga.',
+        agendada: (quando) => `Aparece fixada quando for publicada (${quando}).`,
+        tirar: (nome) => `Desafixar ${nome}`,
+        cheia: `A página Notícias já tem ${MAXIMO_FIXADAS} notícias fixadas. Tire uma delas no quadro das fixadas, `
+            + 'no alto desta aba, para fixar esta.',
+        erroAoMudar: 'Não foi possível mudar as fixadas. Tente de novo.',
+        avisos: {
+            tirou: (nome) => `Desafixada da página Notícias: ${nome}`,
+            mudou: 'As fixadas da página Notícias foram atualizadas.',
+            entrou: (nome, vaga) => `Fixada na vaga ${vaga} da página Notícias: ${nome}`,
+            moveu: (nome, vaga) => `${nome} agora está na vaga ${vaga} das fixadas.`
+        },
+        nomeDaSaida: 'das fixadas da página Notícias'
+    }
+};
 
 const ESQUELETO = `
     <li class="noticia-item noticia-item--esqueleto" aria-hidden="true">
@@ -151,14 +225,21 @@ const estado = {
     focoAntesDoModal: null,
     relogioDoStatus: 0,
     relogioDaPrevia: 0,
-    // o carrossel da Início (aba No site)
-    destaques: {
-        situacao: 'carregando', // 'carregando', 'pronta' ou 'erro'
-        itens: [],              // [{ id, titulo, noticia }] na ordem do carrossel; noticia null = saiu do site
-        gravando: false,
-        pedido: 0
+    // as listas da aba No site: o carrossel da Início e as fixadas da página Notícias
+    listas: {
+        destaques: novaListaEscolhida(),
+        fixadas: novaListaEscolhida()
     }
 };
+
+function novaListaEscolhida() {
+    return {
+        situacao: 'carregando', // 'carregando', 'pronta' ou 'erro'
+        itens: [],              // [{ id, titulo, noticia }] na ordem da lista; noticia null = saiu do site
+        gravando: false,
+        pedido: 0
+    };
+}
 
 // O navegador (e o roteiro de teste) carrega este arquivo com a página já
 // pronta, então iniciar() costuma rodar nesta linha mesmo. Por isso as
@@ -211,8 +292,10 @@ function iniciar() {
         });
     });
 
-    el('destaques-vagas').addEventListener('click', aoClicarNasVagas);
-    el('destaques-vagas').addEventListener('error', trocarFotoQuebrada, true);
+    for (const vagas of [el('destaques-vagas'), el('fixadas-vagas')]) {
+        vagas.addEventListener('click', aoClicarNasVagas);
+        vagas.addEventListener('error', trocarFotoQuebrada, true);
+    }
 
     const lista = el('lista-noticias');
     lista.addEventListener('click', aoClicarNaLista);
@@ -476,10 +559,13 @@ function abrirAba(aba) {
     el('painel-historico').hidden = !historico;
     carregarPropriasPendentes(aba === 'pendente');
 
-    // o quadro do carrossel da Início e a regra dos 90 dias ficam no alto da aba No site
-    el('destaques-painel').hidden = aba !== 'aprovada';
+    // os quadros do carrossel da Início e das fixadas e a regra dos 90 dias
+    // ficam no alto da aba No site
+    for (const qual of Object.keys(LISTAS)) {
+        el(LISTAS[qual].painel).hidden = aba !== 'aprovada';
+        if (aba === 'aprovada' && !estado.listas[qual].gravando) carregarEscolhidas(qual);
+    }
     el('regra-no-site').hidden = aba !== 'aprovada';
-    if (aba === 'aprovada' && !estado.destaques.gravando) carregarDestaques();
     if (historico) {
         estado.pedido += 1; // uma lista que ainda estava chegando não desenha mais
         desenharSelecao();
@@ -667,7 +753,7 @@ function itemProprioHtml(noticia) {
                 </p>
             </div>
             <div class="noticia-item-acoes">
-                ${botaoDestacarHtml(noticia)}
+                ${botoesDasListasHtml(noticia)}
                 ${botaoNotificarHtml(noticia)}
                 <a class="btn btn-primario" href="admin-noticias-proprias.html?revisar=${encodeURIComponent(idDe(noticia))}">Abrir no Blog</a>
             </div>
@@ -704,7 +790,7 @@ function itemHtml(noticia) {
            <span>${escapeHtml(dominioDoLink(link))}</span>`
         : 'Sem link válido: não dá para aprovar.';
 
-    const botoes = (estado.aba === 'aprovada' ? botaoDestacarHtml(noticia) + botaoNotificarHtml(noticia) : '') + ABAS[estado.aba].botoes
+    const botoes = (estado.aba === 'aprovada' ? botoesDasListasHtml(noticia) + botaoNotificarHtml(noticia) : '') + ABAS[estado.aba].botoes
         .map(([acao, texto, classes]) => `<button type="button" class="btn ${classes}" data-acao="${acao}">${texto}</button>`)
         .join('');
 
@@ -741,14 +827,14 @@ function noticiaDoItem(elemento) {
 }
 
 // Foto que não carregou: entra a capa desenhada no lugar (no card ou na vaga
-// do carrossel).
+// do carrossel ou das fixadas).
 function trocarFotoQuebrada(evento) {
     const caixa = evento.target instanceof HTMLImageElement
         ? evento.target.closest('.noticia-item-capa, .destaque-vaga-capa')
         : null;
     if (!caixa) return;
     const noticia = caixa.classList.contains('destaque-vaga-capa')
-        ? itemDoCarrossel(caixa.closest('.destaque-vaga')?.dataset.id)?.noticia
+        ? itemDaLista(caixa.closest('[data-lista]')?.dataset.lista, caixa.closest('.destaque-vaga')?.dataset.id)?.noticia
         : noticiaDoItem(caixa);
     caixa.innerHTML = capaDesenhada(noticia || {});
 }
@@ -769,8 +855,15 @@ function aoClicarNaLista(evento) {
 
     const noticia = noticiaDoItem(botao);
     if (!noticia) return;
-    if (acao === 'destacar') mexerNoCarrossel(posicaoNoCarrossel(noticia) === -1 ? 'destacar' : 'tirar', noticia);
-    else if (acao === 'editar') abrirEdicao(noticia, botao);
+    // Destacar e Fixar: põem na lista ou, se ela já está lá, tiram. O botão
+    // fica desligado enquanto grava e perde o foco: depois, ele volta.
+    const lista = Object.keys(LISTAS).find((qual) => LISTAS[qual].entrar === acao);
+    if (lista) {
+        mexerNaLista(lista, posicaoNaLista(lista, noticia) === -1 ? acao : 'tirar', noticia).then(() => {
+            const semFoco = !document.activeElement || document.activeElement === document.body;
+            if (semFoco && botao.isConnected && !botao.disabled) botao.focus();
+        });
+    } else if (acao === 'editar') abrirEdicao(noticia, botao);
     else if (acao in ACOES) executar(acao, [noticia], botao);
 }
 
@@ -807,7 +900,7 @@ async function executar(nome, noticias, botao) {
     mexerNosNumeros(acao.numeros, ids.length);
     const mensagem = ids.length === 1 ? acao.uma(entreAspas(tituloDe(noticias[0]))) : acao.varias(ids.length);
     mostrarStatus(mensagem, 'ok');
-    if (nome === 'tirar') tirarDoCarrossel(noticias, mensagem);
+    if (nome === 'tirar') tirarDasListas(noticias, mensagem);
 
     // a pessoa trocou de aba enquanto gravava: a lista aberta é lida de novo
     if (abaDaAcao !== estado.aba) {
@@ -826,7 +919,7 @@ function marcarOcupadas() {
         else item.removeAttribute('aria-busy');
         item.querySelectorAll('button, input').forEach((controle) => { controle.disabled = ocupada; });
     });
-    atualizarBotoesDestacar();
+    atualizarBotoesDasListas();
     desenharSelecao();
 }
 
@@ -1082,11 +1175,12 @@ async function salvarFormulario(evento) {
         }
     }
 
-    // no carrossel, a vaga dela mostra o título e a imagem novos
-    const destacada = itemDoCarrossel(id);
-    if (destacada?.noticia) {
-        destacada.noticia = { ...destacada.noticia, ...salva };
-        desenharDestaques();
+    // no carrossel e nas fixadas, a vaga dela mostra o título e a imagem novos
+    for (const qual of Object.keys(LISTAS)) {
+        const escolhida = itemDaLista(qual, id);
+        if (!escolhida?.noticia) continue;
+        escolhida.noticia = { ...escolhida.noticia, ...salva };
+        desenharVagas(qual);
     }
 
     fecharEdicao();
@@ -1096,119 +1190,130 @@ async function salvarFormulario(evento) {
 }
 
 // ========================================================
-// Carrossel "Destaques para você" da Início (aba No site)
+// Carrossel da Início e fixadas da página Notícias (aba No site)
 // ========================================================
-// O quadro no alto da aba mostra as 3 vagas do carrossel, na ordem; cada
-// card tem o botão Destacar (ou "Na Início (2)", que tira). Cada mudança é
-// gravada na hora, com o registro do histórico (noticias-dados.js). Vaga
-// livre mostra um destaque padrão do site (destaques-util.js).
+// Cada lista tem um quadro no alto da aba, com as vagas na ordem (LISTAS,
+// lá em cima, tem os textos de cada uma), e um botão em cada card: Destacar
+// (ou "Na Início (2)", que tira) e Fixar (ou "Fixada (1)", que tira). Cada
+// mudança é gravada na hora, com o registro do histórico (noticias-dados.js).
+// No carrossel, vaga livre mostra um destaque padrão do site
+// (destaques-util.js).
 
-function itemDoCarrossel(id) {
-    return estado.destaques.itens.find((item) => item.id === String(id ?? '')) || null;
+function itemDaLista(qual, id) {
+    return estado.listas[qual]?.itens.find((item) => item.id === String(id ?? '')) || null;
 }
 
-function posicaoNoCarrossel(noticia) {
+function posicaoNaLista(qual, noticia) {
     const id = idDe(noticia);
-    return estado.destaques.itens.findIndex((item) => item.id === id);
+    return estado.listas[qual].itens.findIndex((item) => item.id === id);
 }
 
 // Enquanto a lista não chegou ou uma mudança está sendo gravada, os botões
-// do carrossel ficam parados.
-function carrosselTravado() {
-    return estado.destaques.situacao !== 'pronta' || estado.destaques.gravando;
+// dela ficam parados.
+function listaTravada(qual) {
+    const lista = estado.listas[qual];
+    return lista.situacao !== 'pronta' || lista.gravando;
 }
 
-async function carregarDestaques() {
-    const destaques = estado.destaques;
-    const pedido = destaques.pedido += 1;
-    destaques.situacao = 'carregando';
-    desenharDestaques();
+async function carregarEscolhidas(qual) {
+    const lista = estado.listas[qual];
+    const pedido = lista.pedido += 1;
+    lista.situacao = 'carregando';
+    desenharVagas(qual);
     try {
-        const { itens } = await lerDestaques();
-        if (pedido !== destaques.pedido) return;
-        destaques.itens = itens;
-        destaques.situacao = 'pronta';
+        const { itens } = await LISTAS[qual].ler();
+        if (pedido !== lista.pedido) return;
+        lista.itens = itens;
+        lista.situacao = 'pronta';
     } catch (erro) {
-        if (pedido !== destaques.pedido) return;
-        console.error('Erro ao ler o carrossel da Início:', erro);
-        destaques.situacao = 'erro';
+        if (pedido !== lista.pedido) return;
+        console.error(`Erro ao ler ${LISTAS[qual].nome}:`, erro);
+        lista.situacao = 'erro';
     }
-    desenharDestaques();
+    desenharVagas(qual);
 }
 
-// ---- botão dos cards ----
+// ---- botões dos cards ----
 
-function estadoDoBotaoDestacar(posicao) {
-    if (posicao === -1) {
-        return { classe: '', conteudo: `${ESTRELA(false)}Destacar`, rotulo: 'Destacar no carrossel da Início', dica: '' };
-    }
+function estadoDoBotao(qual, posicao) {
+    const { icone, botao, rotulo, dica } = LISTAS[qual];
+    if (posicao === -1) return { classe: '', conteudo: `${icone(false)}${botao[0]}`, rotulo: rotulo[0], dica: '' };
     return {
         classe: ' btn-destacar--ativo',
-        conteudo: `${ESTRELA(true)}Na Início (${posicao + 1})`,
-        rotulo: `Na vaga ${posicao + 1} do carrossel da Início. Tirar do carrossel`,
-        dica: 'Tirar do carrossel da Início'
+        conteudo: `${icone(true)}${botao[1](posicao + 1)}`,
+        rotulo: rotulo[1](posicao + 1),
+        dica
     };
 }
 
-function botaoDestacarHtml(noticia) {
-    const { classe, conteudo, rotulo, dica } = estadoDoBotaoDestacar(posicaoNoCarrossel(noticia));
-    return `<button type="button" class="btn btn-destacar${classe}" data-acao="destacar" aria-label="${rotulo}"${
-        dica ? ` title="${dica}"` : ''}${carrosselTravado() ? ' disabled' : ''}>${conteudo}</button>`;
+const classeDoBotao = (qual, classe) => `btn btn-destacar${qual === 'fixadas' ? ' btn-fixar' : ''}${classe}`;
+
+function botaoDaListaHtml(qual, noticia) {
+    const { classe, conteudo, rotulo, dica } = estadoDoBotao(qual, posicaoNaLista(qual, noticia));
+    return `<button type="button" class="${classeDoBotao(qual, classe)}" data-acao="${LISTAS[qual].entrar}" aria-label="${rotulo}"${
+        dica ? ` title="${dica}"` : ''}${listaTravada(qual) ? ' disabled' : ''}>${conteudo}</button>`;
 }
 
-// Atualiza o botão no lugar (sem trocar o elemento): quem usa teclado não
-// perde o foco ao destacar ou tirar.
-function atualizarBotoesDestacar() {
-    const travado = carrosselTravado();
+// os botões Destacar e Fixar de um card da aba No site
+function botoesDasListasHtml(noticia) {
+    return Object.keys(LISTAS).map((qual) => botaoDaListaHtml(qual, noticia)).join('');
+}
+
+// Atualiza os botões no lugar (sem trocar o elemento): quem usa teclado não
+// perde o foco ao destacar, fixar ou tirar.
+function atualizarBotoesDasListas() {
     itensDaTela().forEach((item) => {
-        const botao = item.querySelector('.btn-destacar');
-        if (!botao) return;
-        const { classe, conteudo, rotulo, dica } = estadoDoBotaoDestacar(posicaoNoCarrossel({ id: item.dataset.id }));
-        botao.className = `btn btn-destacar${classe}`;
-        botao.innerHTML = conteudo;
-        botao.setAttribute('aria-label', rotulo);
-        if (dica) botao.title = dica;
-        else botao.removeAttribute('title');
-        botao.disabled = travado || estado.ocupadas.has(item.dataset.id);
+        for (const qual of Object.keys(LISTAS)) {
+            const botao = item.querySelector(`[data-acao="${LISTAS[qual].entrar}"]`);
+            if (!botao) continue;
+            const { classe, conteudo, rotulo, dica } = estadoDoBotao(qual, posicaoNaLista(qual, { id: item.dataset.id }));
+            botao.className = classeDoBotao(qual, classe);
+            botao.innerHTML = conteudo;
+            botao.setAttribute('aria-label', rotulo);
+            if (dica) botao.title = dica;
+            else botao.removeAttribute('title');
+            botao.disabled = listaTravada(qual) || estado.ocupadas.has(item.dataset.id);
+        }
     });
 }
 
-// ---- o quadro com as vagas ----
+// ---- os quadros com as vagas ----
 
-function desenharDestaques() {
-    const { situacao, itens } = estado.destaques;
-    const vagas = el('destaques-vagas');
-    el('destaques-contagem').textContent = situacao === 'pronta' ? `${itens.length} de ${MAXIMO_DESTAQUES}` : '';
+function desenharVagas(qual) {
+    const config = LISTAS[qual];
+    const { situacao, itens } = estado.listas[qual];
+    const vagas = el(config.vagas);
+    el(config.contagem).textContent = situacao === 'pronta' ? `${itens.length} de ${config.maximo}` : '';
 
     if (situacao === 'carregando') {
-        vagas.innerHTML = '<li class="destaques-vagas-aviso">Lendo o carrossel da Início…</li>';
+        vagas.innerHTML = `<li class="destaques-vagas-aviso">${config.lendo}</li>`;
     } else if (situacao === 'erro') {
         vagas.innerHTML = `
-            <li class="destaques-vagas-aviso">Não deu para ler o carrossel agora.
+            <li class="destaques-vagas-aviso">${config.erroAoLer}
                 <button type="button" class="btn btn-secundario" data-vaga="tentar">Tentar de novo</button></li>`;
     } else {
         const agora = new Date();
-        // o que a Início mostra em cada posição: diz qual destaque padrão
-        // aparece na vaga livre
-        const naInicio = destaquesDoCarrossel(itens.map((item) => item.noticia), agora);
-        vagas.innerHTML = Array.from({ length: MAXIMO_DESTAQUES }, (_, posicao) => (itens[posicao]
-            ? vagaHtml(itens[posicao], posicao, itens.length, agora)
-            : vagaLivreHtml(posicao, naInicio[posicao]))).join('');
+        // no carrossel, a vaga livre diz qual destaque padrão aparece nela
+        const naInicio = qual === 'destaques' ? destaquesDoCarrossel(itens.map((item) => item.noticia), agora) : [];
+        vagas.innerHTML = Array.from({ length: config.maximo }, (_, posicao) => (itens[posicao]
+            ? vagaHtml(qual, itens[posicao], posicao, itens.length, agora)
+            : vagaLivreHtml(qual, posicao, naInicio[posicao]))).join('');
     }
-    atualizarBotoesDestacar();
+    atualizarBotoesDasListas();
 }
 
-function vagaHtml(item, posicao, quantas, agora) {
+function vagaHtml(qual, item, posicao, quantas, agora) {
+    const config = LISTAS[qual];
     const noticia = item.noticia;
     const titulo = String(noticia?.titulo || item.titulo || '').trim() || 'Notícia sem título';
     let selo;
     let aviso = '';
     if (!noticia) {
         selo = '<span class="destaque-vaga-selo destaque-vaga-selo--aviso">Saiu do site</span>';
-        aviso = 'Não aparece no carrossel. Tire daqui para liberar a vaga.';
+        aviso = config.foraDoSite;
     } else if (!estaNoSite(noticia, agora)) {
         selo = '<span class="destaque-vaga-selo destaque-vaga-selo--aviso">Agendada</span>';
-        aviso = `Entra no carrossel quando for publicada (${dataHora(noticia.publicarEm)}).`;
+        aviso = config.agendada(dataHora(noticia.publicarEm));
     } else if (noticia.propria) {
         selo = '<span class="destaque-vaga-selo destaque-vaga-selo--propria">Futuro+</span>';
     } else {
@@ -1222,7 +1327,7 @@ function vagaHtml(item, posicao, quantas, agora) {
             : capaDesenhada(noticia)}</span>`
         : '';
 
-    const travado = carrosselTravado();
+    const travado = listaTravada(qual);
     const nome = entreAspas(titulo);
     const botao = (acao, texto, rotulo, desligado) => `
         <button type="button" class="btn destaque-vaga-botao destaque-vaga-botao--${acao}" data-vaga="${acao}"
@@ -1241,118 +1346,132 @@ function vagaHtml(item, posicao, quantas, agora) {
             <div class="destaque-vaga-botoes">
                 ${botao('antes', 'Antes', `Passar ${nome} para a vaga ${posicao}`, posicao === 0)}
                 ${botao('depois', 'Depois', `Passar ${nome} para a vaga ${posicao + 2}`, posicao >= quantas - 1)}
-                ${botao('tirar', 'Tirar', `Tirar ${nome} do carrossel`, false)}
+                ${botao('tirar', 'Tirar', config.tirar(nome), false)}
             </div>
         </li>`;
 }
 
-function vagaLivreHtml(posicao, padrao) {
+function vagaLivreHtml(qual, posicao, padrao) {
     return `
         <li class="destaque-vaga destaque-vaga--livre">
             <span class="destaque-vaga-numero" aria-hidden="true">${posicao + 1}</span>
             <div class="destaque-vaga-texto">
                 <b>Vaga livre</b>
-                <small>Enquanto estiver livre, o carrossel mostra o destaque padrão
-                    “${escapeHtml(padrao?.titulo || '')}”.</small>
+                <small>${qual === 'destaques'
+                    ? `Enquanto estiver livre, o carrossel mostra o destaque padrão “${escapeHtml(padrao?.titulo || '')}”.`
+                    : 'Use o botão Fixar de uma notícia abaixo.'}</small>
             </div>
         </li>`;
 }
 
 function aoClicarNasVagas(evento) {
+    const qual = evento.currentTarget.dataset.lista;
     const botao = evento.target.closest('button[data-vaga]');
-    if (!botao || botao.disabled) return;
+    if (!botao || botao.disabled || !LISTAS[qual]) return;
     const acao = botao.dataset.vaga;
     if (acao === 'tentar') {
-        carregarDestaques();
+        carregarEscolhidas(qual);
         return;
     }
-    const item = itemDoCarrossel(botao.closest('.destaque-vaga')?.dataset.id);
+    const item = itemDaLista(qual, botao.closest('.destaque-vaga')?.dataset.id);
     if (!item) return;
-    mexerNoCarrossel(acao, item.noticia || { id: item.id, titulo: item.titulo }, { foco: acao });
+    mexerNaLista(qual, acao, item.noticia || { id: item.id, titulo: item.titulo }, { foco: acao });
 }
 
 // ---- gravação ----
 
 // A lista que volta da gravação só tem { id, titulo }: a notícia de cada um
 // vem do que o quadro já tinha ou da lista da aba No site.
-function juntarComNoticias(itens) {
-    const conhecidas = new Map(estado.destaques.itens.map((item) => [item.id, item.noticia]));
+function juntarComNoticias(qual, itens) {
+    const conhecidas = new Map(estado.listas[qual].itens.map((item) => [item.id, item.noticia]));
     if (estado.aba === 'aprovada') estado.lista.forEach((noticia) => conhecidas.set(idDe(noticia), noticia));
     return itens.map((item) => ({ ...item, noticia: conhecidas.get(item.id) ?? null }));
 }
 
-function avisoDoCarrossel(acao, noticia) {
+function avisoDaLista(qual, acao, noticia) {
+    const { avisos, entrar } = LISTAS[qual];
     const nome = entreAspas(tituloDe(noticia));
-    const posicao = posicaoNoCarrossel(noticia);
-    if (acao === 'tirar') return `Fora do carrossel da Início: ${nome}`;
-    if (posicao === -1) return `O carrossel da Início foi atualizado.`;
-    if (acao === 'destacar') return `Na vaga ${posicao + 1} do carrossel da Início: ${nome}`;
-    return `${nome} agora está na vaga ${posicao + 1} do carrossel.`;
+    const posicao = posicaoNaLista(qual, noticia);
+    if (acao === 'tirar') return avisos.tirou(nome);
+    if (posicao === -1) return avisos.mudou;
+    if (acao === entrar) return avisos.entrou(nome, posicao + 1);
+    return avisos.moveu(nome, posicao + 1);
 }
 
-// acao: 'destacar', 'tirar', 'antes' ou 'depois'. opcoes: { motivo (vai
-// para o histórico), quieto (sem aviso), foco (botão da vaga que volta a ter
-// o foco) }. Devolve true se gravou.
-async function mexerNoCarrossel(acao, noticia, opcoes = {}) {
-    const destaques = estado.destaques;
-    if (carrosselTravado()) return false;
-    if (acao === 'destacar' && posicaoNoCarrossel(noticia) === -1 && destaques.itens.length >= MAXIMO_DESTAQUES) {
-        mostrarStatus(`O carrossel da Início já tem ${MAXIMO_DESTAQUES} notícias. Tire uma delas no quadro do `
-            + 'carrossel, no alto desta aba, para destacar esta.', 'erro');
+// qual: 'destaques' ou 'fixadas'. acao: 'destacar' ou 'fixar' (o "entrar"
+// da lista), 'tirar', 'antes' ou 'depois'. opcoes: { motivo (vai para o
+// histórico), quieto (sem aviso), foco (botão da vaga que volta a ter o
+// foco) }. Devolve true se gravou.
+async function mexerNaLista(qual, acao, noticia, opcoes = {}) {
+    const config = LISTAS[qual];
+    const lista = estado.listas[qual];
+    if (listaTravada(qual)) return false;
+    if (acao === config.entrar && posicaoNaLista(qual, noticia) === -1 && lista.itens.length >= config.maximo) {
+        mostrarStatus(config.cheia, 'erro');
         return false;
     }
 
-    destaques.gravando = true;
-    desenharDestaques();
+    lista.gravando = true;
+    desenharVagas(qual);
     try {
-        const itens = await mudarDestaques(acao, noticia, { motivo: opcoes.motivo || '' });
-        destaques.itens = juntarComNoticias(itens);
+        const itens = await config.mudar(acao, noticia, { motivo: opcoes.motivo || '' });
+        lista.itens = juntarComNoticias(qual, itens);
     } catch (erro) {
-        console.error('Erro ao mudar o carrossel da Início:', erro);
-        destaques.gravando = false;
-        desenharDestaques();
-        if (!opcoes.quieto) mostrarStatus(erro?.message || 'Não foi possível mudar o carrossel. Tente de novo.', 'erro');
+        console.error(`Erro ao mudar ${config.nome}:`, erro);
+        lista.gravando = false;
+        desenharVagas(qual);
+        if (!opcoes.quieto) mostrarStatus(erro?.message || config.erroAoMudar, 'erro');
         return false;
     }
-    destaques.gravando = false;
-    desenharDestaques();
-    if (opcoes.foco) devolverFocoNaVaga(idDe(noticia), opcoes.foco);
-    if (!opcoes.quieto) mostrarStatus(avisoDoCarrossel(acao, noticia), 'ok');
+    lista.gravando = false;
+    desenharVagas(qual);
+    if (opcoes.foco) devolverFocoNaVaga(qual, idDe(noticia), opcoes.foco);
+    if (!opcoes.quieto) mostrarStatus(avisoDaLista(qual, acao, noticia), 'ok');
     return true;
 }
 
 // Depois de mover ou tirar, o quadro é desenhado de novo: o foco volta para
 // o mesmo botão (a notícia mudou de vaga), para o outro de mover ou para o
 // quadro, em vez de sumir.
-function devolverFocoNaVaga(id, acao) {
-    const vaga = [...el('destaques-vagas').querySelectorAll('.destaque-vaga[data-id]')]
+function devolverFocoNaVaga(qual, id, acao) {
+    const vaga = [...el(LISTAS[qual].vagas).querySelectorAll('.destaque-vaga[data-id]')]
         .find((elemento) => elemento.dataset.id === id);
     const alvo = vaga && [acao, acao === 'antes' ? 'depois' : 'antes', 'tirar']
         .map((nome) => vaga.querySelector(`[data-vaga="${nome}"]`))
         .find((botao) => botao && !botao.disabled);
-    (alvo || el('destaques-painel')).focus();
+    (alvo || el(LISTAS[qual].painel)).focus();
 }
 
-// Notícia que sai do site sai também do carrossel da Início. Se não der para
-// tirar, o quadro mostra a vaga como "Saiu do site" e a Início já não mostra
-// a notícia (ela não está mais no site).
-async function tirarDoCarrossel(noticias, mensagem) {
+// Notícia que sai do site sai também do carrossel da Início e das fixadas.
+// Se não der para tirar, o quadro mostra a vaga como "Saiu do site", e nem a
+// Início nem a página Notícias mostram a notícia (ela não está mais no site).
+async function tirarDasListas(noticias, mensagem) {
     const ids = noticias.map(idDe);
-    estado.destaques.itens.forEach((item) => {
-        if (ids.includes(item.id)) item.noticia = null;
-    });
-    const destacadas = noticias.filter((noticia) => posicaoNoCarrossel(noticia) !== -1);
-    if (!destacadas.length) return;
+    const saiuDe = [];
+    const falhouEm = [];
+    const quaisSairam = new Set();
+    for (const qual of Object.keys(LISTAS)) {
+        estado.listas[qual].itens.forEach((item) => {
+            if (ids.includes(item.id)) item.noticia = null;
+        });
+        const escolhidas = noticias.filter((noticia) => posicaoNaLista(qual, noticia) !== -1);
+        if (!escolhidas.length) continue;
 
-    let deuCerto = true;
-    for (const noticia of destacadas) {
-        deuCerto = (await mexerNoCarrossel('tirar', noticia, { motivo: 'saiu do site', quieto: true })) && deuCerto;
+        let deuCerto = true;
+        for (const noticia of escolhidas) {
+            const tirou = await mexerNaLista(qual, 'tirar', noticia, { motivo: 'saiu do site', quieto: true });
+            if (tirou) quaisSairam.add(idDe(noticia));
+            deuCerto = tirou && deuCerto;
+        }
+        desenharVagas(qual);
+        (deuCerto ? saiuDe : falhouEm).push(LISTAS[qual].nomeDaSaida);
     }
-    desenharDestaques();
+    if (!saiuDe.length && !falhouEm.length) return;
+
     const frase = /[.!?]$/.test(mensagem) ? mensagem : `${mensagem}.`;
-    if (deuCerto) {
-        mostrarStatus(`${frase} ${destacadas.length === 1 ? 'Ela também saiu' : 'Elas também saíram'} do carrossel da Início.`, 'ok');
+    if (falhouEm.length) {
+        mostrarStatus(`${frase} Mas não deu para tirar ${falhouEm.join(' nem ')}: use “Tirar” no quadro, no alto desta aba.`, 'erro');
     } else {
-        mostrarStatus(`${frase} Mas não deu para tirar do carrossel da Início: use “Tirar” no quadro do carrossel.`, 'erro');
+        mostrarStatus(`${frase} ${quaisSairam.size === 1 ? 'Ela também saiu' : 'Elas também saíram'} ${saiuDe.join(' e ')}.`, 'ok');
     }
 }

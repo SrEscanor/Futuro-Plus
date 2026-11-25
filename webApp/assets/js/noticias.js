@@ -1,20 +1,27 @@
 // Página Notícias (pública): mostra as notícias que o administrador aprovou,
-// da mais nova para a mais antiga. O texto da matéria não é reproduzido aqui:
-// cada cartão leva ao site de origem, em outra aba.
+// da mais nova para a mais antiga, com as fixadas no painel (até 5) antes de
+// todas. O texto da matéria não é reproduzido aqui: cada cartão leva ao site
+// de origem, em outra aba.
 //
 // Os dados chegam só por noticias-dados.js (os roteiros de teste trocam esse
 // arquivo por uma cópia de mentira). Tudo o que vem de uma notícia é texto de
 // sites de fora, então passa por escapeHtml, linkSeguro e imagemSegura antes
 // de entrar na página.
-import { listarNoticiasPublicadas } from './noticias-dados.js';
+import { listarFixadasDaPagina, listarNoticiasPublicadas } from './noticias-dados.js';
 import {
     capaDesenhada, dataCurta, escapeHtml, imagemSegura, linkSeguro, rotulosDaNoticia, tempoRelativo
 } from './noticias-util.js';
 import { renderizarPaginacao } from './paginacao.js';
 import { ETIQUETAS, linkDaMateria } from './noticias-proprias-util.js';
 
-// Com 12 a grade fecha sem buraco em 1, 2, 3 ou 4 colunas (ver noticias.css).
-const POR_PAGINA = 12;
+// Toda página abre com um cartão deitado de ponta a ponta e mais 9 embaixo:
+// com 10 a grade fecha sem buraco em 1, 2 ou 3 colunas (ver noticias.css).
+const POR_PAGINA = 10;
+
+// O alfinete da etiqueta "Fixada" (o mesmo do botão Fixar do painel).
+const ALFINETE = `<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor"
+    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M9 3h6l-.8 5.5 2.8 3V14H7v-2.5l2.8-3z"/><path d="M12 14v7" fill="none"/></svg>`;
 
 // "Todas" inclui as notícias gerais do Centro Paula Souza, que não têm etiqueta.
 const NOME_DO_FILTRO = { etec: 'Etec', fatec: 'Fatec' };
@@ -74,9 +81,16 @@ async function carregar() {
     desenhar();
 
     try {
-        const noticias = await listarNoticiasPublicadas();
+        const [noticias, fixadas] = await Promise.all([
+            listarNoticiasPublicadas(),
+            // sem as fixadas a página continua de pé, só não tem nada preso no alto
+            listarFixadasDaPagina().catch((erro) => {
+                console.warn('Não deu para ler as notícias fixadas:', erro);
+                return [];
+            })
+        ]);
         if (pedido !== estado.pedido) return;
-        estado.noticias = Array.isArray(noticias) ? noticias : [];
+        estado.noticias = comAsFixadasPrimeiro(Array.isArray(noticias) ? noticias : [], fixadas);
         estado.situacao = 'pronta';
     } catch (erro) {
         if (pedido !== estado.pedido) return;
@@ -85,6 +99,19 @@ async function carregar() {
         estado.situacao = 'erro';
     }
     desenhar();
+}
+
+// As fixadas (na ordem do painel, marcadas com "fixada") e depois as outras,
+// da mais nova para a mais antiga, sem repetir: a fixada sai do lugar dela
+// na lista. Uma fixada antiga, que já não está entre as que vieram, entra
+// do mesmo jeito.
+function comAsFixadasPrimeiro(noticias, fixadas) {
+    const presas = (Array.isArray(fixadas) ? fixadas : []).filter((noticia) => noticia && noticia.id !== undefined);
+    const ids = new Set(presas.map((noticia) => String(noticia.id)));
+    return [
+        ...presas.map((noticia) => ({ ...noticia, fixada: true })),
+        ...noticias.filter((noticia) => !ids.has(String(noticia.id)))
+    ];
 }
 
 function escolherFiltro(filtro) {
@@ -185,11 +212,12 @@ function desenhar() {
     const inicio = (estado.pagina - 1) * POR_PAGINA;
     const primeiraPagina = estado.pagina === 1;
 
-    // Na primeira página, em tela grande, a mais nova ganha destaque (o CSS
-    // decide a partir de que largura).
-    grade.classList.toggle('noticias-grade--destaque', primeiraPagina);
+    // Em tela grande, a primeira de cada página fica deitada, de ponta a
+    // ponta (o CSS decide a partir de que largura). Na primeira página ela é
+    // a fixada do alto ou, sem fixadas, a mais nova ("Mais recente").
+    grade.classList.add('noticias-grade--destaque');
     grade.innerHTML = lista.slice(inicio, inicio + POR_PAGINA)
-        .map((noticia, indice) => `<li>${cartao(noticia, primeiraPagina && indice === 0)}</li>`)
+        .map((noticia, indice) => `<li>${cartao(noticia, primeiraPagina && indice === 0 && !noticia.fixada)}</li>`)
         .join('');
 
     renderizarPaginacao(paginacoes, estado.pagina, totalPaginas, irParaPagina);
@@ -229,6 +257,11 @@ function trocarFotoQuebrada(evento) {
     caixa.innerHTML = capaDesenhada(noticia || {});
 }
 
+// A etiqueta das fixadas no painel, em qualquer tamanho de tela.
+function seloDeFixada(noticia) {
+    return noticia.fixada ? `<span class="noticia-fixada">${ALFINETE}Fixada</span>` : '';
+}
+
 // Notícia escrita pelo próprio Futuro+ (painel Admin · Notícias próprias):
 // card azul, e abre a matéria aqui mesmo, em noticia.html.
 function cartaoProprio(noticia, maisRecente) {
@@ -245,6 +278,7 @@ function cartaoProprio(noticia, maisRecente) {
             <div class="noticia-corpo">
                 <div class="noticia-etiquetas">
                     ${maisRecente ? '<span class="noticia-recente">Mais recente</span>' : ''}
+                    ${seloDeFixada(noticia)}
                     <span class="noticia-etiqueta noticia-etiqueta--propria">Notícia do Futuro+</span>
                     ${extras}
                 </div>
@@ -277,6 +311,7 @@ function cartao(noticia, maisRecente) {
         <div class="noticia-corpo">
             <div class="noticia-etiquetas">
                 ${maisRecente ? '<span class="noticia-recente">Mais recente</span>' : ''}
+                ${seloDeFixada(noticia)}
                 ${etiquetas}
             </div>
             <h2 class="noticia-titulo">${escapeHtml(String(noticia.titulo || '').trim() || 'Notícia sem título')}</h2>

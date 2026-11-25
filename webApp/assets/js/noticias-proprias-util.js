@@ -104,18 +104,104 @@ export function textoLongo(texto, limite) {
     return String(texto ?? '').replace(/\r\n?/g, '\n').replace(/\n{3,}/g, '\n\n').trim().slice(0, limite);
 }
 
+// Link no parágrafo, escrito como no Markdown: [texto do link](endereço). O
+// botão de link do editor (e o Ctrl+K) escreve assim. O texto do link não
+// tem colchete nem quebra de linha; o endereço não tem espaço, e parêntese
+// nele só aos pares (os da Wikipédia, por exemplo).
+const LINK = /\[([^[\]\n]+)\]\(((?:[^\s()]|\([^\s()]*\))+)\)/g;
+
+// Endereços do próprio site: abrem na mesma aba.
+const DO_SITE = new Set(['futuroplus.com.br', 'www.futuroplus.com.br']);
+
+// O endereço de um link, conferido: só http(s), com um domínio de verdade,
+// ou mailto com um e-mail. Qualquer outra coisa (javascript:, data:...)
+// devolve '' e o trecho fica como foi escrito, sem virar link.
+function enderecoConferido(endereco) {
+    const texto = String(endereco ?? '').trim();
+    if (/^mailto:/i.test(texto)) {
+        return /^mailto:[^\s@<>"'()]+@[^\s@<>"'()]+\.[^\s@<>"'()]+$/i.test(texto) ? texto : '';
+    }
+    try {
+        const url = new URL(texto);
+        const dominioOk = url.hostname.includes('.') || url.hostname === 'localhost';
+        return ['https:', 'http:'].includes(url.protocol) && dominioOk && !url.username && !url.password
+            ? url.href : '';
+    } catch {
+        return '';
+    }
+}
+
+// O que o editor grava a partir do que a pessoa digitou no campo do
+// endereço: "www.etec.sp.gov.br" e "etec.sp.gov.br/cursos" ganham o
+// https://, um e-mail vira mailto: e uma página do próprio site
+// ("/cursos.html" ou "curso.html?c=quimica") ganha o endereço do site.
+// Parênteses vão codificados (%28 e %29), para não confundir o fim do link.
+// Inválido: ''.
+export function enderecoDoLink(digitado) {
+    let texto = String(digitado ?? '').trim();
+    if (!texto || /\s/.test(texto)) return '';
+    const temProtocolo = /^[a-z][a-z0-9+.-]*:/i.test(texto);
+    if (/^[^@/:]+@[^@/:]+\.[^@/:]+$/.test(texto)) texto = `mailto:${texto}`;
+    else if (/^\/(?!\/)/.test(texto)) texto = `https://futuroplus.com.br${texto}`;
+    else if (!temProtocolo && /^[\w-]+\.html?(?:[?#]|$)/i.test(texto)) texto = `https://futuroplus.com.br/${texto}`;
+    else if (!temProtocolo && /^[\p{L}\p{N}-]+(\.[\p{L}\p{N}-]+)+(\/|\?|#|:\d|$)/u.test(texto)) {
+        texto = `https://${texto}`;
+    }
+    return enderecoConferido(texto).replace(/\(/g, '%28').replace(/\)/g, '%29');
+}
+
+// O link em que está a seleção (ou o cursor), no texto cru do editor:
+// { de, ate, rotulo, endereco } ou null. de e ate pegam a marcação toda,
+// dos colchetes ao parêntese do fim.
+export function linkNoTexto(texto, inicio, fim = inicio) {
+    for (const achado of String(texto ?? '').matchAll(LINK)) {
+        const de = achado.index;
+        const ate = de + achado[0].length;
+        if (de <= inicio && fim <= ate && !(inicio === ate && fim === ate)) {
+            return { de, ate, rotulo: achado[1], endereco: achado[2] };
+        }
+    }
+    return null;
+}
+
+// O texto do link do jeito que fica guardado: sem colchete (que fecharia o
+// link antes da hora) nem quebra de linha.
+export function marcacaoDoLink(rotulo, endereco) {
+    const limpo = String(rotulo ?? '').replace(/\[/g, '(').replace(/\]/g, ')').replace(/\s+/g, ' ').trim();
+    return `[${limpo}](${endereco})`;
+}
+
+const DESESCAPAR = { '&amp;': '&', '&lt;': '<', '&gt;': '>', '&quot;': '"', '&#39;': "'" };
+const PARA_ATRIBUTO = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+
 // Negrito e itálico no parágrafo, marcados no editor como **assim** e
-// _assim_ (os botões B e I e o Ctrl+B / Ctrl+I do painel põem as marcas).
-// Recebe o texto JÁ escapado: o escapeHtml não mexe em asterisco nem em
-// sublinhado, então só os pares de marcas viram <strong> e <em>, e nenhum
-// HTML de quem escreveu passa. Como no Markdown, o trecho não começa nem
-// termina com espaço ("**** e **" não vira negrito) e o _ só vale fora de
-// palavra (nome_de_arquivo continua como está). Marca sem par aparece como
-// está, e nada atravessa a quebra de linha. Os dois juntos: _**assim**_.
+// _assim_ (os botões B e I e o Ctrl+B / Ctrl+I do painel põem as marcas),
+// e os links [assim](https://...). Recebe o texto JÁ escapado: o escapeHtml
+// não mexe em asterisco, sublinhado, colchete nem parêntese, então só os
+// pares de marcas viram <strong>, <em> e <a>, e nenhum HTML de quem escreveu
+// passa. Como no Markdown, o trecho não começa nem termina com espaço ("****
+// e **" não vira negrito) e o _ só vale fora de palavra (nome_de_arquivo
+// continua como está). Marca sem par aparece como está, e nada atravessa a
+// quebra de linha. Os dois juntos: _**assim**_. O link sai primeiro, para o
+// _ e o ** de dentro do endereço não virarem itálico ou negrito; o texto
+// dele pode ter os dois. Link de fora abre em outra aba.
 export function formatacaoEmHtml(textoEscapado) {
-    return String(textoEscapado ?? '')
+    const marcas = (texto) => texto
         .replace(/\*\*([^*\s](?:[^*\n]*[^*\s])?)\*\*/g, '<strong>$1</strong>')
         .replace(/(^|[^\p{L}\p{N}_])_([^_\s](?:[^_\n]*[^_\s])?)_(?![\p{L}\p{N}_])/gu, '$1<em>$2</em>');
+    const links = [];
+    // \u0001 e \u0002 guardam o lugar de cada link enquanto as marcas entram
+    const comLugares = String(textoEscapado ?? '').replace(/[\u0001\u0002]/g, '')
+        .replace(LINK, (inteiro, rotulo, endereco) => {
+            const url = enderecoConferido(endereco.replace(/&(amp|lt|gt|quot|#39);/g, (c) => DESESCAPAR[c]));
+            if (!url) return inteiro;
+            const doSite = !/^mailto:/i.test(url) && DO_SITE.has(new URL(url).hostname);
+            const href = url.replace(/[&<>"']/g, (c) => PARA_ATRIBUTO[c]);
+            links.push(`<a href="${href}"${doSite || /^mailto:/i.test(url) ? ''
+                : ' target="_blank" rel="noopener noreferrer"'}>${marcas(rotulo)}</a>`);
+            return `\u0001${links.length - 1}\u0002`;
+        });
+    return marcas(comLugares).replace(/\u0001(\d+)\u0002/g, (_, indice) => links[Number(indice)]);
 }
 
 // Imagem só por https (as do Storage). No computador de quem desenvolve

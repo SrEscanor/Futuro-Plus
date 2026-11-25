@@ -20,6 +20,8 @@
 //                   para você" da Início: { itens: [{ id, titulo }],
 //                   atualizadoEm, atualizadoPor }, na ordem do carrossel.
 //                   Todo mundo lê; só administrador grava.
+//   configuracoes/noticias_fixadas  as fixadas no alto da página Notícias,
+//                   no mesmo formato e com as mesmas regras.
 //
 // Aprovar copia da fila para "noticias"; recusar ou devolver para pendentes
 // apaga de "noticias". As duas gravações e o registro do histórico vão no
@@ -33,7 +35,10 @@ import {
 } from 'firebase/firestore';
 import { INSTITUICOES, imagemSegura, linkSeguro, oQueFoiEditado } from './noticias-util.js';
 import { paginaDoHistorico } from './historico-paginas.js';
-import { DOC_DESTAQUES, estaNoSite, itensDosDestaques, mudarListaDeDestaques } from './destaques-util.js';
+import {
+    DOC_DESTAQUES, DOC_FIXADAS, estaNoSite, itensDasFixadas, itensDosDestaques, mudarListaDeDestaques,
+    mudarListaDeFixadas
+} from './destaques-util.js';
 
 const PUBLICADAS = 'noticias';
 const FILA = 'noticias_fila';
@@ -263,17 +268,17 @@ export async function salvarEdicao(noticia, campos) {
 }
 
 // ========================================================
-// Carrossel "Destaques para você" da Início
+// Carrossel "Destaques para você" da Início e fixadas da página Notícias
 // ========================================================
 
-// A lista do carrossel, cada item com a notícia como está no site agora
+// Uma das duas listas, cada item com a notícia como está no site agora
 // (noticia: null quando ela saiu do site). Devolve { itens: [{ id, titulo,
 // noticia }], atualizadoEm (ISO), atualizadoPor }. Custa 1 leitura, mais 1
 // por notícia escolhida.
-export async function lerDestaques() {
-    const registro = await getDoc(doc(db, ...DOC_DESTAQUES));
+async function lerListaEscolhida(caminho, limpar) {
+    const registro = await getDoc(doc(db, ...caminho));
     const dados = registro.exists() ? registro.data() : {};
-    const itens = itensDosDestaques(dados.itens);
+    const itens = limpar(dados.itens);
 
     const noSite = new Map();
     if (itens.length) {
@@ -288,6 +293,14 @@ export async function lerDestaques() {
     };
 }
 
+export function lerDestaques() {
+    return lerListaEscolhida(DOC_DESTAQUES, itensDosDestaques);
+}
+
+export function lerFixadas() {
+    return lerListaEscolhida(DOC_FIXADAS, itensDasFixadas);
+}
+
 // O que a Início mostra: as notícias escolhidas que estão no site agora, na
 // ordem do carrossel (a própria agendada só entra quando chega a hora).
 export async function listarDestaquesDaInicio() {
@@ -296,18 +309,26 @@ export async function listarDestaquesDaInicio() {
     return itens.map((item) => item.noticia).filter((noticia) => estaNoSite(noticia, agora));
 }
 
-// Muda o carrossel: acao 'destacar', 'tirar', 'antes' ou 'depois' (ver
-// mudarListaDeDestaques). A lista é lida de novo dentro de uma transação: se
-// outra pessoa mexeu no carrossel depois que o painel abriu, a mudança entra
-// na lista dela em vez de desfazer o que ela fez. O registro do histórico vai
-// junto. Devolve a lista como ficou ([{ id, titulo }]).
-export async function mudarDestaques(acao, noticia, opcoes = {}) {
+// O que a página Notícias põe no alto: as fixadas que estão no site agora,
+// na ordem do painel (mesmo as que já não estão entre as 60 mais novas).
+export async function listarFixadasDaPagina() {
+    const { itens } = await lerFixadas();
+    const agora = new Date();
+    return itens.map((item) => item.noticia).filter((noticia) => estaNoSite(noticia, agora));
+}
+
+// Muda uma das listas (ver mudarListaDeDestaques e mudarListaDeFixadas). A
+// lista é lida de novo dentro de uma transação: se outra pessoa mexeu nela
+// depois que o painel abriu, a mudança entra na lista dela em vez de
+// desfazer o que ela fez. O registro do histórico vai junto. Devolve a lista
+// como ficou ([{ id, titulo }]).
+async function mudarListaEscolhida(caminho, limpar, mudar, acao, noticia, opcoes) {
     const usuario = usuarioLogado();
-    const ref = doc(db, ...DOC_DESTAQUES);
+    const ref = doc(db, ...caminho);
     return runTransaction(db, async (transacao) => {
         const atual = await transacao.get(ref);
-        const itens = itensDosDestaques(atual.exists() ? atual.data().itens : []);
-        const mudanca = mudarListaDeDestaques(itens, acao, noticia, opcoes);
+        const itens = limpar(atual.exists() ? atual.data().itens : []);
+        const mudanca = mudar(itens, acao, noticia, opcoes);
         if (!mudanca) return itens;
 
         transacao.set(ref, {
@@ -319,6 +340,16 @@ export async function mudarDestaques(acao, noticia, opcoes = {}) {
             { id: noticia.id, titulo: mudanca.titulo }, mudanca.acao, mudanca.detalhe));
         return mudanca.itens;
     });
+}
+
+// Carrossel: acao 'destacar', 'tirar', 'antes' ou 'depois'.
+export function mudarDestaques(acao, noticia, opcoes = {}) {
+    return mudarListaEscolhida(DOC_DESTAQUES, itensDosDestaques, mudarListaDeDestaques, acao, noticia, opcoes);
+}
+
+// Fixadas: acao 'fixar', 'tirar', 'antes' ou 'depois'.
+export function mudarFixadas(acao, noticia, opcoes = {}) {
+    return mudarListaEscolhida(DOC_FIXADAS, itensDasFixadas, mudarListaDeFixadas, acao, noticia, opcoes);
 }
 
 // ========================================================

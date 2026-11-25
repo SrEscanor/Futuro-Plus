@@ -1345,6 +1345,27 @@ body.modal-aberto {
     background: var(--destaque-ativo-hover);
 }
 
+/* ---- Fixadas da página Notícias ----
+   O mesmo quadro e o mesmo botão do carrossel, em roxo: as regras de cima
+   usam as variáveis --destaque-*, trocadas aqui. */
+.destaques-painel--fixadas,
+.btn.btn-fixar {
+    --destaque-borda: #c4b6f4;
+    --destaque-fundo: #f6f3ff;
+    --destaque-selo: #efeaff;
+    --destaque-ativo: #6e56cf;
+    --destaque-ativo-hover: #5c45bd;
+    --destaque-ativo-texto: #fff;
+    --aviso-texto: #5136b0;
+}
+
+.destaques-painel-icone {
+    flex: none;
+    width: 24px;
+    height: 24px;
+    color: #6e56cf;
+}
+
 @media (min-width: 640px) {
     .destaques-painel {
         padding: 18px 20px 20px;
@@ -1365,7 +1386,8 @@ body.modal-aberto {
 }
 
 /* Celular e tablet: as vagas ficam uma embaixo da outra (as setas apontam
-   para cima e para baixo) e, nos cards, o Destacar ganha a linha toda. */
+   para cima e para baixo) e, nos cards, o Destacar e o Fixar dividem uma
+   linha só deles. */
 @media (max-width: 899px) {
     .destaque-vaga-icone--antes,
     .destaque-vaga-icone--depois {
@@ -1376,8 +1398,10 @@ body.modal-aberto {
         flex-wrap: wrap;
     }
 
+    /* metade cada, descontado o espaço de 8px entre os dois: a linha enche
+       e os outros botões descem para a de baixo */
     .noticia-item-acoes .btn.btn-destacar {
-        flex: 1 1 100%;
+        flex: 1 1 calc(50% - 4px);
     }
 }
 

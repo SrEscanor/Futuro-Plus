@@ -17,8 +17,12 @@
 //                      nunca mexeram); a notícia que sai do site sai dele, e
 //                      essa saída vai para teste.historicoNoticias (o
 //                      histórico do painel Notícias)
+//   teste.fixadas      as fixadas da página Notícias, no mesmo formato e com
+//                      a mesma regra; o Blog também fixa e desafixa
 import { prepararGravacao } from '../assets/js/noticias-proprias-util.js';
-import { detalheComSaidaDoCarrossel, mudarListaDeDestaques } from '../assets/js/destaques-util.js';
+import {
+    detalheComSaidaDasListas, itensDasFixadas, mudarListaDeDestaques, mudarListaDeFixadas
+} from '../assets/js/destaques-util.js';
 
 const estado = () => window.teste;
 let contador = 0;
@@ -94,21 +98,52 @@ function registrar(noticiaId, titulo, acao, detalhe = '') {
     });
 }
 
-// Como no site: a notícia que sai do site sai do carrossel, com o registro
-// no histórico do painel Notícias. Devolve true se ela estava lá.
-function tirarDoCarrossel(id, titulo, motivo) {
-    const mudanca = mudarListaDeDestaques(estado().destaques?.itens || [], 'tirar', { id, titulo }, { motivo });
-    if (!mudanca) return false;
-    estado().destaques = {
+// Uma mudança no carrossel (teste.destaques) ou nas fixadas (teste.fixadas),
+// com o registro no histórico do painel Notícias, como no site. Devolve a
+// mudança (null se nada mudou).
+function mudarLista(qual, mudar, acao, noticia, motivo = '') {
+    const mudanca = mudar(estado()[qual]?.itens || [], acao, noticia, { motivo });
+    if (!mudanca) return null;
+    estado()[qual] = {
         itens: mudanca.itens, atualizadoEm: new Date().toISOString(), atualizadoPor: estado().email || 'admin@teste'
     };
     const historico = estado().historicoNoticias || (estado().historicoNoticias = []);
     historico.push({
-        id: `hn${historico.length + 1}`, noticiaId: id, titulo: mudanca.titulo, acao: mudanca.acao,
+        id: `hn${historico.length + 1}`, noticiaId: noticia.id, titulo: mudanca.titulo, acao: mudanca.acao,
         detalhe: mudanca.detalhe, email: estado().email || 'admin@teste', uid: 'u1', em: new Date().toISOString()
     });
-    estado().gravacoes.push(['destaques', 'tirar', id, mudanca.itens.map((item) => item.id)]);
-    return true;
+    estado().gravacoes.push([qual, acao, noticia.id, mudanca.itens.map((item) => item.id)]);
+    return mudanca;
+}
+
+// Como no site: a notícia que sai do site sai do carrossel e das fixadas.
+// Devolve de onde ela saiu: { carrossel, fixadas }.
+function tirarDasListas(id, titulo, motivo) {
+    return {
+        carrossel: Boolean(mudarLista('destaques', mudarListaDeDestaques, 'tirar', { id, titulo }, motivo)),
+        fixadas: Boolean(mudarLista('fixadas', mudarListaDeFixadas, 'tirar', { id, titulo }, motivo))
+    };
+}
+
+// As fixadas da página Notícias; a notícia de cada uma vem de teste.publicadas.
+export async function lerFixadas() {
+    await chamada('listar');
+    const dados = estado().fixadas || {};
+    return {
+        itens: itensDasFixadas(dados.itens).map((item) => {
+            const publicada = estado().publicadas.get(item.id);
+            return { ...item, noticia: publicada ? { id: item.id, ...copia(publicada) } : null };
+        }),
+        atualizadoEm: dados.atualizadoEm || null,
+        atualizadoPor: dados.atualizadoPor || ''
+    };
+}
+
+export async function mudarFixadas(acao, noticia, opcoes = {}) {
+    await chamada('gravar');
+    const itens = itensDasFixadas(estado().fixadas?.itens);
+    const mudanca = mudarLista('fixadas', mudarListaDeFixadas, acao, noticia, opcoes.motivo || '');
+    return copia(mudanca ? mudanca.itens : itens);
 }
 
 export async function salvarNoticiaPropria(noticia, acao, opcoes = {}) {
@@ -116,23 +151,25 @@ export async function salvarNoticiaPropria(noticia, acao, opcoes = {}) {
     const id = noticia.id || novoId();
     const { registro, publica, acaoHistorico, detalhe } = prepararGravacao(
         noticia, acao, opcoes, { email: estado().email || 'admin@teste' });
-    const saiuDoCarrossel = publica === null ? tirarDoCarrossel(id, registro.titulo, 'saiu do site') : undefined;
+    const saiu = publica === null ? tirarDasListas(id, registro.titulo, 'saiu do site') : {};
     estado().proprias.set(id, { id, ...copia(registro) });
     if (publica) estado().publicadas.set(id, { id, ...copia(publica) });
     else if (publica === null) estado().publicadas.delete(id);
-    registrar(id, registro.titulo, acaoHistorico, saiuDoCarrossel ? detalheComSaidaDoCarrossel(acaoHistorico, detalhe) : detalhe);
+    registrar(id, registro.titulo, acaoHistorico, detalheComSaidaDasListas(acaoHistorico, detalhe, saiu));
     estado().gravacoes.push([acao, id, registro.status]);
-    return publica === null ? { id, ...copia(registro), saiuDoCarrossel } : { id, ...copia(registro) };
+    return publica === null
+        ? { id, ...copia(registro), saiuDoCarrossel: saiu.carrossel, saiuDasFixadas: saiu.fixadas }
+        : { id, ...copia(registro) };
 }
 
 export async function excluirNoticiaPropria(noticia) {
     await chamada('gravar');
-    const saiuDoCarrossel = tirarDoCarrossel(noticia.id, noticia.titulo, 'a notícia foi excluída');
+    const saiu = tirarDasListas(noticia.id, noticia.titulo, 'a notícia foi excluída');
     estado().proprias.delete(noticia.id);
     estado().publicadas.delete(noticia.id);
-    registrar(noticia.id, noticia.titulo, 'excluiu', saiuDoCarrossel ? detalheComSaidaDoCarrossel('excluiu') : '');
+    registrar(noticia.id, noticia.titulo, 'excluiu', detalheComSaidaDasListas('excluiu', '', saiu));
     estado().gravacoes.push(['excluir', noticia.id]);
-    return { saiuDoCarrossel };
+    return { saiuDoCarrossel: saiu.carrossel, saiuDasFixadas: saiu.fixadas };
 }
 
 // Não sobe nada: devolve uma das ilustrações do próprio site.

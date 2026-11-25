@@ -26,6 +26,8 @@
 //     teste.mostrar({ comPropria: true })  // a notícia do Futuro+ publicada também na aba No site
 //     teste.mostrar({ destaques: ['np-publicada', 'n09'] })  // o carrossel da Início já com essas
 //                                          // ('sumiu' = uma que saiu do site); teste.destaques
+//     teste.mostrar({ fixadas: ['n05', 'sumiu'] })  // idem para as fixadas da página Notícias;
+//                                          // teste.fixadas
 import { montarTelaDeNoticias, prepararEstado, propriaNoSite, texto } from './noticias-montagem.js';
 import { noticiasDeExemplo } from './noticias-exemplo.js';
 import { noticiasPropriasDeExemplo } from './noticias-proprias-exemplo.js';
@@ -49,7 +51,7 @@ async function mostrar(opcoes = {}) {
         ?? [...noticiasPropriasDeExemplo().proprias.values()].filter((n) => n.status === 'pendente');
     const teste = prepararEstado({
         noticias, demora: opcoes.demora, logado: opcoes.logado, admin: opcoes.admin, semColeta: opcoes.semColeta,
-        propriasPendentes, destaques: opcoes.destaques
+        propriasPendentes, destaques: opcoes.destaques, fixadas: opcoes.fixadas
     });
     teste.mostrar = mostrar;
     teste.texto = texto;

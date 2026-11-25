@@ -14,6 +14,9 @@
 //     teste.mostrar({ destaques: ['np-publicada', 'n09'] })  // a publicada está no
 //                                          // carrossel da Início: tirar do site ou
 //                                          // excluir tira ela de lá (teste.destaques)
+//     teste.mostrar({ fixadas: ['np-publicada', 'n09'] })  // idem para as fixadas
+//                                          // da página Notícias (teste.fixadas); o
+//                                          // botão Fixar da aba No site mexe nelas
 //
 // O que o painel grava fica em teste.gravacoes; o histórico, em
 // teste.historico; a cópia que o site leria, em teste.publicadas; o que
