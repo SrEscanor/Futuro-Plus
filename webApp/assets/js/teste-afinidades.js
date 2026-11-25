@@ -8,6 +8,7 @@ import { renderizarRecomendacoesTeste } from "./recomendacao-cursos.js";
 import { blocosAfinidades } from "./perguntas-afinidades.js";
 import { categoriasTeste } from "./categorias-teste.js";
 import { criarPainelCompartilhar } from "./compartilhar-resultado.js";
+import { atualizarAnel, ligarOlhoDoProgresso } from "./teste-foco.js";
 
 const containerTeste = document.getElementById("afinidades-container");
 const containerResultado = document.getElementById("afinidades-resultado");
@@ -17,12 +18,22 @@ const tituloBloco = document.getElementById("afinidades-titulo-bloco");
 const linhasContainer = document.getElementById("afinidades-linhas");
 const botaoVoltar = document.getElementById("afinidades-voltar");
 const botaoAvancar = document.getElementById("afinidades-avancar");
+const faltamTexto = document.getElementById("afinidades-faltam");
+const ordemLista = document.getElementById("ordem-lista");
+const botaoDesfazer = document.getElementById("ordem-desfazer");
+const botaoRecomecar = document.getElementById("ordem-recomecar");
 
 let blocoAtual = 0;
 
 // notasPorBloco[indiceDoBloco][letra] = posição de 1 a 8 dada pela pessoa
-// (ranking: cada número só pode ser usado uma vez dentro do bloco)
+// (ranking: cada número só pode ser usado uma vez dentro do bloco; 8 é a que
+// mais combina). É o que a conta do resultado usa.
 const notasPorBloco = blocosAfinidades.map(() => ({}));
+
+// ordemPorBloco[indiceDoBloco] = as letras na ordem em que a pessoa tocou:
+// a primeira é a que ela mais gosta. As notas saem daqui (a 1ª tocada vale
+// 8, a 2ª vale 7...).
+const ordemPorBloco = blocosAfinidades.map(() => []);
 
 
 // ============================================================
@@ -35,81 +46,71 @@ function renderizarBloco() {
     progressoTexto.textContent = `Bloco ${blocoAtual + 1} de ${blocosAfinidades.length}`;
     progressoFill.style.width = `${((blocoAtual + 1) / blocosAfinidades.length) * 100}%`;
     tituloBloco.textContent = bloco.titulo;
+    atualizarAnel(blocoAtual + 1, blocosAfinidades.length, `Bloco ${blocoAtual + 1} de ${blocosAfinidades.length}`,
+        bloco.titulo);
 
+    // cada atividade é um cartão: tocar põe na ordem (ou tira, se já estava)
     linhasContainer.innerHTML = "";
-
-    const totalLinhas = bloco.linhas.length;
-    const selects = [];
-
     bloco.linhas.forEach(linha => {
-        const linhaEl = document.createElement("div");
-        linhaEl.className = "linha-afinidade";
-
-        const letraEl = document.createElement("div");
-        letraEl.className = "linha-afinidade-letra";
-        letraEl.textContent = linha.letra;
-
-        const textoEl = document.createElement("div");
-        textoEl.className = "linha-afinidade-texto";
-        textoEl.textContent = linha.texto;
-
-        const notaEl = document.createElement("select");
-        notaEl.className = "linha-afinidade-nota";
-        notaEl.setAttribute(
-            "aria-label",
-            `Posição de 1 a ${totalLinhas} para: ${linha.texto}`
-        );
-
-        const opcaoVazia = document.createElement("option");
-        opcaoVazia.value = "";
-        opcaoVazia.textContent = "–";
-        opcaoVazia.disabled = true;
-        notaEl.appendChild(opcaoVazia);
-
-        for (let posicao = 1; posicao <= totalLinhas; posicao++) {
-            const opcao = document.createElement("option");
-            opcao.value = String(posicao);
-            opcao.textContent = String(posicao);
-            notaEl.appendChild(opcao);
-        }
-
-        const notaSalva = notasPorBloco[blocoAtual][linha.letra];
-        notaEl.value = notaSalva !== undefined ? String(notaSalva) : "";
-
-        notaEl.addEventListener("change", () => {
-            notasPorBloco[blocoAtual][linha.letra] = Number(notaEl.value);
-            atualizarOpcoesDisponiveis(selects);
-        });
-
-        linhaEl.appendChild(letraEl);
-        linhaEl.appendChild(textoEl);
-        linhaEl.appendChild(notaEl);
-        linhasContainer.appendChild(linhaEl);
-
-        selects.push(notaEl);
+        const botao = document.createElement("button");
+        botao.type = "button";
+        botao.className = "ordem-opcao";
+        botao.dataset.letra = linha.letra;
+        botao.innerHTML = '<span class="ordem-num" aria-hidden="true"></span><span class="ordem-texto"></span>';
+        botao.querySelector(".ordem-texto").textContent = linha.texto;
+        botao.addEventListener("click", () => alternarNaOrdem(linha.letra));
+        linhasContainer.appendChild(botao);
     });
-
-    atualizarOpcoesDisponiveis(selects);
 
     botaoVoltar.style.visibility = blocoAtual === 0 ? "hidden" : "visible";
-    botaoAvancar.textContent =
-        blocoAtual === blocosAfinidades.length - 1 ? "Enviar teste" : "Próximo";
+    atualizarOrdem();
 }
 
-// Cada posição (1 a 8) só pode ser usada uma vez por bloco — desabilita nos
-// outros selects o valor que já foi escolhido em algum deles, pra evitar
-// repetição sem precisar validar isso só no final.
-function atualizarOpcoesDisponiveis(selects) {
-    const valoresUsados = selects
-        .map(select => select.value)
-        .filter(valor => valor !== "");
+// Toca uma atividade: entra no fim da ordem ou, se já estava, sai dela (e as
+// de depois sobem uma posição).
+function alternarNaOrdem(letra) {
+    const ordem = ordemPorBloco[blocoAtual];
+    const posicao = ordem.indexOf(letra);
+    if (posicao === -1) ordem.push(letra);
+    else ordem.splice(posicao, 1);
+    atualizarOrdem();
+}
 
-    selects.forEach(select => {
-        Array.from(select.options).forEach(opcao => {
-            if (opcao.value === "") return;
-            opcao.disabled = valoresUsados.includes(opcao.value) && opcao.value !== select.value;
-        });
+function escapar(texto) {
+    return String(texto ?? "").replace(/[&<>"']/g, (c) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[c]));
+}
+
+// Mostra a ordem nos cartões e no painel, e refaz as notas do bloco.
+function atualizarOrdem() {
+    const bloco = blocosAfinidades[blocoAtual];
+    const ordem = ordemPorBloco[blocoAtual];
+    const total = bloco.linhas.length;
+
+    notasPorBloco[blocoAtual] = Object.fromEntries(ordem.map((letra, indice) => [letra, total - indice]));
+
+    linhasContainer.querySelectorAll(".ordem-opcao").forEach(botao => {
+        const posicao = ordem.indexOf(botao.dataset.letra);
+        const texto = botao.querySelector(".ordem-texto").textContent;
+        botao.classList.toggle("ordem-opcao--escolhida", posicao !== -1);
+        botao.querySelector(".ordem-num").textContent = posicao === -1 ? "" : String(posicao + 1);
+        botao.setAttribute("aria-pressed", String(posicao !== -1));
+        botao.setAttribute("aria-label", posicao === -1
+            ? `${texto}. Tocar para pôr na posição ${ordem.length + 1}`
+            : `${texto}. Posição ${posicao + 1}. Tocar para tirar`);
     });
+
+    const textoDe = (letra) => bloco.linhas.find(linha => linha.letra === letra)?.texto || "";
+    ordemLista.innerHTML = ordem.map((letra, indice) => `<li><b>${indice + 1}</b>${escapar(textoDe(letra))}</li>`).join("")
+        + (ordem.length < total ? `<li class="ordem-falta"><b>${ordem.length + 1}</b>Toque na próxima…</li>` : "");
+    botaoDesfazer.disabled = !ordem.length;
+    botaoRecomecar.disabled = !ordem.length;
+
+    const faltam = total - ordem.length;
+    faltamTexto.textContent = faltam ? `${ordem.length} de ${total} em ordem` : "Tudo em ordem!";
+    botaoAvancar.textContent = blocoAtual === blocosAfinidades.length - 1 ? "Ver meu resultado" : "Próximo bloco →";
+    botaoAvancar.disabled = !blocoEstaCompleto();
 }
 
 function blocoEstaCompleto() {
@@ -118,6 +119,16 @@ function blocoEstaCompleto() {
         linha => notasPorBloco[blocoAtual][linha.letra] !== undefined
     );
 }
+
+botaoDesfazer.addEventListener("click", () => {
+    ordemPorBloco[blocoAtual].pop();
+    atualizarOrdem();
+});
+
+botaoRecomecar.addEventListener("click", () => {
+    ordemPorBloco[blocoAtual].length = 0;
+    atualizarOrdem();
+});
 
 
 // ============================================================
@@ -200,6 +211,11 @@ async function mostrarResultado(dadosResultado, { aoVivo = true } = {}) {
 
     containerTeste.style.display = "none";
     containerResultado.style.display = "block";
+
+    // o painel fecha o teste: a ordem do bloco já não serve mais
+    atualizarAnel(blocosAfinidades.length, blocosAfinidades.length, "Teste concluído", "O resultado está ao lado");
+    document.querySelectorAll(".foco-painel .foco-subtitulo, #ordem-lista, .foco-painel .ordem-acoes")
+        .forEach(elemento => { elemento.hidden = true; });
 
     const usuarioLogado = auth.currentUser;
 
@@ -362,6 +378,8 @@ async function tentarMostrarResultadoSalvo() {
 // ============================================================
 // INICIAR O TESTE
 // ============================================================
+
+ligarOlhoDoProgresso();
 
 tentarMostrarResultadoSalvo().then((mostrou) => {
     if (!mostrou) renderizarBloco();

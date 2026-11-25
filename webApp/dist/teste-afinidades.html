@@ -8,7 +8,7 @@
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 
-  <script type="module" crossorigin src="./assets/afinidades-CAUixLG_.js"></script>
+  <script type="module" crossorigin src="./assets/afinidades-D7nJ8j3g.js"></script>
   <link rel="modulepreload" crossorigin href="./assets/firebase-config-jDGsFXrl.js">
   <link rel="modulepreload" crossorigin href="./assets/preload-helper-PPVm8Dsz.js">
   <link rel="modulepreload" crossorigin href="./assets/conteudo-legal-padrao-BqhUlQtQ.js">
@@ -16,6 +16,7 @@
   <link rel="modulepreload" crossorigin href="./assets/notificacoes-util-BE-pPj56.js">
   <link rel="modulepreload" crossorigin href="./assets/vlibras-DQXnOYHD.js">
   <link rel="modulepreload" crossorigin href="./assets/dashboard-DSGqwyw3.js">
+  <link rel="modulepreload" crossorigin href="./assets/teste-foco-CZ87G_Ri.js">
   <link rel="modulepreload" crossorigin href="./assets/compartilhar-resultado-CMOPY2do.js">
   <link rel="modulepreload" crossorigin href="./assets/descricoes-inteligencias-D_icd3AV.js">
   <link rel="modulepreload" crossorigin href="./assets/dados-resumidos-D0rAcbyT.js">
@@ -24,6 +25,7 @@
   <link rel="modulepreload" crossorigin href="./assets/geocodificacao-BkfVnwNK.js">
   <link rel="modulepreload" crossorigin href="./assets/recomendacao-cursos-BLnraVQF.js">
   <link rel="stylesheet" crossorigin href="./assets/dashboard-CxvoAqNm.css">
+  <link rel="stylesheet" crossorigin href="./assets/teste-foco-Bbs_xF0O.css">
   <link rel="stylesheet" crossorigin href="./assets/compartilhar-resultado-B0VmitlW.css">
   <link rel="stylesheet" crossorigin href="./assets/ondas-Cp6OP_7e.css">
   <link rel="stylesheet" crossorigin href="./assets/quiz-DQdcL3BV.css">
@@ -110,51 +112,74 @@
         </div>
     </nav>
 
-    <header class="home-hero home-hero--compacta">
-        <div class="home-hero-conteudo">
-            <h1>Teste de Afinidades</h1>
-            <p class="home-hero-sub">Descubra sua inteligência dominante.</p>
-        </div>
+    <!-- Tela de foco (teste-foco.css): o painel azul com o progresso à
+         esquerda e o bloco à direita. O olho do painel esconde o progresso. -->
+    <div class="main main--foco">
+        <div class="foco">
+            <aside class="foco-painel" aria-label="Seu andamento no teste">
+                <a href="testes.html" class="foco-sair"
+                    onclick="return confirm('Tem certeza que deseja sair? Suas respostas não serão salvas.');">← Sair do
+                    teste</a>
+                <h1>Teste de Afinidades</h1>
+                <p class="foco-painel-sub">Descubra sua inteligência dominante, colocando em ordem o que mais combina
+                    com você.</p>
 
-        <div class="hero-ondas" aria-hidden="true">
-            <svg class="onda onda-laranja" viewBox="0 0 1440 60" preserveAspectRatio="none">
-                <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
-            </svg>
-            <svg class="onda onda-tras" viewBox="0 0 1440 60" preserveAspectRatio="none">
-                <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
-            </svg>
-            <svg class="onda onda-frente" viewBox="0 0 1440 60" preserveAspectRatio="none">
-                <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
-            </svg>
-        </div>
-    </header>
+                <button type="button" class="foco-olho" id="foco-olho" aria-pressed="false">Ocultar progresso</button>
 
-    <div class="main">
-        <p class="cursos-subtitle" style="margin-bottom: 30px;">Em cada bloco, classifique de 1 a 8 as
-            características sem repetir número — 8 para a que mais combina com você, 1 para a que menos combina.</p>
-
-        <div class="quiz-container" id="afinidades-container">
-            <a href="index.html" class="quiz-sair"
-                onclick="return confirm('Tem certeza que deseja sair? Suas respostas não serão salvas.');">
-                ← Sair do teste
-            </a>
-
-            <div class="quiz-progress-wrap">
-                <div class="quiz-progress-info" id="afinidades-progresso">Bloco 1 de 4</div>
-                <div class="quiz-progress-bar">
-                    <div class="quiz-progress-fill" id="afinidades-progresso-fill" style="width: 25%;"></div>
+                <div class="foco-progresso" id="foco-progresso">
+                    <div class="foco-anel-linha">
+                        <div class="foco-anel" id="foco-anel"><span>1/4</span></div>
+                        <div class="foco-anel-texto"><strong id="foco-anel-titulo">Bloco 1 de 4</strong><small
+                                id="foco-anel-detalhe"></small></div>
+                    </div>
+                    <h2 class="foco-subtitulo">Sua ordem neste bloco</h2>
+                    <ol class="ordem-lista" id="ordem-lista"></ol>
                 </div>
-            </div>
+                <p class="foco-progresso-oculto" id="foco-progresso-oculto" hidden>O progresso está escondido. Os
+                    números continuam nos cartões, e o resultado aparece no fim do teste.</p>
+                <!-- fora do progresso: o olho não esconde os botões -->
+                <div class="ordem-acoes">
+                    <button type="button" id="ordem-desfazer">Desfazer a última</button>
+                    <button type="button" id="ordem-recomecar">Recomeçar o bloco</button>
+                </div>
 
-            <div class="bloco-afinidade-titulo" id="afinidades-titulo-bloco"></div>
+                <div class="foco-dica">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" aria-hidden="true">
+                        <path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z" />
+                    </svg>
+                    <span>Não existe ordem certa: vá pelo que mais parece com você hoje, sem pensar demais.</span>
+                </div>
+                <div class="foco-ondas" aria-hidden="true">
+                    <svg class="onda onda-laranja" viewBox="0 0 1440 60" preserveAspectRatio="none">
+                        <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
+                    </svg>
+                    <svg class="onda onda-tras" viewBox="0 0 1440 60" preserveAspectRatio="none">
+                        <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
+                    </svg>
+                    <svg class="onda onda-frente" viewBox="0 0 1440 60" preserveAspectRatio="none">
+                        <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
+                    </svg>
+                </div>
+            </aside>
 
-            <div class="linhas-afinidade" id="afinidades-linhas"></div>
+            <div class="foco-coluna">
+                <section class="quiz-container foco-cartao" id="afinidades-container" aria-labelledby="afinidades-titulo-bloco">
+                    <div class="foco-barra"><div id="afinidades-progresso-fill" style="width: 25%;"></div></div>
+                    <span class="foco-chip" id="afinidades-progresso">Bloco 1 de 4</span>
+                    <h2 class="foco-pergunta" id="afinidades-titulo-bloco"></h2>
+                    <p class="foco-ajuda">Toque nas atividades na ordem: primeiro a que você <strong>mais</strong>
+                        gosta, por último a que você menos gosta. Tocou errado? Toque de novo para tirar.</p>
 
-            <div class="acoes-afinidade">
-                <button type="button" class="btn-quiz-prev" id="afinidades-voltar" style="visibility: hidden;">Voltar</button>
-                <button type="button" class="btn-quiz-submit" id="afinidades-avancar">Próximo</button>
-            </div>
-        </div>
+                    <div class="ordem-opcoes" id="afinidades-linhas"></div>
+
+                    <div class="foco-rodape">
+                        <button type="button" class="btn-quiz-prev" id="afinidades-voltar" style="visibility: hidden;">&larr;
+                            Anterior</button>
+                        <span class="foco-rodape-dica" id="afinidades-faltam" aria-live="polite"></span>
+                        <button type="button" class="btn-quiz-submit" id="afinidades-avancar">Próximo bloco &rarr;</button>
+                    </div>
+                </section>
 
         <div class="quiz-container result-card" id="afinidades-resultado" style="display: none;">
             <span class="result-badge">Teste Concluído</span>
@@ -178,6 +203,8 @@
                     <button class="btn-quiz-submit" onclick="location.href='cadastro.html'">Criar minha conta</button>
                     <button class="btn-quiz-prev" onclick="location.href='login.html'">Já tenho conta</button>
                 </div>
+            </div>
+        </div>
             </div>
         </div>
     </div>

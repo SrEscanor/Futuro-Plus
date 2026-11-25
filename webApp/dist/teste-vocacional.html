@@ -8,7 +8,7 @@
     <link rel="icon" href="./favicon.ico" sizes="48x48">
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="./apple-touch-icon.png">
-  <script type="module" crossorigin src="./assets/vocacional-CIBW3TVg.js"></script>
+  <script type="module" crossorigin src="./assets/vocacional-Bjqj_Oje.js"></script>
   <link rel="modulepreload" crossorigin href="./assets/firebase-config-jDGsFXrl.js">
   <link rel="modulepreload" crossorigin href="./assets/preload-helper-PPVm8Dsz.js">
   <link rel="modulepreload" crossorigin href="./assets/conteudo-legal-padrao-BqhUlQtQ.js">
@@ -16,10 +16,12 @@
   <link rel="modulepreload" crossorigin href="./assets/notificacoes-util-BE-pPj56.js">
   <link rel="modulepreload" crossorigin href="./assets/vlibras-DQXnOYHD.js">
   <link rel="modulepreload" crossorigin href="./assets/dashboard-DSGqwyw3.js">
+  <link rel="modulepreload" crossorigin href="./assets/teste-foco-CZ87G_Ri.js">
   <link rel="modulepreload" crossorigin href="./assets/compartilhar-resultado-CMOPY2do.js">
   <link rel="modulepreload" crossorigin href="./assets/dados-resumidos-D0rAcbyT.js">
   <link rel="modulepreload" crossorigin href="./assets/card-unidade-I-oVmKo3.js">
   <link rel="stylesheet" crossorigin href="./assets/dashboard-CxvoAqNm.css">
+  <link rel="stylesheet" crossorigin href="./assets/teste-foco-Bbs_xF0O.css">
   <link rel="stylesheet" crossorigin href="./assets/compartilhar-resultado-B0VmitlW.css">
   <link rel="stylesheet" crossorigin href="./assets/vocacional-AztKAb7r.css">
   <link rel="stylesheet" crossorigin href="./assets/ondas-Cp6OP_7e.css">
@@ -133,53 +135,85 @@
         </div>
     </nav>
 
-    <header class="home-hero home-hero--compacta">
-        <div class="home-hero-conteudo">
-            <h1>Teste Vocacional</h1>
-            <p class="home-hero-sub">O teste completo: termina mostrando cursos de verdade, com o que se aprende em cada um.</p>
-        </div>
+    <!-- Tela de foco (teste-foco.css): o painel azul com o progresso e os 4
+         blocos à esquerda, a parte atual do teste à direita. O olho do painel
+         esconde o progresso. -->
+    <div class="main main--foco">
+        <div class="foco">
+            <aside class="foco-painel" aria-label="Seu andamento no teste">
+                <a href="testes.html" class="foco-sair"
+                    onclick="return confirm('Tem certeza que deseja sair? Suas respostas não serão salvas.');">← Sair do
+                    teste</a>
+                <h1>Teste Vocacional</h1>
+                <p class="foco-painel-sub">O teste completo: termina mostrando cursos de verdade, com o que se aprende
+                    em cada um.</p>
 
-        <div class="hero-ondas" aria-hidden="true">
-            <svg class="onda onda-laranja" viewBox="0 0 1440 60" preserveAspectRatio="none">
-                <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
-            </svg>
-            <svg class="onda onda-tras" viewBox="0 0 1440 60" preserveAspectRatio="none">
-                <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
-            </svg>
-            <svg class="onda onda-frente" viewBox="0 0 1440 60" preserveAspectRatio="none">
-                <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
-            </svg>
-        </div>
-    </header>
+                <button type="button" class="foco-olho" id="foco-olho" aria-pressed="false">Ocultar progresso</button>
 
-    <div class="main">
+                <div class="foco-progresso" id="foco-progresso">
+                    <div class="foco-anel-linha">
+                        <div class="foco-anel" id="foco-anel"><span>0/7</span></div>
+                        <div class="foco-anel-texto"><strong id="foco-anel-titulo">Antes de começar</strong><small
+                                id="foco-anel-detalhe">Cerca de 40 perguntas, uns 10 minutos</small></div>
+                    </div>
+                    <h2 class="foco-subtitulo">Os 4 blocos</h2>
+                    <ol class="foco-etapas" id="foco-etapas">
+                        <li data-bloco="1" data-numero="1">Sua situação</li>
+                        <li data-bloco="2" data-numero="2">O que combina com você</li>
+                        <li data-bloco="3" data-numero="3">Seu jeito de trabalhar</li>
+                        <li data-bloco="4" data-numero="4">Os cursos</li>
+                    </ol>
+                </div>
+                <p class="foco-progresso-oculto" id="foco-progresso-oculto" hidden>O progresso está escondido. O
+                    resultado aparece no fim, com os cursos que combinam com você.</p>
 
-        <div id="voc-precisa-login" class="voc-cartao" hidden>
-            <p class="voc-intro">Este teste é mais longo e o resultado fica guardado no seu perfil, para você
-                consultar depois. Por isso ele pede login.</p>
-            <div class="voc-acoes-resultado">
-                <a class="btn-voc" href="login.html">Entrar</a>
-                <a class="btn-voc btn-voc--secundario" href="cadastro.html">Criar conta</a>
-            </div>
-        </div>
+                <div class="foco-dica">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" aria-hidden="true">
+                        <path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z" />
+                    </svg>
+                    <span>Responda pensando em você hoje, não no que esperam de você. Não existe resposta certa.</span>
+                </div>
+                <div class="foco-ondas" aria-hidden="true">
+                    <svg class="onda onda-laranja" viewBox="0 0 1440 60" preserveAspectRatio="none">
+                        <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
+                    </svg>
+                    <svg class="onda onda-tras" viewBox="0 0 1440 60" preserveAspectRatio="none">
+                        <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
+                    </svg>
+                    <svg class="onda onda-frente" viewBox="0 0 1440 60" preserveAspectRatio="none">
+                        <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
+                    </svg>
+                </div>
+            </aside>
 
-        <section id="voc-teste" class="voc-cartao">
-            <header class="voc-cabecalho">
-                <p class="voc-aviso-duracao">São cerca de 40 perguntas, em 4 blocos — uns 10 minutos. As últimas
-                    mostram cursos de verdade, com o que se aprende em cada um.</p>
-            </header>
+            <div class="foco-coluna">
+                <!-- sem login: o que a pessoa ganha com o teste -->
+                <div id="voc-precisa-login" class="voc-cartao foco-cartao voc-apresentacao" hidden>
+                    <span class="foco-chip">Antes de começar</span>
+                    <h2 class="foco-pergunta">O teste que termina em cursos de verdade</h2>
+                    <ul class="voc-ganhos">
+                        <li><strong>4 blocos, uns 10 minutos.</strong> Sua situação, o que combina com você, seu jeito
+                            de trabalhar e, por fim, cursos de verdade para dizer se combinam.</li>
+                        <li><strong>Cursos das Etecs e Fatecs.</strong> Com o que se aprende em cada um e onde estudar.</li>
+                        <li><strong>Resultado guardado no seu perfil.</strong> Dá para consultar e refazer quando
+                            quiser. Por isso o teste pede login.</li>
+                    </ul>
+                    <div class="voc-acoes-resultado">
+                        <a class="btn-voc" href="login.html">Entrar</a>
+                        <a class="btn-voc btn-voc--secundario" href="cadastro.html">Criar conta</a>
+                    </div>
+                </div>
 
-            <div class="voc-progresso">
-                <div class="voc-progresso-barra"><div id="voc-progresso-fill"></div></div>
-                <span id="voc-progresso-texto"></span>
-            </div>
-
-            <h2 id="voc-titulo-bloco"></h2>
-            <div id="voc-conteudo"></div>
+                <section id="voc-teste" class="voc-cartao foco-cartao" aria-labelledby="voc-titulo-bloco">
+                    <div class="foco-barra"><div id="voc-progresso-fill"></div></div>
+                    <span class="foco-chip" id="voc-progresso-texto"></span>
+                    <h2 id="voc-titulo-bloco" class="foco-pergunta"></h2>
+                    <div id="voc-conteudo"></div>
 
             <p id="voc-aviso" class="voc-erro" hidden></p>
 
-            <div class="voc-navegacao">
+            <div class="voc-navegacao foco-rodape">
                 <button type="button" id="voc-voltar" class="btn-voc btn-voc--secundario">Voltar</button>
                 <button type="button" id="voc-avancar" class="btn-voc">Continuar</button>
             </div>
@@ -190,7 +224,9 @@
                 oficial do Centro Paula Souza.</p>
         </section>
 
-        <section id="voc-resultado" class="voc-cartao" hidden></section>
+        <section id="voc-resultado" class="voc-cartao foco-cartao" hidden></section>
+            </div>
+        </div>
     </div>
 
     <!-- Botão Flutuante do Chat -->

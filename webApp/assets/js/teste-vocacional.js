@@ -24,6 +24,19 @@ import {
     EIXOS_NAS_CARTAS
 } from './vocacional-resultado.js';
 import { criarPainelCompartilhar } from './compartilhar-resultado.js';
+import { atualizarAnel, ligarOlhoDoProgresso } from './teste-foco.js';
+
+// Os 4 blocos no painel azul (teste-foco.css): os anteriores ganham o ✓ e o
+// atual fica em destaque. bloco 5 = teste concluído (todos com ✓).
+function marcarEtapas(blocoAtual) {
+    document.querySelectorAll('#foco-etapas li').forEach((item) => {
+        const bloco = Number(item.dataset.bloco);
+        item.classList.toggle('foco-etapa--feita', bloco < blocoAtual);
+        item.classList.toggle('foco-etapa--atual', bloco === blocoAtual);
+        if (bloco === blocoAtual) item.setAttribute('aria-current', 'step');
+        else item.removeAttribute('aria-current');
+    });
+}
 
 const CATALOGO_OFICIAL = '/dados/catalogo-cursos.json';
 const AFIRMACOES_POR_TELA = 6;
@@ -240,6 +253,8 @@ function desenhar() {
     document.getElementById('voc-progresso-texto').textContent =
         `Parte ${etapa + 1} de ${lista.length} · bloco ${atual.bloco} de 4`;
     document.getElementById('voc-progresso-fill').style.width = `${((etapa + 1) / lista.length) * 100}%`;
+    atualizarAnel(etapa + 1, lista.length, `Parte ${etapa + 1} de ${lista.length}`, atual.titulo);
+    marcarEtapas(atual.bloco);
     document.getElementById('voc-conteudo').innerHTML = atual.render();
 
     document.getElementById('voc-voltar').style.visibility = etapa === 0 ? 'hidden' : 'visible';
@@ -363,6 +378,10 @@ async function mostrarResultado(resultadoPronto = null, { aoVivo = true } = {}) 
     document.getElementById('voc-teste').hidden = true;
     const container = document.getElementById('voc-resultado');
     container.hidden = false;
+    // o painel fecha o teste: os 4 blocos com ✓
+    const partes = etapas().length;
+    atualizarAnel(partes, partes, 'Teste concluído', 'Seu resultado está ao lado');
+    marcarEtapas(5);
 
     container.innerHTML = `
         <h2>Seu resultado</h2>
@@ -395,7 +414,7 @@ async function mostrarResultado(resultadoPronto = null, { aoVivo = true } = {}) 
         </div>
         <p id="voc-status-salvo" class="voc-observacao"></p>
 
-        <p class="voc-creditos">Como este resultado foi montado: as perguntas, as áreas e a forma de pontuar foram criadas pela equipe do Futuro+ junto com a inteligência artificial Claude, da Anthropic, e revisadas uma a uma por pessoas — a IA ajuda na amplitude, a revisão humana garante que faz sentido para quem vai escolher um curso. As descrições dos cursos são do catálogo oficial do Centro Paula Souza.</p>`;
+        <p class="voc-creditos">Como este resultado foi montado: as perguntas, as áreas e a forma de pontuar foram criadas pela equipe do Futuro+ com apoio de inteligência artificial e revisadas uma a uma pelos desenvolvedores do app. A IA ajuda na amplitude, e a revisão humana garante que faz sentido para quem vai escolher um curso. As descrições dos cursos são do catálogo oficial do Centro Paula Souza.</p>`;
 
     const slotCompartilhar = document.getElementById('compartilhar-resultado-slot');
     if (slotCompartilhar) {
@@ -521,6 +540,8 @@ async function tentarMostrarResultadoSalvo() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+    ligarOlhoDoProgresso();
+    atualizarAnel(0, etapas().length, 'Antes de começar', 'Cerca de 40 perguntas, uns 10 minutos');
     await auth.authStateReady();
     if (!auth.currentUser) {
         // o teste é longo e o resultado fica salvo no perfil: sem login não há onde guardar

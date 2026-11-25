@@ -44,7 +44,7 @@ export const PERGUNTAS_SITUACAO = [
             { valor: 'integrado', texto: 'Ensino médio e curso técnico juntos, na mesma escola' },
             { valor: 'tecnico', texto: 'Só o curso técnico' },
             { valor: 'superior', texto: 'Curso superior de tecnologia (Fatec), depois do ensino médio' },
-            { valor: 'ambos', texto: 'Técnico e superior juntos — quero ver as duas opções' },
+            { valor: 'ambos', texto: 'Técnico e superior juntos, quero ver as duas opções' },
             { valor: 'tanto_faz', texto: 'Tanto faz, não tenho preferência' }
         ]
     },

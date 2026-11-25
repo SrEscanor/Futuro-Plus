@@ -7,6 +7,7 @@ import { descricoesInteligencias as resultData } from "./descricoes-inteligencia
 import { renderizarRecomendacoesTeste } from "./recomendacao-cursos.js";
 import { categoriasTeste } from "./categorias-teste.js";
 import { criarPainelCompartilhar } from "./compartilhar-resultado.js";
+import { atualizarAnel, desenharPerfilVivo, desenhoDaArea, ligarOlhoDoProgresso } from "./teste-foco.js";
 
 const questions = [
     {
@@ -170,6 +171,60 @@ const progressFill = document.getElementById("progress-fill");
 const quizContainer = document.getElementById("quiz-container");
 const resultContainer = document.getElementById("result-container");
 const btnVoltar = document.getElementById("quiz-voltar");
+const btnProxima = document.getElementById("quiz-proxima");
+
+
+// ============================================================
+// O PAINEL AZUL (teste-foco.js)
+// ============================================================
+// O anel com a pergunta atual e, para quem tem conta, as barras do perfil se
+// formando a cada resposta. Sem conta, o ranking completo é reservado (ver
+// renderizarResultado): o painel mostra as 8 áreas e o convite.
+
+let podeVerPerfil = false;
+
+function desenharAreasParaVisitante({ concluido = false } = {}) {
+    const lista = document.getElementById("perfil-vivo");
+    lista.classList.add("perfil-vivo--areas");
+    lista.innerHTML = Object.values(categoriasTeste).map(nome => `<li>${nome}</li>`).join("");
+    document.getElementById("perfil-titulo").textContent = concluido ? "As 8 áreas do teste" : "O que você vai descobrir";
+    document.getElementById("perfil-nota").textContent = concluido
+        ? "Crie sua conta para ver como você foi em cada uma delas."
+        : "Com uma conta, você vê aqui o seu perfil se formando a cada resposta.";
+}
+
+function atualizarPainel({ porcentagens = null } = {}) {
+    const total = questions.length;
+    if (porcentagens) {
+        atualizarAnel(total, total, "Teste concluído", "O resultado está ao lado");
+    } else {
+        const restantes = total - currentQuestionIndex;
+        const minutos = Math.max(1, Math.round((restantes * 12) / 60));
+        atualizarAnel(currentQuestionIndex + 1, total, `Pergunta ${currentQuestionIndex + 1} de ${total}`,
+            restantes <= 1 ? "Última pergunta!" : `Falta cerca de ${minutos} ${minutos === 1 ? "minuto" : "minutos"}`);
+    }
+
+    if (!podeVerPerfil) {
+        desenharAreasParaVisitante({ concluido: Boolean(porcentagens) });
+        return;
+    }
+    const lista = document.getElementById("perfil-vivo");
+    lista.classList.remove("perfil-vivo--areas");
+    if (porcentagens) {
+        document.getElementById("perfil-titulo").textContent = "Seu resultado";
+        document.getElementById("perfil-nota").textContent = "A afinidade com cada área, de 0 a 100%.";
+        const redondas = Object.fromEntries(Object.keys(categoriasTeste)
+            .map(area => [area, Math.round(porcentagens[area] || 0)]));
+        desenharPerfilVivo(lista, redondas, categoriasTeste, { sufixo: "%" });
+        return;
+    }
+    const pontos = {};
+    respostasEscolhidas.forEach(area => { if (area) pontos[area] = (pontos[area] || 0) + 1; });
+    document.getElementById("perfil-titulo").textContent = "Seu perfil até agora";
+    document.getElementById("perfil-nota").textContent =
+        "As barras mudam a cada resposta. O resultado completo sai na última pergunta.";
+    desenharPerfilVivo(lista, pontos, categoriasTeste);
+}
 
 
 // ============================================================
@@ -181,7 +236,8 @@ function loadQuestion() {
 
     const q = questions[currentQuestionIndex];
 
-    questionTitle.textContent = q.text;
+    // o número já aparece em "Pergunta 1 de 15"
+    questionTitle.textContent = q.text.replace(/^\d+\.\s*/, "");
 
     progressText.textContent =
         `Pergunta ${currentQuestionIndex + 1} de ${questions.length}`;
@@ -195,10 +251,14 @@ function loadQuestion() {
 
     const escolhaAnterior = respostasEscolhidas[currentQuestionIndex];
 
-    q.options.forEach(option => {
+    // cada resposta vira um cartão com a cor e o desenho da área dela
+    q.options.forEach((option, indice) => {
         const btn = document.createElement("button");
-
-        btn.textContent = option.text;
+        btn.type = "button";
+        btn.className = `opcao-grande opcao-grande--${option.category}`;
+        btn.innerHTML = `<span class="opcao-grande-arte">${desenhoDaArea(option.category)}</span>`
+            + `<span class="opcao-grande-texto"></span><kbd aria-hidden="true">${indice + 1}</kbd>`;
+        btn.querySelector(".opcao-grande-texto").textContent = option.text;
 
         if (option.category === escolhaAnterior) {
             btn.classList.add("selecionada");
@@ -217,6 +277,11 @@ function loadQuestion() {
     if (btnVoltar) {
         btnVoltar.style.visibility = currentQuestionIndex === 0 ? "hidden" : "visible";
     }
+    // voltou numa pergunta já respondida: dá para seguir sem trocar a resposta
+    if (btnProxima) {
+        btnProxima.hidden = !escolhaAnterior || currentQuestionIndex >= questions.length - 1;
+    }
+    atualizarPainel();
 }
 
 
@@ -233,6 +298,27 @@ function voltarPergunta() {
 if (btnVoltar) {
     btnVoltar.addEventListener("click", voltarPergunta);
 }
+
+if (btnProxima) {
+    btnProxima.addEventListener("click", () => {
+        if (!respostasEscolhidas[currentQuestionIndex] || currentQuestionIndex >= questions.length - 1) return;
+        currentQuestionIndex++;
+        loadQuestion();
+    });
+}
+
+// Teclas 1 a 4 respondem (menos quando a pessoa está escrevendo, no chat,
+// por exemplo).
+document.addEventListener("keydown", (evento) => {
+    if (evento.ctrlKey || evento.metaKey || evento.altKey) return;
+    if (quizContainer.style.display === "none") return;
+    if (evento.target.closest?.("input, textarea, select, [contenteditable='true']")) return;
+    const indice = Number(evento.key) - 1;
+    const botao = optionsContainer.querySelectorAll(".opcao-grande")[indice];
+    if (!Number.isInteger(indice) || !botao) return;
+    evento.preventDefault();
+    botao.click();
+});
 
 
 // ============================================================
@@ -393,6 +479,10 @@ async function renderizarResultado(dadosResultado, { aoVivo = true } = {}) {
     } = dadosResultado;
 
     const usuarioLogado = auth.currentUser;
+
+    // o painel fecha o teste: para quem tem conta, as barras viram o resultado
+    podeVerPerfil = Boolean(usuarioLogado);
+    atualizarPainel({ porcentagens: percentages });
 
     if (usuarioLogado) {
         if (aoVivo) {
@@ -668,6 +758,14 @@ async function tentarMostrarResultadoSalvo() {
 // ============================================================
 // INICIAR O QUIZ
 // ============================================================
+
+ligarOlhoDoProgresso();
+
+// quem tem conta vê as barras do perfil se formando (ver atualizarPainel)
+auth.authStateReady().then(() => {
+    podeVerPerfil = Boolean(auth.currentUser);
+    if (quizContainer.style.display !== "none") atualizarPainel();
+});
 
 tentarMostrarResultadoSalvo().then((mostrou) => {
     if (!mostrou) loadQuestion();

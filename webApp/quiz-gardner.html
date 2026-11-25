@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="assets/css/ondas.css">
     <link rel="stylesheet" href="assets/css/dashboard.css">
     <link rel="stylesheet" href="assets/css/quiz.css">
+    <link rel="stylesheet" href="assets/css/teste-foco.css">
     <link rel="stylesheet" href="assets/css/compartilhar-resultado.css">
 </head>
 
@@ -95,49 +96,69 @@
         </div>
     </nav>
 
-    <header class="home-hero home-hero--compacta">
-        <div class="home-hero-conteudo">
-            <h1>Teste rápido de perfil</h1>
-            <p class="home-hero-sub">Descubra as áreas que mais combinam com as suas habilidades e interesses.</p>
-        </div>
+    <!-- Tela de foco (teste-foco.css): o painel azul com o progresso à
+         esquerda e a pergunta à direita. O olho do painel esconde o progresso. -->
+    <div class="main main--foco">
+        <div class="foco">
+            <aside class="foco-painel" aria-label="Seu andamento no teste">
+                <a href="testes.html" class="foco-sair"
+                    onclick="return confirm('Tem certeza que deseja sair? Suas respostas não serão salvas.');">← Sair do
+                    teste</a>
+                <h1>Teste rápido de perfil</h1>
+                <p class="foco-painel-sub">Descubra as áreas que mais combinam com as suas habilidades e interesses.</p>
 
-        <div class="hero-ondas" aria-hidden="true">
-            <svg class="onda onda-laranja" viewBox="0 0 1440 60" preserveAspectRatio="none">
-                <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
-            </svg>
-            <svg class="onda onda-tras" viewBox="0 0 1440 60" preserveAspectRatio="none">
-                <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
-            </svg>
-            <svg class="onda onda-frente" viewBox="0 0 1440 60" preserveAspectRatio="none">
-                <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
-            </svg>
-        </div>
-    </header>
+                <button type="button" class="foco-olho" id="foco-olho" aria-pressed="false">Ocultar progresso</button>
 
-    <div class="main">
-        <div class="quiz-container" id="quiz-container">
-            <a href="index.html" class="quiz-sair"
-                onclick="return confirm('Tem certeza que deseja sair? Suas respostas não serão salvas.');">
-                ← Sair do teste
-            </a>
-
-            <div class="quiz-progress-wrap">
-                <div class="quiz-progress-info" id="progress">Carregando...</div>
-                <div class="quiz-progress-bar">
-                    <div class="quiz-progress-fill" id="progress-fill" style="width: 0%;"></div>
+                <div class="foco-progresso" id="foco-progresso">
+                    <div class="foco-anel-linha">
+                        <div class="foco-anel" id="foco-anel"><span>1/15</span></div>
+                        <div class="foco-anel-texto"><strong id="foco-anel-titulo">Pergunta 1 de 15</strong><small
+                                id="foco-anel-detalhe">Cerca de 3 minutos</small></div>
+                    </div>
+                    <h2 class="foco-subtitulo" id="perfil-titulo">Seu perfil até agora</h2>
+                    <ul class="perfil-vivo" id="perfil-vivo"></ul>
+                    <p class="perfil-vivo-nota" id="perfil-nota">As barras mudam a cada resposta. O resultado completo
+                        sai na última pergunta.</p>
                 </div>
-            </div>
+                <p class="foco-progresso-oculto" id="foco-progresso-oculto" hidden>O progresso está escondido. Seu
+                    resultado aparece inteiro no fim do teste.</p>
 
-            <div class="quiz-header">
-                <h2 class="question-text" id="question-title">Carregando teste...</h2>
-            </div>
+                <div class="foco-dica">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" aria-hidden="true">
+                        <path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z" />
+                    </svg>
+                    <span>Não existe resposta certa: escolha o que mais parece com você hoje, sem pensar demais.</span>
+                </div>
+                <div class="foco-ondas" aria-hidden="true">
+                    <svg class="onda onda-laranja" viewBox="0 0 1440 60" preserveAspectRatio="none">
+                        <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
+                    </svg>
+                    <svg class="onda onda-tras" viewBox="0 0 1440 60" preserveAspectRatio="none">
+                        <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
+                    </svg>
+                    <svg class="onda onda-frente" viewBox="0 0 1440 60" preserveAspectRatio="none">
+                        <path d="M0,30 C120,8 240,8 360,30 C480,52 600,52 720,30 C840,8 960,8 1080,30 C1200,52 1320,52 1440,30 L1440,60 L0,60 Z" />
+                    </svg>
+                </div>
+            </aside>
 
-            <div class="options-group" id="options-container"></div>
+            <div class="foco-coluna">
+                <section class="quiz-container foco-cartao" id="quiz-container" aria-labelledby="question-title">
+                    <div class="foco-barra"><div id="progress-fill" style="width: 0%;"></div></div>
+                    <span class="foco-chip" id="progress">Carregando...</span>
+                    <h2 class="foco-pergunta" id="question-title">Carregando teste...</h2>
+                    <p class="foco-ajuda">Escolha a opção que mais combina com você.</p>
 
-            <div class="quiz-acoes">
-                <button type="button" class="btn-quiz-prev" id="quiz-voltar" style="visibility: hidden;">&larr; Pergunta anterior</button>
-            </div>
-        </div>
+                    <div class="opcoes-grandes" id="options-container"></div>
+
+                    <div class="foco-rodape">
+                        <button type="button" class="btn-quiz-prev" id="quiz-voltar" style="visibility: hidden;">&larr;
+                            Anterior</button>
+                        <span class="foco-rodape-dica">Dica: use as teclas 1 a 4 para responder</span>
+                        <button type="button" class="btn-quiz-submit" id="quiz-proxima" hidden>Próxima &rarr;</button>
+                    </div>
+                </section>
 
         <div class="quiz-container result-card" id="result-container" style="display: none;">
             <span class="result-badge">Teste Concluído</span>
@@ -161,6 +182,8 @@
                     <button class="btn-quiz-submit" onclick="location.href='cadastro.html'">Criar minha conta</button>
                     <button class="btn-quiz-prev" onclick="location.href='login.html'">Já tenho conta</button>
                 </div>
+            </div>
+        </div>
             </div>
         </div>
     </div>
