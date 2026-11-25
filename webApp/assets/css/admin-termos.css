@@ -1,0 +1,402 @@
+/* =========================================================
+   Admin · Termos e Privacidade (prévia)
+   Página à parte do painel: não entra no menu das outras páginas. Edita os
+   dois textos que toda conta aceita, publica versão nova e guarda o
+   histórico de cada publicação.
+   ========================================================= */
+
+/* topo: no lugar das páginas do painel, só a etiqueta e o "Voltar ao site" */
+.termos-isolada {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 0 14px;
+    border-radius: 12px;
+    background: var(--bg);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-soft);
+}
+
+.termos-isolada svg {
+    flex: none;
+    width: 16px;
+    height: 16px;
+}
+
+.termos-barra {
+    margin-bottom: 18px;
+}
+
+.termos-barra h2 {
+    font-size: 22px;
+    color: var(--ink);
+}
+
+.termos-barra p {
+    max-width: 760px;
+    margin-top: 4px;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+}
+
+/* ---- os dois documentos, lado a lado ---- */
+.termos-cartoes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr));
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+.termo-cartao {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 18px;
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-card);
+}
+
+.termo-cartao--mudou {
+    border-color: #f6c77a;
+}
+
+.termo-cartao-icone {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: var(--blue-soft);
+    color: var(--blue-dark);
+}
+
+.termo-cartao-icone svg {
+    width: 22px;
+    height: 22px;
+}
+
+.termo-cartao h3 {
+    font-size: 15px;
+    color: var(--ink);
+}
+
+.termo-cartao p {
+    margin-top: 3px;
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: var(--ink-soft);
+}
+
+.termo-selo {
+    padding: 5px 11px;
+    border-radius: 99px;
+    font-size: 11.5px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.termo-selo--ok {
+    background: var(--green-soft);
+    color: #1d865a;
+}
+
+.termo-selo--mudou {
+    background: var(--gold-soft);
+    color: #9a5b00;
+}
+
+/* a aba do documento com mudança ganha um ponto laranja */
+.termo-ponto {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--gold);
+}
+
+/* ---- editor ---- */
+.termo-editor {
+    padding: 18px;
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-card);
+}
+
+.termo-editor-barra {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.termo-editor-info {
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+}
+
+.termo-editor-info strong {
+    color: var(--ink);
+}
+
+.termo-editor-acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.termo-editor-acoes .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.termo-editor-acoes svg {
+    width: 16px;
+    height: 16px;
+}
+
+.textarea-legal.termo-textarea {
+    width: 100%;
+    min-height: 430px;
+    padding: 14px 16px;
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: #fbfbfe;
+    color: var(--ink);
+    resize: vertical;
+}
+
+.textarea-legal.termo-textarea:focus {
+    border-color: var(--blue);
+    background: var(--surface);
+    outline: none;
+}
+
+.termo-editor .campo-dica {
+    margin-top: 8px;
+}
+
+/* ---- publicar ---- */
+.termo-publicar {
+    margin-top: 22px;
+    padding: 18px 20px;
+    border: 1.5px solid #f3b0b0;
+    border-radius: var(--radius-lg);
+    background: #fff8f8;
+}
+
+.termo-publicar-cabeca {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.termo-publicar-cabeca h3 {
+    font-size: 16px;
+    color: #a41c1c;
+}
+
+.termo-publicar-cabeca svg {
+    flex: none;
+    width: 22px;
+    height: 22px;
+    color: var(--red);
+}
+
+.termo-publicar-lista {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.termo-publicar-lista li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    font-size: 13.5px;
+    color: var(--ink);
+}
+
+.termo-publicar-lista .termo-publicar-fica {
+    color: var(--ink-soft);
+}
+
+.termo-versao {
+    padding: 2px 9px;
+    border: 1px solid var(--line);
+    border-radius: 99px;
+    background: var(--surface);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.termo-publicar p {
+    margin-bottom: 14px;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--ink);
+}
+
+.termo-publicar-confirmar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+.termo-publicar-confirmar .campo {
+    flex: 0 1 320px;
+    margin-bottom: 0;
+}
+
+.termo-publicar-confirmar .btn {
+    min-height: 44px;
+}
+
+/* ---- histórico ---- */
+.tabela-historico .termo-ver {
+    white-space: nowrap;
+}
+
+.termo-doc {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+/* texto que só o leitor de tela lê */
+.termos-so-leitor {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+/* o aviso de cima (.status-importacao começa escondido) */
+.termos-status:not([hidden]) {
+    display: block;
+}
+
+.termo-selo[hidden],
+.termo-ponto[hidden],
+.textarea-legal.termo-textarea[hidden] {
+    display: none;
+}
+
+.btn.btn-primario:disabled {
+    cursor: not-allowed;
+}
+
+/* ---- a janela com o texto formatado ("Ver como fica" e "Ver texto") ---- */
+.modal.termos-janela {
+    display: flex;
+    flex-direction: column;
+    max-width: 920px;
+    max-height: calc(100vh - 80px);
+    overflow: hidden;
+}
+
+.termos-janela .modal-cabecalho {
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.termos-janela-sub {
+    margin-top: 3px;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+}
+
+.termos-janela-sub[hidden] {
+    display: none;
+}
+
+.termos-janela-texto {
+    flex: 1 1 auto;
+    width: 100%;
+    min-height: 320px;
+    height: 68vh;
+    border: 0;
+    background: #f6f7fc;
+}
+
+.termos-janela .modal-rodape {
+    flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+    .termo-cartao {
+        grid-template-columns: 40px minmax(0, 1fr);
+    }
+
+    .termo-cartao .termo-selo {
+        grid-column: 2;
+        justify-self: start;
+    }
+
+    .termo-cartao-icone {
+        width: 40px;
+        height: 40px;
+    }
+
+    /* as abas correm de lado, sem barra de rolagem à vista */
+    .abas-admin {
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none;
+    }
+
+    .aba-admin {
+        flex: none;
+    }
+
+    .termo-editor {
+        padding: 14px;
+    }
+
+    .termo-editor-acoes {
+        width: 100%;
+    }
+
+    .termo-editor-acoes .btn {
+        flex: 1 1 0;
+        justify-content: center;
+        padding-inline: 10px;
+    }
+
+    .textarea-legal.termo-textarea {
+        min-height: 360px;
+    }
+
+    .termo-publicar-confirmar .campo,
+    .termo-publicar-confirmar .btn {
+        flex: 1 1 100%;
+    }
+
+    .modal.termos-janela {
+        max-height: calc(100vh - 32px);
+    }
+
+    .termos-janela-texto {
+        height: 62vh;
+    }
+}

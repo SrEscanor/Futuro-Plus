@@ -86,9 +86,9 @@ Restrita às contas marcadas como administradoras no Firestore. As páginas fica
 | **Notícias** | Aprova o que a coleta trouxe, escolhe as notícias do carrossel da Início e fixa até 5 no alto da página Notícias. |
 | **Blog** | Editor das notícias do Futuro+, com aprovação e agendamento. |
 | **Comunidade** | Mostra as avaliações e dúvidas novas e o histórico de tudo o que acontece nos comentários, inclusive o que foi apagado e por quem. |
-| **Termos e Privacidade** | Edita os textos legais e publica uma nova versão. |
+| **Termos e Privacidade** | Edita os textos legais, mostra como ficam no site e publica só o que mudou, com histórico de cada versão (página à parte, fora do menu do painel). |
 
-Notificações, Notícias, Blog e Comunidade guardam um histórico de quem fez o quê, que ninguém consegue apagar, com busca e filtros por data, pessoa e ação. Quem é admin também recebe um aviso quando alguém avalia um curso ou faz uma pergunta sobre uma instituição: no sino e, para quem ativou, por push.
+Notificações, Notícias, Blog, Comunidade e Termos e Privacidade guardam um histórico de quem fez o quê, que ninguém consegue apagar, com busca e filtros por data, pessoa e ação. Quem é admin também recebe um aviso quando alguém avalia um curso ou faz uma pergunta sobre uma instituição: no sino e, para quem ativou, por push.
 
 ---
 

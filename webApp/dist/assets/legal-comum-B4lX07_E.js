@@ -1,1 +1,0 @@
-import{g as t,d as n,b as c}from"./firebase-config-h-KQCxoQ.js";async function g(o,r){const e=document.getElementById("conteudo-legal");try{const a=await t(n(c,"configuracoes",o));e.innerHTML=a.exists()&&a.data().html?a.data().html:r}catch(a){console.error(`Erro ao carregar ${o}:`,a),e.innerHTML=r}}export{g as c};

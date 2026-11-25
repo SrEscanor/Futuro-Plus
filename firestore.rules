@@ -314,5 +314,20 @@ service cloud.firestore {
       allow read: if ehAdmin();
       allow write: if false;
     }
+
+    // Histórico das publicações dos Termos de Uso e da Política de
+    // Privacidade (Admin · Termos e Privacidade), com o texto inteiro de
+    // cada versão. Mesma regra dos outros históricos: só cresce, com o
+    // e-mail e o uid de quem está logado e a hora do servidor; ninguém edita
+    // nem apaga.
+    match /termos_historico/{registroId} {
+      allow read: if ehAdmin();
+      allow create: if ehAdmin()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.em == request.time
+        && request.resource.data.documento in ['termos', 'privacidade'];
+      allow update, delete: if false;
+    }
   }
 }

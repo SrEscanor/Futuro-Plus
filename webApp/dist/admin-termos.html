@@ -8,24 +8,39 @@
     <link rel="icon" href="./favicon.ico" sizes="48x48">
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="./apple-touch-icon.png">
-  <script type="module" crossorigin src="./assets/adminTermos-yHYoQ1H9.js"></script>
-  <link rel="modulepreload" crossorigin href="./assets/firebase-config-h-KQCxoQ.js">
+  <script type="module" crossorigin src="./assets/adminTermos-Ba7XHHX3.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/firebase-config-jDGsFXrl.js">
+  <link rel="modulepreload" crossorigin href="./assets/historico-paginas-Br3pVUgp.js">
   <link rel="modulepreload" crossorigin href="./assets/conteudo-legal-padrao-BqhUlQtQ.js">
+  <link rel="modulepreload" crossorigin href="./assets/historico-filtros-BOgkprmx.js">
+  <link rel="modulepreload" crossorigin href="./assets/noticias-proprias-util-6DILIAFS.js">
+  <link rel="stylesheet" crossorigin href="./assets/adminTermos-CguSudvg.css">
   <link rel="stylesheet" crossorigin href="./assets/admin-instituicoes-CoyX3WHe.css">
 </head>
 
 <body>
 
+    <!-- Página à parte do painel: não entra no menu das outras páginas
+         (abre pelo menu do site, "Termos e Privacidade", só para admin). -->
     <header class="topo-admin">
         <div class="titulo-area">
             <h1>Painel Admin · Termos e Privacidade</h1>
-            <a href="admin-instituicoes.html" class="voltar">&larr; Unidades</a>
-            <a href="admin-notificacoes.html" class="voltar">Notificações &rarr;</a>
         </div>
         <div class="usuario-area">
             <span id="admin-email"></span>
             <button id="logout-btn" class="btn-sair-admin">Sair</button>
         </div>
+        <nav class="admin-nav" aria-label="Termos e Privacidade">
+            <span class="termos-isolada">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" aria-hidden="true">
+                    <rect x="5" y="11" width="14" height="10" rx="2" />
+                    <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+                </svg>
+                Página à parte: fora do menu do painel
+            </span>
+            <a href="index.html" class="admin-nav-voltar">Voltar ao site</a>
+        </nav>
     </header>
 
     <div id="acesso-negado" class="acesso-negado">
@@ -38,41 +53,157 @@
     <main id="admin-app" style="display:none;">
         <div class="container-admin">
 
-            <div id="status-publicacao" class="status-importacao"></div>
+            <div class="termos-barra">
+                <h2>Termos e Privacidade</h2>
+                <p>Os dois textos que toda conta aceita no cadastro. Quando uma versão nova é publicada, quem já tinha
+                    aceitado precisa aceitar de novo na próxima vez que entrar.</p>
+            </div>
 
-            <section class="secao-form">
-                <h3>Termos de Uso <span class="versao-atual" id="versao-termos"></span></h3>
-                <div class="campo">
-                    <label for="conteudo-termos">Conteúdo (HTML)</label>
-                    <textarea id="conteudo-termos" class="textarea-legal" spellcheck="false"></textarea>
-                    <span class="campo-dica">Use tags HTML normais: &lt;h2&gt;, &lt;p&gt;, &lt;ul&gt;&lt;li&gt;, &lt;strong&gt;, &lt;a href="..."&gt;.</span>
+            <p id="status-publicacao" class="status-importacao termos-status" role="status" aria-live="polite" hidden></p>
+
+            <!-- a situação de cada documento (admin-termos.js) -->
+            <div class="termos-cartoes">
+                <article class="termo-cartao" id="cartao-termos" aria-labelledby="cartao-termos-titulo">
+                    <span class="termo-cartao-icone">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+                            <path d="M14 3v5h5M9 13h6M9 17h6" />
+                        </svg>
+                    </span>
+                    <div>
+                        <h3 id="cartao-termos-titulo">Termos de Uso</h3>
+                        <p data-situacao>Carregando…</p>
+                    </div>
+                    <span class="termo-selo" data-selo></span>
+                </article>
+                <article class="termo-cartao" id="cartao-privacidade" aria-labelledby="cartao-privacidade-titulo">
+                    <span class="termo-cartao-icone">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M12 3l7 3v5c0 4.5-3 8.3-7 9.5-4-1.2-7-5-7-9.5V6z" />
+                            <path d="M9.5 12l1.8 1.8 3.5-3.6" />
+                        </svg>
+                    </span>
+                    <div>
+                        <h3 id="cartao-privacidade-titulo">Política de Privacidade</h3>
+                        <p data-situacao>Carregando…</p>
+                    </div>
+                    <span class="termo-selo" data-selo></span>
+                </article>
+            </div>
+
+            <div class="abas-admin" role="tablist" aria-label="Documentos e histórico">
+                <button type="button" class="aba-admin aba-admin--ativa" role="tab" id="aba-termos" data-aba="termos"
+                    aria-selected="true" aria-controls="painel-editor">Termos de Uso
+                    <span class="termo-ponto" data-ponto hidden title="Alterado, não publicado"></span></button>
+                <button type="button" class="aba-admin" role="tab" id="aba-privacidade" data-aba="privacidade"
+                    aria-selected="false" aria-controls="painel-editor" tabindex="-1">Política de Privacidade
+                    <span class="termo-ponto" data-ponto hidden title="Alterada, não publicada"></span></button>
+                <button type="button" class="aba-admin" role="tab" id="aba-historico" data-aba="historico"
+                    aria-selected="false" aria-controls="painel-historico" tabindex="-1">Histórico</button>
+            </div>
+
+            <!-- ---------- EDITOR (a aba de cada documento) ---------- -->
+            <section id="painel-editor" role="tabpanel" aria-labelledby="aba-termos">
+                <div class="termo-editor">
+                    <div class="termo-editor-barra">
+                        <span class="termo-editor-info" id="editor-info"></span>
+                        <div class="termo-editor-acoes">
+                            <button type="button" id="btn-desfazer" class="btn btn-secundario">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+                                    <path d="M3 3v5h5" />
+                                </svg>
+                                Desfazer mudanças</button>
+                            <button type="button" id="btn-ver-como-fica" class="btn btn-secundario">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+                                Ver como fica</button>
+                        </div>
+                    </div>
+                    <label class="termos-so-leitor" for="conteudo-termos">Termos de Uso (HTML)</label>
+                    <textarea id="conteudo-termos" class="textarea-legal termo-textarea" data-documento="termos"
+                        spellcheck="false"></textarea>
+                    <label class="termos-so-leitor" for="conteudo-privacidade">Política de Privacidade (HTML)</label>
+                    <textarea id="conteudo-privacidade" class="textarea-legal termo-textarea" data-documento="privacidade"
+                        spellcheck="false" hidden></textarea>
+                    <span class="campo-dica">Use tags HTML normais: &lt;h2&gt;, &lt;p&gt;, &lt;ul&gt;&lt;li&gt;,
+                        &lt;strong&gt;, &lt;a href="..."&gt;.</span>
                 </div>
+
+                <!-- publica só o documento que mudou -->
+                <section class="termo-publicar" aria-labelledby="publicar-titulo">
+                    <div class="termo-publicar-cabeca">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M12 4.5 3.5 19h17zM12 10.5v4M12 17h.01" />
+                        </svg>
+                        <h3 id="publicar-titulo">Publicar o que mudou</h3>
+                    </div>
+                    <ul class="termo-publicar-lista" id="publicar-lista"></ul>
+                    <p id="publicar-aviso"></p>
+                    <div class="termo-publicar-confirmar">
+                        <div class="campo" id="campo-senha-admin">
+                            <label for="confirmar-senha-admin">Confirme sua senha para publicar</label>
+                            <input type="password" id="confirmar-senha-admin" placeholder="Sua senha atual"
+                                autocomplete="current-password">
+                        </div>
+                        <button type="button" id="btn-publicar-termos" class="btn btn-primario">Publicar</button>
+                    </div>
+                </section>
             </section>
 
-            <section class="secao-form">
-                <h3>Política de Privacidade <span class="versao-atual" id="versao-privacidade"></span></h3>
-                <div class="campo">
-                    <label for="conteudo-privacidade">Conteúdo (HTML)</label>
-                    <textarea id="conteudo-privacidade" class="textarea-legal" spellcheck="false"></textarea>
+            <!-- ---------- HISTÓRICO ---------- -->
+            <section id="painel-historico" role="tabpanel" aria-labelledby="aba-historico" hidden>
+                <p class="historico-dica">Cada publicação, com o e-mail de quem publicou e o texto daquela versão
+                    ("Ver texto"). Ninguém consegue apagar ou mudar estes registros.</p>
+                <!-- busca, Quando, Quem e Documento: historico-filtros.js -->
+                <div id="historico-filtros"></div>
+                <div class="tabela-container">
+                    <table class="tabela-historico">
+                        <thead>
+                            <tr>
+                                <th>Quando</th>
+                                <th>Quem</th>
+                                <th>O que fez</th>
+                                <th>Documento</th>
+                                <th><span class="termos-so-leitor">Texto</span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="historico-corpo"></tbody>
+                    </table>
                 </div>
+                <button type="button" id="historico-mais" class="btn btn-secundario historico-mais" hidden>Carregar mais
+                    antigos</button>
             </section>
-
-            <section class="zona-risco-admin">
-                <h3>⚠️ Publicar nova versão</h3>
-                <p>
-                    Ao publicar, a versão dos dois documentos sobe e <strong>toda conta que já tinha aceitado uma
-                    versão anterior</strong> vai ver um aviso obrigatório na próxima vez que entrar, bloqueando o
-                    uso do site até aceitar de novo. Essa ação não pode ser desfeita.
-                </p>
-                <div class="campo" id="campo-senha-admin">
-                    <label for="confirmar-senha-admin">Confirme sua senha para publicar</label>
-                    <input type="password" id="confirmar-senha-admin" placeholder="Sua senha atual" autocomplete="current-password">
-                </div>
-                <button type="button" id="btn-publicar-termos" class="btn btn-primario">Publicar nova versão</button>
-            </section>
-
         </div>
     </main>
+
+    <!-- ---------- "VER COMO FICA" E "VER TEXTO" (uma versão do histórico) ---------- -->
+    <div id="termos-janela" class="modal-overlay">
+        <div class="modal termos-janela" role="dialog" aria-modal="true" aria-labelledby="termos-janela-titulo">
+            <div class="modal-cabecalho">
+                <div>
+                    <h2 id="termos-janela-titulo"></h2>
+                    <p class="termos-janela-sub" id="termos-janela-sub"></p>
+                </div>
+                <button type="button" id="termos-janela-fechar" class="btn-fechar-modal" aria-label="Fechar">&times;</button>
+            </div>
+            <!-- o texto com o mesmo visual da página do site (legal.css), isolado num iframe onde
+                 nenhum script roda (sem allow-scripts); a mesma origem é só para o CSS carregar -->
+            <iframe class="termos-janela-texto" id="termos-janela-texto" title="Texto formatado"
+                sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"></iframe>
+            <div class="modal-rodape">
+                <button type="button" id="termos-janela-copiar" class="btn btn-secundario" hidden>Copiar para o editor</button>
+                <button type="button" id="termos-janela-ok" class="btn btn-primario">Fechar</button>
+            </div>
+        </div>
+    </div>
 
 </body>
 
