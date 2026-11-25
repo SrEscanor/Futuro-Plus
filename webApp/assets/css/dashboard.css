@@ -1756,6 +1756,42 @@ a.btn-saiba {
     background: rgba(255, 255, 255, 0.06);
 }
 
+/* a linha de baixo do rodapé: Termos de Uso e Política de Privacidade */
+.footer-legal {
+    max-width: 1200px;
+    margin: 32px auto 0;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 6px 14px;
+    font-size: 13px;
+    color: #8f97c9;
+}
+
+.footer-legal a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    color: #b9c0ee;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.footer-legal a:hover {
+    color: #fff;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.footer-legal a:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 3px;
+    border-radius: 4px;
+}
+
 /* =========================================================
    MENU LATERAL (drawer mobile)
    ========================================================= */

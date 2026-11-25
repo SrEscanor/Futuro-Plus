@@ -1,1 +1,0 @@
-import"./firebase-config-jDGsFXrl.js";import{c as a}from"./legal-comum-D9Bih1dK.js";import{P as r}from"./conteudo-legal-padrao-BqhUlQtQ.js";import{a as i}from"./vlibras-DQXnOYHD.js";a("politica-privacidade",r);i();
