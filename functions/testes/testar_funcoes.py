@@ -79,6 +79,14 @@ class Doc:
     def collection(self, nome):
         return Colecao(self.banco, f"{self.caminho}/{nome}")
 
+    @property
+    def reference(self):
+        return self
+
+    def delete(self):
+        # como no Firestore: as subcoleções não vão junto
+        self.banco.pop(self.caminho, None)
+
 
 class Colecao:
     def __init__(self, banco, caminho):
@@ -115,9 +123,16 @@ class Consulta:
     def select(self, _campos):
         return self
 
+    @staticmethod
+    def valor_do_campo(dados, campo):
+        # "exclusao.executarEm": o campo dentro do mapa, como no Firestore
+        for parte in campo.split("."):
+            dados = dados.get(parte) if isinstance(dados, dict) else None
+        return dados
+
     def stream(self):
         return [doc for doc in self.colecao.stream()
-                if all(self.COMPARAR[operador]((doc.to_dict() or {}).get(campo), valor)
+                if all(self.COMPARAR[operador](self.valor_do_campo(doc.to_dict() or {}, campo), valor)
                        for campo, operador, valor in self.filtros)]
 
 
@@ -746,10 +761,58 @@ def testar_comunidade():
             s.stop()
 
 
+# --------------------------------------------------------------------------
+# Exclusão de conta (30 dias depois do pedido)
+# --------------------------------------------------------------------------
+
+def testar_exclusao_de_conta():
+    print("Exclusão de conta")
+    vencido = (datetime.now(timezone.utc) - timedelta(days=1)).isoformat()
+    futuro = (datetime.now(timezone.utc) + timedelta(days=10)).isoformat()
+    docs = {
+        "usuarios/u1": {"nome": "Ana", "exclusao": {"executarEm": vencido}},
+        "usuarios/u1/certificados/c1": {"caminho": "certificados/u1/c1.webp"},
+        "chat_sessions/u1": {"itens": ["oi"]},
+        "chat_limites/u1": {"data": "2026-11-25", "contagem": 3},
+        "fcm_tokens/token-celular": {"uid": "u1"},
+        "fcm_tokens/token-computador": {"uid": "u1"},
+        "fcm_tokens/token-visitante": {"uid": None},
+        "instituicoes/x/comentarios/u1_c1": {"uid": "u1", "texto": "Gostei muito."},
+        # pediu a exclusão, mas o prazo ainda não venceu
+        "usuarios/u2": {"nome": "Bia", "exclusao": {"executarEm": futuro}},
+        "chat_sessions/u2": {"itens": ["olá"]},
+        "fcm_tokens/token-u2": {"uid": "u2"},
+    }
+    arquivos = {"certificados/u1/c1.webp": {"bytes": 10}}
+    apagadas = []
+    simulacoes = [
+        *ambiente(docs, arquivos),
+        mock.patch.object(main.firebase_auth, "delete_user", side_effect=apagadas.append),
+    ]
+    for s in simulacoes:
+        s.start()
+    try:
+        main.excluir_contas_agendadas.__wrapped__(None)
+        conferir("a conta vencida sai do login, do perfil e do mural (com a imagem)",
+                 apagadas == ["u1"] and "usuarios/u1" not in docs and "usuarios/u1/certificados/c1" not in docs
+                 and not arquivos, apagadas)
+        conferir("a conversa com o assistente e o contador do dia saem junto",
+                 "chat_sessions/u1" not in docs and "chat_limites/u1" not in docs)
+        conferir("os códigos de notificação da conta saem, os de visitante e de outra conta ficam",
+                 sorted(c for c in docs if c.startswith("fcm_tokens/")) == ["fcm_tokens/token-u2", "fcm_tokens/token-visitante"])
+        conferir("a avaliação publicada fica", "instituicoes/x/comentarios/u1_c1" in docs)
+        conferir("quem ainda está no prazo não perde nada",
+                 "usuarios/u2" in docs and "chat_sessions/u2" in docs and "fcm_tokens/token-u2" in docs)
+    finally:
+        for s in simulacoes:
+            s.stop()
+
+
 if __name__ == "__main__":
     testar_nomes()
     testar_demanda()
     testar_capas()
     testar_noticias()
     testar_comunidade()
+    testar_exclusao_de_conta()
     print("TUDO CERTO")

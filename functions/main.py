@@ -333,8 +333,11 @@ def extrair_logo_etec(req: https_fn.Request) -> https_fn.Response:
 
 
 def _excluir_conta_por_completo(db, uid):
-    """Apaga os certificados (Firestore + Storage) e remove o perfil e a
-    conta de Auth. Usa o Admin SDK, que não exige login recente —
+    """Apaga os certificados (Firestore + Storage), a conversa com o
+    assistente (e o contador de mensagens do dia), os códigos de notificação
+    dos aparelhos ligados à conta, o perfil e a conta de Auth. As
+    avaliações, dúvidas e respostas publicadas ficam (ver a seção 7 da
+    Política de Privacidade). Usa o Admin SDK, que não exige login recente —
     diferente do delete que o próprio usuário faria pelo navegador, aqui
     ninguém está logado para reautenticar."""
     bucket = storage.bucket("futuroplus-bce54.firebasestorage.app")
@@ -348,6 +351,16 @@ def _excluir_conta_por_completo(db, uid):
             except Exception as erro_storage:
                 print(f"Erro ao apagar certificado {caminho} de {uid}: {erro_storage}")
         cert_doc.reference.delete()
+
+    # a conversa com o assistente e o limite do dia (o id dos dois é o uid)
+    db.collection("chat_sessions").document(uid).delete()
+    db.collection("chat_limites").document(uid).delete()
+
+    # O código de notificação (token do FCM) de cada aparelho em que a pessoa
+    # ativou os avisos. Sem apagar, o aparelho seguiria recebendo os avisos
+    # de "quem tem conta" de uma conta que não existe mais.
+    for token_doc in db.collection("fcm_tokens").where("uid", "==", uid).stream():
+        token_doc.reference.delete()
 
     db.collection("usuarios").document(uid).delete()
 
