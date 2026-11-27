@@ -229,6 +229,8 @@ const CONFIGS = {
             }
         ]
     },
+    // na ordem da tela (perfil-visao.js); o bloco de Minhas instituições só
+    // existe para quem já tem formação, e aí o passo dele fica de fora
     perfil: {
         chaveVisto: 'futuroplus_tour_perfil_visto',
         esperarVisivel: '#perfil-visualizacao',
@@ -239,9 +241,48 @@ const CONFIGS = {
                 texto: 'Clique aqui pra contar suas áreas de interesse, curso desejado e objetivo, isso ajuda a melhorar suas recomendações.'
             },
             {
-                seletor: '#perfil-cartao-testes',
+                seletor: '.perfil-passo',
+                titulo: 'Perfil completo',
+                texto: 'A barra mostra quanto do seu perfil já está preenchido, e o próximo passo sugere o que fazer agora.'
+            },
+            {
+                seletor: '#formacoes',
+                titulo: 'Formações',
+                texto: 'Os cursos que você já concluiu. Eles entram aqui pelos certificados conferidos no Mural.'
+            },
+            {
+                seletor: '.perfil-sobre',
+                titulo: 'Sobre mim',
+                texto: 'O curso que você quer seguir, seu estilo de aprendizado e suas áreas de interesse, do jeito que você contou no Editar perfil.'
+            },
+            {
+                seletor: '#mural',
+                titulo: 'Seu mural',
+                texto: 'Uma prévia dos certificados que você pendurou no Mural.'
+            },
+            {
+                // no celular, com os dois testes feitos, o cartão passa da
+                // altura da tela: lá o destaque fica no título
+                seletor: '#perfil-cartao-testes .perfil-cartao-topo',
+                seletorDesktop: '#perfil-cartao-testes',
                 titulo: 'Seus testes',
-                texto: 'O resultado dos seus testes aparece aqui, sempre que quiser conferir de novo.'
+                texto: 'O resultado dos seus testes aparece aqui, sempre que quiser conferir de novo.',
+                textoDesktop: 'O resultado dos seus testes aparece aqui, sempre que quiser conferir de novo.'
+            },
+            {
+                seletor: '.perfil-conquistas',
+                titulo: 'Conquistas',
+                texto: 'Selos que você ganha completando o perfil, fazendo o Teste Vocacional, pendurando o primeiro certificado e se formando numa Etec ou Fatec.'
+            },
+            {
+                seletor: '.perfil-instituicoes',
+                titulo: 'Minhas instituições',
+                texto: 'As escolas onde você se formou. Dá pra comentar sobre cada uma, e o comentário aparece na página dela.'
+            },
+            {
+                seletor: '#perfil-cartao-push',
+                titulo: 'Notificações',
+                texto: 'Aqui você ativa os avisos do Futuro+ no navegador, pra receber mesmo com o site fechado.'
             }
         ]
     },
