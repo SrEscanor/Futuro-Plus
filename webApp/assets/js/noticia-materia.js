@@ -50,7 +50,29 @@ export function linhaDeDatas(noticia, agora = new Date()) {
     return partes.join(' · ');
 }
 
-// opcoes.botaoCopiar: mostra o "Copiar link" (a página pública liga o clique)
+const ICONE_COMPARTILHAR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" '
+    + 'stroke-linejoin="round" aria-hidden="true"><path d="M12 15.5V4M12 4 7.8 8.2M12 4l4.2 4.2"/>'
+    + '<path d="M5 13.5V18a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4.5"/></svg>';
+
+// O cartão azul do fim da matéria. As opções entram pelo
+// compartilhar-noticia.js, que sabe o endereço público da notícia.
+function cartaoCompartilhar() {
+    return `
+        <section class="materia-partilha" aria-label="Compartilhar a notícia">
+            <div class="materia-partilha-topo">
+                <div>
+                    <p class="materia-partilha-titulo">Gostou da notícia?</p>
+                    <p class="materia-partilha-sub">Mande para quem também está escolhendo um curso.</p>
+                </div>
+                <button type="button" class="materia-partilhar" data-acao="compartilhar" aria-expanded="false"
+                    aria-controls="materia-partilha-opcoes">${ICONE_COMPARTILHAR}<span>Compartilhar</span></button>
+            </div>
+            <div class="materia-partilha-opcoes" id="materia-partilha-opcoes" hidden></div>
+        </section>`;
+}
+
+// opcoes.botaoCopiar: mostra o "Copiar link" e o cartão de compartilhar do
+// fim (a página pública liga os cliques; o "Ver como fica" do painel não)
 export function htmlDaMateria(noticia, { agora = new Date(), botaoCopiar = true } = {}) {
     const etiquetas = (noticia.instituicoes || noticia.etiquetas || [])
         .filter((id) => id in ETIQUETAS)
@@ -75,5 +97,6 @@ export function htmlDaMateria(noticia, { agora = new Date(), botaoCopiar = true 
         </div>
         ${figura(imagemPrincipal(noticia), true)}
         <div class="materia-corpo">${blocos}</div>
+        ${botaoCopiar ? cartaoCompartilhar() : ''}
         <a class="materia-voltar" href="noticias.html">&larr; Voltar para Notícias</a>`;
 }

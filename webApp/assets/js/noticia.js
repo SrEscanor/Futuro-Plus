@@ -6,7 +6,8 @@
 // trocam esse arquivo por uma cópia de mentira).
 import { lerNoticiaPublicada } from './noticias-proprias-dados.js';
 import { htmlDaMateria } from './noticia-materia.js';
-import { paraData } from './noticias-proprias-util.js';
+import { ligarCompartilhar } from './compartilhar-noticia.js';
+import { linkDaMateria, paraData } from './noticias-proprias-util.js';
 import { escapeHtml } from './noticias-util.js';
 
 const caixa = document.getElementById('materia');
@@ -27,6 +28,8 @@ function mostrar(noticia) {
     document.querySelector('meta[name="description"]')?.setAttribute('content', noticia.linhaApoio || noticia.titulo);
     caixa.removeAttribute('aria-busy');
     caixa.innerHTML = htmlDaMateria(noticia);
+    // o endereço limpo da matéria, no site em que a pessoa está
+    ligarCompartilhar(caixa, noticia, new URL(linkDaMateria(id), location.href).href);
 }
 
 // "Copiar link": o endereço desta página, sem nada a mais

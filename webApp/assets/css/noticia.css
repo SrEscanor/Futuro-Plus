@@ -253,6 +253,457 @@
     background: #e2e8ff;
 }
 
+/* ---- compartilhar, no fim da matéria (compartilhar-noticia.js) ----
+   O botão tem a cara do "Compartilhar resultado" dos testes. */
+.materia-partilha {
+    margin: 34px 0 18px;
+    padding: 20px 22px;
+    border: 1px solid rgba(78, 110, 232, 0.18);
+    border-radius: var(--radius-lg, 22px);
+    background: var(--blue-soft);
+}
+
+.materia-partilha-topo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px 18px;
+}
+
+.materia-partilha-titulo {
+    margin: 0;
+    font-family: 'Sora', 'Segoe UI', Arial, sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.materia-partilha-sub {
+    margin: 4px 0 0;
+    font-size: 14px;
+    color: var(--ink-soft);
+}
+
+.materia-partilhar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 12px 22px;
+    border: none;
+    border-radius: var(--radius-md, 16px);
+    background: var(--blue);
+    box-shadow: 0 12px 24px -14px rgba(59, 91, 219, 0.9);
+    color: #fff;
+    font: 600 15px 'Inter', sans-serif;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.materia-partilhar svg {
+    width: 19px;
+    height: 19px;
+}
+
+.materia-partilhar:hover,
+.materia-partilhar[aria-expanded="true"] {
+    background: var(--blue-dark);
+}
+
+.materia-partilhar:focus-visible,
+.materia-partilha-opcao:focus-visible {
+    outline: 3px solid var(--blue-dark);
+    outline-offset: 2px;
+}
+
+.materia-partilha-opcoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(78, 110, 232, 0.18);
+}
+
+.materia-partilha-opcoes[hidden] {
+    display: none;
+}
+
+.materia-partilha-opcao {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 0 15px;
+    border: 1.5px solid var(--line);
+    border-radius: 99px;
+    background: var(--surface);
+    color: var(--ink);
+    font: 600 13.5px 'Inter', sans-serif;
+    text-decoration: none;
+    cursor: pointer;
+    transition: border-color 0.15s;
+}
+
+.materia-partilha-opcao svg {
+    flex: none;
+    width: 17px;
+    height: 17px;
+}
+
+.materia-partilha-opcao:hover {
+    border-color: var(--blue);
+}
+
+.materia-partilha-opcao--whatsapp svg { color: #25d366; }
+.materia-partilha-opcao--facebook svg { color: #1877f2; }
+.materia-partilha-opcao--linkedin svg { color: #0a66c2; }
+.materia-partilha-opcao--x svg { color: #111; }
+.materia-partilha-opcao--email svg,
+.materia-partilha-opcao--copiar svg { color: var(--blue-dark); }
+
+.materia-partilha-nota {
+    flex-basis: 100%;
+    margin: 4px 0 0;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+}
+
+/* =========================================================
+   A página: a matéria e a lateral (noticia-lateral.js). No computador
+   a lateral fica à direita; abaixo de 1180 px ela vem depois da matéria.
+   ========================================================= */
+.materia-pagina {
+    display: grid;
+    grid-template-columns: minmax(0, 760px) 320px;
+    gap: 44px;
+    justify-content: center;
+    align-items: start;
+}
+
+.materia-pagina .materia {
+    margin: 0;
+    max-width: none;
+}
+
+/* com a lateral do lado, a coluna da matéria fica mais estreita */
+.materia-pagina .materia-titulo {
+    font-size: clamp(27px, 2.8vw, 40px);
+}
+
+.lateral {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    min-width: 0;
+    padding-top: 6px;
+}
+
+.lateral-cartao {
+    padding: 18px 16px 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg, 22px);
+    background: var(--surface);
+    box-shadow: var(--shadow-card);
+}
+
+.lateral-cabecalho {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 4px 12px;
+}
+
+.lateral-cabecalho > img {
+    flex: none;
+    width: 26px;
+    height: 26px;
+}
+
+.lateral-cabecalho h2 {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--ink);
+}
+
+.lateral-arroba {
+    display: block;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--ink-soft);
+}
+
+.lateral-insta-icone {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285aeb 90%);
+    color: #fff;
+}
+
+.lateral-insta-icone svg {
+    width: 18px;
+    height: 18px;
+}
+
+.lateral-seguir {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 0 16px;
+    border-radius: 99px;
+    background: var(--blue);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background 0.15s;
+}
+
+.lateral-seguir:hover {
+    background: var(--blue-dark);
+}
+
+/* O cartão do Instagram tem o cabeçalho do perfil (altura fixa) e duas
+   fileiras de 3 postagens quadradas: a altura sai da largura. */
+.lateral-insta-quadro {
+    position: relative;
+    overflow: hidden;
+    padding-top: calc(66.67% + 148px);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: #fafafa;
+}
+
+.lateral-insta-quadro iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+.lateral-redes {
+    display: flex;
+    gap: 8px;
+    margin: 12px 0 2px;
+}
+
+.lateral-rede {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 40px;
+    border: 1.5px solid var(--line);
+    border-radius: 99px;
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: border-color 0.15s;
+}
+
+.lateral-rede:hover {
+    border-color: var(--blue);
+}
+
+.lateral-rede svg {
+    flex: none;
+    width: 16px;
+    height: 16px;
+}
+
+.lateral-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.lateral-aviso {
+    padding: 6px 6px 10px;
+    font-size: 13px;
+    color: var(--ink-soft);
+}
+
+.lateral-mini,
+.lateral-curso {
+    display: grid;
+    gap: 12px;
+    align-items: center;
+    padding: 7px 6px;
+    border-radius: 12px;
+    color: inherit;
+    text-decoration: none;
+    transition: background 0.15s;
+}
+
+.lateral-mini {
+    grid-template-columns: 84px minmax(0, 1fr);
+}
+
+.lateral-curso {
+    grid-template-columns: 44px minmax(0, 1fr);
+}
+
+a.lateral-mini:hover,
+.lateral-curso:hover {
+    background: var(--blue-soft);
+}
+
+.lateral-capa {
+    width: 84px;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border-radius: 10px;
+    background: var(--blue-soft);
+}
+
+.lateral-capa img,
+.lateral-capa .noticia-arte {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.lateral-texto {
+    min-width: 0;
+}
+
+.lateral-titulo {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    font-size: 13.5px;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--ink);
+}
+
+.lateral-meta,
+.lateral-motivo {
+    display: block;
+    margin-top: 3px;
+    font-size: 12px;
+    color: var(--ink-soft);
+}
+
+.lateral-meta b,
+.lateral-motivo {
+    font-weight: 700;
+    color: var(--blue-dark);
+}
+
+.lateral-logo {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+}
+
+.lateral-logo img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+.lateral-sub {
+    margin: -6px 4px 10px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+}
+
+.lateral-ver {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--blue-dark);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.lateral-ver:hover {
+    text-decoration: underline;
+}
+
+.lateral-chamada {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 42px;
+    margin-top: 10px;
+    border-radius: var(--radius-md, 16px);
+    background: var(--blue-soft);
+    color: var(--blue-dark);
+    font-size: 13.5px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.lateral-chamada:hover {
+    background: #e2e8ff;
+}
+
+/* o display acima anularia o atributo hidden */
+.lateral-sub[hidden],
+.lateral-chamada[hidden] {
+    display: none;
+}
+
+.lateral a:focus-visible {
+    outline: 3px solid var(--blue);
+    outline-offset: 2px;
+}
+
+/* texto só para leitor de tela */
+.lateral-so-leitor {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+@media (max-width: 1179px) {
+    .materia-pagina {
+        grid-template-columns: minmax(0, 760px);
+        gap: 8px;
+    }
+
+    .materia-pagina .materia {
+        padding-bottom: 12px;
+    }
+
+    /* o fim da página não fica embaixo dos botões do VLibras e do assistente */
+    .lateral {
+        margin-bottom: 96px;
+        padding-top: 0;
+    }
+}
+
 /* aviso de notícia que não existe (ou ainda não foi publicada) */
 .materia-aviso {
     padding: 60px 16px;
@@ -307,5 +758,17 @@
 
     .materia-compartilhar {
         margin-left: 0;
+    }
+
+    .materia-partilha {
+        padding: 18px;
+    }
+
+    .materia-partilhar {
+        width: 100%;
+    }
+
+    .lateral {
+        margin-bottom: 84px;
     }
 }
