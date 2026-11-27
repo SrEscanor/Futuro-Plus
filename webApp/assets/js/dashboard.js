@@ -223,12 +223,14 @@ document.addEventListener('DOMContentLoaded', () => {
             iniciarTourBoasVindas({ forcar: true });
             return;
         }
-        // Testes, Cursos, Mural e Perfil têm seu próprio mini-tour; nas
-        // demais páginas (sem um definido), manda pra home com o sinal na
-        // URL que inicio-tour.js lê pra começar sozinho.
-        const { iniciarTourDaPagina } = await import('./tour-paginas.js');
+        // As páginas do menu, a matéria, o curso, a instituição e os testes
+        // têm seu próprio mini-tour (tour-paginas.js). Só página sem tour
+        // nenhum manda pra home, com o sinal na URL que inicio-tour.js lê pra
+        // começar sozinho: numa página com tour que ainda está carregando
+        // (ou no meio de um teste), sair dali faria a pessoa perder o lugar.
+        const { iniciarTourDaPagina, temTourNaPagina } = await import('./tour-paginas.js');
         const iniciou = await iniciarTourDaPagina({ forcar: true });
-        if (!iniciou) window.location.href = 'index.html?tour=1';
+        if (!iniciou && !temTourNaPagina()) window.location.href = 'index.html?tour=1';
     }
     document.getElementById('btn-repetir-tour')?.addEventListener('click', abrirTourGuiado);
 

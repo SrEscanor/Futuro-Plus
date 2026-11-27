@@ -11,8 +11,8 @@ const PASSOS = [
         seletor: '.hamburger',
         seletorDesktop: '.menu-panel',
         titulo: 'Menu',
-        texto: 'Por aqui você navega entre Início, Testes, Cursos, Mural e Perfil quando quiser.',
-        textoDesktop: 'No computador o menu já fica fixo na lateral, é só clicar em Início, Testes, Cursos, Mural ou Perfil quando quiser.'
+        texto: 'Por aqui você navega entre Início, Testes, Cursos, Instituições, Notícias, Mural e Perfil quando quiser.',
+        textoDesktop: 'No computador o menu já fica fixo na lateral, é só clicar em Início, Testes, Cursos, Instituições, Notícias, Mural ou Perfil quando quiser.'
     },
     {
         seletor: '#card-vocacional',
