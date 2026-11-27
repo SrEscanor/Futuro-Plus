@@ -77,7 +77,11 @@ function perguntasDeExemplo() {
     ]);
 }
 
-const certificado = { id: 'c1', titulo: 'Desenvolvimento de Aplicativos para Smartphones', anoConclusao: 2025 };
+// no mesmo formato que observarConta entrega (com o curso do catálogo)
+const certificado = {
+    id: 'c1', titulo: 'Desenvolvimento de Aplicativos para Smartphones', anoConclusao: 2025,
+    cursoId: 'desenvolvimento-de-aplicativos-para-smartphones'
+};
 const CONTAS = {
     visitante: { logado: false },
     'sem-certificado': { logado: true, uid: 'u1', nome: 'Marina', admin: false, certificados: [], certificadosDisponiveis: [] },

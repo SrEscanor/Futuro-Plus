@@ -40,11 +40,27 @@ const estado = {
 
 // Recalcula quais certificados ainda não têm comentário desta conta, depois
 // de criar, editar ou apagar um comentário (cada certificado dá direito a um).
+// A vaga de comentário é por curso do catálogo (o id é "uid_cursoId", ver
+// salvarComentario): um segundo certificado do mesmo curso nesta escola não
+// abre outra vaga, senão o comentário cairia no mesmo endereço e o servidor
+// recusaria. Sem curso do catálogo, a vaga é do próprio certificado.
+const chaveDoCertificado = (certificado) => certificado.cursoId || certificado.id;
+
 function atualizarCertificadosDisponiveis() {
-    const usados = new Set(estado.meusComentarios.map((c) => c.certificadoId));
+    const uid = estado.conta.uid || '';
+    const certificados = estado.conta.certificados || [];
+    const usados = new Set(estado.meusComentarios.flatMap((comentario) => {
+        const doComentario = certificados.find((cert) => cert.id === comentario.certificadoId);
+        const id = String(comentario.id || '');
+        return [
+            comentario.certificadoId,
+            doComentario ? chaveDoCertificado(doComentario) : '',
+            uid && id.startsWith(`${uid}_`) ? id.slice(uid.length + 1) : ''
+        ];
+    }).filter(Boolean));
     estado.conta = {
         ...estado.conta,
-        certificadosDisponiveis: (estado.conta.certificados || []).filter((cert) => !usados.has(cert.id))
+        certificadosDisponiveis: certificados.filter((cert) => !usados.has(cert.id) && !usados.has(chaveDoCertificado(cert)))
     };
 }
 

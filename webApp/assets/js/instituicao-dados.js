@@ -171,7 +171,7 @@ export async function apagarPergunta(unidadeId, perguntaId) {
 // Avisa quem está vendo a página: aoMudar(conta), com conta = { logado: false }
 // ou { logado: true, uid, nome, admin, certificados }. certificados é a lista
 // de certificados do Mural em que a leitura achou esta unidade e conferiu o
-// nome ([{ id, titulo, anoConclusao }, ...], podendo ser mais de um).
+// nome ([{ id, titulo, anoConclusao, cursoId }, ...], podendo ser mais de um).
 export function observarConta(unidadeId, aoMudar) {
     return onAuthStateChanged(auth, async (usuario) => {
         if (!usuario) {
@@ -191,7 +191,15 @@ export function observarConta(unidadeId, aoMudar) {
                 // igual ao do perfil, sem mexer: as regras conferem letra por letra
                 nome: typeof dados.nome === 'string' ? dados.nome : '',
                 admin: dados.admin === true,
-                certificados: confirmados.map((d) => ({ id: d.id, titulo: d.data().titulo || '', anoConclusao: d.data().anoConclusao ?? null }))
+                // cursoId junto: o id do comentário é "uid_cursoId" (salvarComentario),
+                // e sem ele o comentário ia para "uid_certificadoId", que as
+                // regras recusam quando o certificado tem curso do catálogo
+                certificados: confirmados.map((d) => ({
+                    id: d.id,
+                    titulo: d.data().titulo || '',
+                    anoConclusao: d.data().anoConclusao ?? null,
+                    cursoId: d.data().cursoId || ''
+                }))
             });
         } catch (erro) {
             console.error('Erro ao ler a conta:', erro);
